@@ -68,7 +68,7 @@ public class ChatClient extends AbstractClient
   {
     try
     {
-    	sendToServer(message);
+    	sendToServer(message); //1_11.12.25_1
     }
     catch(IOException e)
     {
