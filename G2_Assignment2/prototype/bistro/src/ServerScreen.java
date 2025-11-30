@@ -11,6 +11,8 @@ import javafx.stage.Stage;
 import javafx.geometry.Insets;
 
 public class ServerScreen extends Application {
+    //define port number
+    private int portnumber=8080;
     //I nees to create a server screen with javaFX that will present server status and data from clients
     @Override
     public void start(Stage primaryStage) {
@@ -21,10 +23,12 @@ public class ServerScreen extends Application {
         grid.setHgap(10);
         grid.setPadding(new Insets(10));
         //I nees a text box that will show server connection status
-        Label statusLabel = new Label();
-        TextField statusTextField = new TextField();
+        Label statusLabel = new Label("Server port:");
+        Label statusTextField = new Label();
         statusTextField.setPrefHeight(150);
         statusTextField.setPrefWidth(200);
+        //if the server port is running it will show "Server is running on port 8080"
+        statusTextField.setText("Server is running on port " + portnumber);
 
         grid.add(statusLabel, 0, 0);
         grid.add(statusTextField, 1, 0);    
@@ -44,7 +48,6 @@ public class ServerScreen extends Application {
         primaryStage.show();
 
 }
-    
 
     public static void main(String[] args) {
         Application.launch(args);
