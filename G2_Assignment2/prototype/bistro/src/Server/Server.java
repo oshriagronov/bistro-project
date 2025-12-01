@@ -1,8 +1,10 @@
+package Server;
 import java.io.*;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import ocsf.server.*;
-
+import common.ConnectionToDB;
+import Logic.Reservation;
 /**
  * This class overrides some of the methods in the abstract 
  * superclass in order to give more functionality to the server.
@@ -15,11 +17,11 @@ public class Server extends AbstractServer
    * The default port to listen on.
    */
   final public static int DEFAULT_PORT = 5555;
-  
+  public static ArrayList<String> log = new ArrayList<>();
   //Constructors ****************************************************
   
   /**
-   * Constructs an instance of the echo server.
+   * Constructs an instance of the server.
    *
    * @param port The port number to connect on.
    */
@@ -38,66 +40,70 @@ public class Server extends AbstractServer
    * @param client The connection from which the message originated.
    */
 	public void handleMessageFromClient(Object msg, ConnectionToClient client){
-		System.out.println(client); // print the client details.
-		int result;	
-		ArrayList<String> input = new ArrayList<>();
-		//check if the msg is ArrayList and check if every value in there is string.
-		if((msg instanceof ArrayList<?> list)) {
-			  for(Object o: list) {
-				  input.add((String) o);
-			  }
-		}
-		// send a message to client if something went wrong with the data type
-		else {
-		  try {
-			  client.sendToClient("Invalid input.");
-			  return;
-		  }catch(IOException e){
-			  e.printStackTrace();
-		  }
-		}
+		//System.out.println(client); // print the client details.
+		boolean log_flag = false;
+		int result;
+		String respond = "";
+		String str_msg = (String)msg;
+		String[] input = str_msg.split("_");
 		  /*
 		   * examples for how date should look like as string in the ArrayList<String>
 		   * 27-11-2025
 		   * 30-02-2025
 		  */
-		  try {
-			  //if the query is for adding new order to the DB.
-			  if(input.get(0).equals("insert")) {
-				  Reservation reservation = parsingDataIntoReservation(input);
-				  ConnectionToDB db = new ConnectionToDB();
-				  result = db.insertNewOrder(reservation);
-				  client.sendToClient(result >= 1 ? "Order inserted succesfully." : "Order wasn't inserted due to error.");
-			  }
-			  //if the query is for update an existing order, fields to update are: order_date, number_of_guests. search the order by order_number.
-			  else if(input.get(0).equals("update")){
-				  String order_number = input.get(1);
-				  String order_date = input.get(2);
-				  String number_of_guests = input.get(3);
-				  ConnectionToDB db = new ConnectionToDB();
-				  result = db.updateOrder(Integer.parseInt(order_number), parseStringIntoDate(order_date), Integer.parseInt(number_of_guests));
-				  client.sendToClient("order: " + order_number + (result >= 1 ? " was updated succesfully." : " wasn't updated due to error."));
-			  }
-			  // if none of the above then the server doesn't know how to handle such request.
-			  else
-					client.sendToClient("Request query doesn't exist.");
-		  }catch (IOException e) {
-			  e.printStackTrace();
+		  //if the query is for adding new order to the DB.
+		  if(input[0].equals("insert")) {
+			  Reservation reservation = parsingDataIntoReservation(input);
+			  ConnectionToDB db = new ConnectionToDB();
+			  result = db.insertNewOrder(reservation);
+			  respond = client + ": " + (result >= 1 ? "Order inserted succesfully." : "Order wasn't inserted due to error.");
+
 		  }
+		  //if the query is for update an existing order, fields to update are: order_date, number_of_guests. search the order by order_number.
+		  else if(input[0].equals("update")){
+			  String order_number = input[1];
+			  String order_date = input[2];
+			  String number_of_guests = input[3];
+			  ConnectionToDB db = new ConnectionToDB();
+			  result = db.updateOrder(Integer.parseInt(order_number), parseStringIntoDate(order_date), Integer.parseInt(number_of_guests));
+			  respond = client + ": order: " +(order_number + (result >= 1 ? " was updated succesfully." : " wasn't updated due to error."));
+		  }
+		  // return a string of the log array for the server screen
+		  else if(input[0].equals("log")) {
+			  log_flag = true;
+		  }
+		  // if none of the above then the server doesn't know how to handle such request.
+		  else {
+				respond = client + (": Request query doesn't exist.");
+		  }
+		  // if it log, then return the log of the server, if not then return the respond.
+		  try {
+			  if(!log_flag) {
+				  client.sendToClient(respond);
+				  log.add(respond);
+			  }
+			  else
+				  client.sendToClient(log.toString());
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+
 	}
 	/**
 	 * This method get data of the reservation and create an Reservation object and parsing the data in correct way for query.
 	 * @param data
 	 * @return Reservation object after parsing the data and ready to be inserted to the DB
 	 */
-	public Reservation parsingDataIntoReservation(ArrayList<String> data) {
-			LocalDate order_date = parseStringIntoDate(data.get(1));
-			LocalDate date_of_placing_order = parseStringIntoDate(data.get(5));
+	public Reservation parsingDataIntoReservation(String[] data) {
+			LocalDate order_date = parseStringIntoDate(data[1]);
+			LocalDate date_of_placing_order = parseStringIntoDate(data[5]);
 			return new Reservation(
 					order_date,
-					Integer.parseInt(data.get(2)),
-					Integer.parseInt(data.get(3)), 
-					Integer.parseInt(data.get(4)),
+					Integer.parseInt(data[2]),
+					Integer.parseInt(data[3]), 
+					Integer.parseInt(data[4]),
 					date_of_placing_order);
 			
 	}
@@ -124,6 +130,7 @@ public class Server extends AbstractServer
 	  {
 	    System.out.println
 	      ("Server listening for connections on port " + getPort());
+	    log.add("Server listening for connections on port " + getPort());
 	  }
   
 	  /**
@@ -134,8 +141,16 @@ public class Server extends AbstractServer
 	  {
 	    System.out.println
 	      ("Server has stopped listening for connections.");
+	    log.add("Server has stopped listening for connections.");
 	}
-  
+	protected void clientConnected(ConnectionToClient client) {
+		log.add(client.toString() + " connected");
+	}
+	
+	  synchronized protected void clientDisconnected(
+			    ConnectionToClient client) {
+		  log.add(client.toString() + " disconnected");
+	  }
   //Class methods ***************************************************
   
   /**
@@ -167,6 +182,7 @@ public class Server extends AbstractServer
 	    catch (Exception ex) 
 	    {
 	      System.out.println("ERROR - Could not listen for clients!");
+	      log.add("Server has stopped listening for connections.");
 	    }
 	  }
 	}

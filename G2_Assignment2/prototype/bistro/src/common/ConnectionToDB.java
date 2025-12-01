@@ -1,3 +1,4 @@
+package common;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -6,6 +7,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Time;
 import java.time.LocalDate;
+import Logic.Reservation;
 public class ConnectionToDB {
 	Connection conn;
 	public ConnectionToDB() 
