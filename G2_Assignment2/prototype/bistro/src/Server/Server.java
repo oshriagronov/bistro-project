@@ -1,7 +1,6 @@
 package Server;
 import java.io.*;
 import java.time.LocalDate;
-import java.util.ArrayList;
 import ocsf.server.*;
 import common.ConnectionToDB;
 import Logic.Reservation;
@@ -17,7 +16,6 @@ public class Server extends AbstractServer
    * The default port to listen on.
    */
   final public static int DEFAULT_PORT = 5555;
-  public static ArrayList<String> log = new ArrayList<>();
   //Constructors ****************************************************
   
   /**
@@ -40,8 +38,6 @@ public class Server extends AbstractServer
    * @param client The connection from which the message originated.
    */
 	public void handleMessageFromClient(Object msg, ConnectionToClient client){
-		//System.out.println(client); // print the client details.
-		boolean log_flag = false;
 		int result;
 		String respond = "";
 		String str_msg = (String)msg;
@@ -68,22 +64,14 @@ public class Server extends AbstractServer
 			  result = db.updateOrder(Integer.parseInt(order_number), parseStringIntoDate(order_date), Integer.parseInt(number_of_guests));
 			  respond = client + ": order: " +(order_number + (result >= 1 ? " was updated succesfully." : " wasn't updated due to error."));
 		  }
-		  // return a string of the log array for the server screen
-		  else if(input[0].equals("log")) {
-			  log_flag = true;
-		  }
 		  // if none of the above then the server doesn't know how to handle such request.
 		  else {
 				respond = client + (": Request query doesn't exist.");
 		  }
 		  // if it log, then return the log of the server, if not then return the respond.
 		  try {
-			  if(!log_flag) {
-				  client.sendToClient(respond);
-				  log.add(respond);
-			  }
-			  else
-				  client.sendToClient(log.toString());
+			  client.sendToClient(respond);
+			  log(respond);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -130,7 +118,7 @@ public class Server extends AbstractServer
 	  {
 	    System.out.println
 	      ("Server listening for connections on port " + getPort());
-	    log.add("Server listening for connections on port " + getPort());
+	    log("Server listening for connections on port " + getPort());
 	  }
   
 	  /**
@@ -141,48 +129,33 @@ public class Server extends AbstractServer
 	  {
 	    System.out.println
 	      ("Server has stopped listening for connections.");
-	    log.add("Server has stopped listening for connections.");
+	    log("Server has stopped listening for connections.");
 	}
+	/**
+	 * Logs when a client establishes a new connection with the server.
+	 * @param client the client that connected.
+	 */
 	protected void clientConnected(ConnectionToClient client) {
-		log.add(client.toString() + " connected");
+		log(client.toString() + " connected");
 	}
 	
+	  /**
+	   * Logs when a client disconnects to keep the session history consistent.
+	   * @param client the client that disconnected.
+	   */
 	  synchronized protected void clientDisconnected(
-			    ConnectionToClient client) {
-		  log.add(client.toString() + " disconnected");
+		    ConnectionToClient client) {
+		  log(client.toString() + " disconnected");
 	  }
-  //Class methods ***************************************************
-  
-  /**
-   * This method is responsible for the creation of 
-   * the server instance (there is no UI in this phase).
-   *
-   * @param args[0] The port number to listen on.  Defaults to 5555 
-   *          if no argument is entered.
-   */
-	public static void main(String[] args) 
-	  {
-	    int port = 0; //Port to listen on
-	
-	    try
-	    {
-	      port = Integer.parseInt(args[0]); //Get port from command line
+	  
+	    /**
+	     * Writes the provided message to the GUI log if available, otherwise stdout.
+	     * @param msg the text to append to the log.
+	     */
+	    private void log(String msg) {
+	        if (ServerScreen.instance != null)
+	            ServerScreen.instance.appendLog(msg);
+	        else
+	        	System.out.println(msg);	        	
 	    }
-	    catch(Throwable t)
-	    {
-	      port = DEFAULT_PORT; //Set port to 5555
-	    }
-		
-	    Server sv = new Server(port);
-	    
-	    try 
-	    {
-	      sv.listen(); //Start listening for connections
-	    } 
-	    catch (Exception ex) 
-	    {
-	      System.out.println("ERROR - Could not listen for clients!");
-	      log.add("Server has stopped listening for connections.");
-	    }
-	  }
 	}
