@@ -7,6 +7,8 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Time;
 import java.time.LocalDate;
+import java.util.ArrayList;
+
 import Logic.Reservation;
 public class ConnectionToDB {
 	Connection conn;
@@ -15,7 +17,7 @@ public class ConnectionToDB {
         try 
         {
         	// "password" argument is for the db password.
-			conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/test", "root", "password");
+			conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/test", "root", "Oshri@Agronov");
             System.out.println("SQL connection succeed");
      	} catch (SQLException ex) 
      	    {/* handle any errors*/
@@ -65,5 +67,27 @@ public class ConnectionToDB {
 			e.printStackTrace();
 			return 0;
 		}
+	}
+	
+	public ArrayList<String> searchOrder(int order_number) {
+		String sql = "SELECT order_date, number_of_guests FROM `Order` WHERE order_number = ?";
+		ArrayList<String> result = new ArrayList<>();
+		PreparedStatement stmt;
+		try {
+			stmt = conn.prepareStatement(sql);
+			stmt.setInt(1, order_number);   
+			ResultSet rs = stmt.executeQuery();
+			if (rs.next()) {
+			    result.add(rs.getString("order_date"));
+			    result.add(String.valueOf(rs.getInt("number_of_guests")));
+			    
+			} else {
+			    result.add("Item not found");
+			}
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return result;
 	}
 }

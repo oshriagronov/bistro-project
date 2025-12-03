@@ -2,24 +2,22 @@ package GUI;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Random;
 
-import javafx.scene.control.DateCell;
-import javafx.scene.control.DatePicker;
-import java.util.ArrayList;
-import java.util.List;
-
-import client.ChatClient;
+import Logic.Reservation;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.DateCell;
+import javafx.scene.control.DatePicker;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 
 public class Control {
-	static Integer order_number = 0, confirmation_code = 10000;
+	private Random random = new Random();
 	Alert alert = new Alert(Alert.AlertType.INFORMATION);
 
 	@FXML
@@ -64,15 +62,24 @@ public class Control {
 		orderDate.setDayCellFactory(d -> new DateCell() {
 			@Override
 			public void updateItem(LocalDate item, boolean empty) {
-				super.updateItem(item, empty);
+			    super.updateItem(item, empty);
 
-				LocalDate today = LocalDate.now();
-				LocalDate maxDate = today.plusMonths(1);
+			    if (empty || item == null) {
+			        setDisable(false);
+			        setStyle("");
+			        return;
+			    }
 
-				if (item.isBefore(today) || item.isAfter(maxDate)) {
-					setDisable(true);
-					setStyle("-fx-background-color: #ccc;");
-				}
+			    LocalDate today = LocalDate.now();
+			    LocalDate maxDate = today.plusMonths(1);
+
+			    if (item.isBefore(today) || item.isAfter(maxDate)) {
+			        setDisable(true);
+			        setStyle("-fx-background-color: #ccc;");
+			    } else {
+			        setDisable(false);
+			        setStyle("");
+			    }
 			}
 		});
 		// diners amount: 1–10
@@ -120,7 +127,7 @@ public class Control {
 	}
 
 	@FXML
-	public Reservation clickOrder(ActionEvent event) {
+	public void clickOrder(ActionEvent event) {
 		LocalDateTime now = LocalDateTime.now();
 		LocalDateTime oneHourFromNow = now.plusHours(1);
 		int amount = 0, hours, minutes;
@@ -130,28 +137,22 @@ public class Control {
 		LocalDate date;
 		LocalDate today = LocalDate.now();
 		LocalDate maxDate = today.plusMonths(1);
-		List<String> info = new ArrayList<>();
-		info.add("insert"); // 1.add function type
-		info.add(order_number.toString()); // 2. add order number
-		date = orderDate.getValue(); // 3. add the date of the reservation
+		date = orderDate.getValue();
 		if (date == null) {
 			str.append("Please pick a reservation date\n");
 			check = false;
-		} else
-			info.add(date.toString());
+		}
 		amountStr = dinersAmmount.getValue();
 		if (amountStr == null || amountStr.isBlank()) {
 			str.append("Please choose diners amount\n");
 			check = false;
-		} else {
+		} else
 			amount = Integer.parseInt(amountStr); // safe now
-			info.add(amountStr); // 4. add amount of diners
-		}
-		info.add(confirmation_code.toString()); // 5. add confirmation code
 		if (orderHours.getValue() == null || orderMinutes.getValue() == null) {
 			check = false;
 			str.append("Please select reservation time\n");
-		} else {
+		} else if (date != null) {
+
 			hours = Integer.parseInt(orderHours.getValue());
 			minutes = Integer.parseInt(orderMinutes.getValue());
 			LocalDateTime selected = date.atTime(hours, minutes);
@@ -165,39 +166,35 @@ public class Control {
 			check = false;
 		}
 		if (!checkBox.isSelected())
-			info.add("0");
+			ID = "0";
 		else {
 			ID = subID.getText();
 			if (ID == null || ID.length() != 5) {
+				ID = "0";
 				str.append("Please enter a valid subscriber ID\n");
 				check = false;
-			} else
-				info.add(ID);// 6. add subscriber id
+			}
 		}
-		info.add(today.toString());// 7.add the date of order placement
-		// info.add(orderEmail.getText());
+
 		phone = phoneNumber.getText();
 		if (phone == null || phone.length() != 7 || phone.matches("[a-zA-Z]+")) {
 			str.append("Please enter a valid phone number\n");
 			check = false;
 		}
-		// info.add(phoneStart.getValue() + "-" + phoneNumber.getText());
 		if (!check) {
 			showAlert("failure", str.toString());
-			return null;
 		} else {
 			showAlert("success", "Reservation successfully placed");
-			System.out.println("INFO ARRAYLIST = " + info);
+			int confirmation_code = random.nextInt(90000) + 10000;
 			Reservation r = new Reservation(date, amount, confirmation_code, Integer.parseInt(ID), today);
-			order_number++;
-			confirmation_code++;
-			return r;
+			Main.client.accept(r);
 		}
 	}
 
 	@FXML
 	void backToMenu(ActionEvent event) {
 		try {
+			
 			Main.changeRoot("menu.fxml");
 		} catch (Exception e) {
 			e.printStackTrace();

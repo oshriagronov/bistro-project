@@ -6,6 +6,7 @@ package client;
 import ocsf.client.*;
 import common.ChatIF;
 import java.io.*;
+import java.util.ArrayList;
 
 /**
  * This class overrides some of the methods defined in the abstract
@@ -20,7 +21,7 @@ public class BistroClient extends AbstractClient
    * the display method in the client.
    */
   ChatIF clientUI; 
-  public static String result;
+  public static ArrayList<String> orderedReturned;
   public static boolean awaitResponse = false;
 
   //Constructors ****************************************************
@@ -50,9 +51,9 @@ public class BistroClient extends AbstractClient
    */
   public void handleMessageFromServer(Object msg) 
   {
-	  //System.out.println("--> handleMessageFromServer");
 	  awaitResponse = false;
-	  result=msg.toString();
+	  if(msg instanceof ArrayList<?>)
+		  orderedReturned = (ArrayList<String>)msg;
   }
 
   /**
@@ -61,7 +62,7 @@ public class BistroClient extends AbstractClient
    * @param message The message from the UI.    
    */
   
-  public void handleMessageFromClientUI(String message)  
+  public void handleMessageFromClientUI(Object message)  
   {
     try
     {

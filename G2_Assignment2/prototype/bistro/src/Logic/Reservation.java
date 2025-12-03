@@ -1,7 +1,8 @@
 package Logic;
+import java.io.Serializable;
 import java.time.LocalDate;
 
-public class Reservation {
+public class Reservation implements Serializable{
 	//private String time; check if to delete this.
 	private LocalDate order_date;
 	private int number_of_guests;
@@ -16,15 +17,7 @@ public class Reservation {
 		this.confirmation_code = confirmation_code;
 		this.subscriber_id = subscriber_id;
 	}
-//	public LocalDate parseStringIntoDate(String date) {
-//		String [] string_arr_date = date.split("-");
-//		LocalDate result = LocalDate.of(
-//				Integer.parseInt(string_arr_date[2]), 
-//				Integer.parseInt(string_arr_date[1]),
-//				Integer.parseInt(string_arr_date[0]));
-//		return result;
-//	}
-	
+
 	public LocalDate getOrderDate() {
 		return order_date;
 	}
