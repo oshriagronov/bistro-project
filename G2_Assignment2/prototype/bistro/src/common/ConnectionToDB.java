@@ -68,7 +68,11 @@ public class ConnectionToDB {
 			return 0;
 		}
 	}
-	
+	/**
+	 * This method Search order by the order number(pk), and return the value of : order_date, number_of_guests
+	 * @param order_number int type
+	 * @return ArrayList<String> that hold the values that returned from the DB.
+	 */
 	public ArrayList<String> searchOrder(int order_number) {
 		String sql = "SELECT order_date, number_of_guests FROM `Order` WHERE order_number = ?";
 		ArrayList<String> result = new ArrayList<>();
@@ -82,10 +86,9 @@ public class ConnectionToDB {
 			    result.add(String.valueOf(rs.getInt("number_of_guests")));
 			    
 			} else {
-			    result.add("Item not found");
+			    result = null;
 			}
 		} catch (SQLException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		return result;

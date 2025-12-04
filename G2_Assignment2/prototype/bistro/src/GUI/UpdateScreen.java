@@ -193,8 +193,6 @@ public class UpdateScreen {
 			showAlert("Update Failure", str.toString());
 		} else {
 			showAlert("Update Success", "Reservation successfully updated.");
-			System.out.println("INFO ARRAYLIST = " + info);
-			
 			// Send the update command and new details to the server
 			Main.client.accept(info);
 		}

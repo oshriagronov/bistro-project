@@ -14,6 +14,7 @@ public class ClientController implements ChatIF
    * The default port to connect on.
    */
    public static int DEFAULT_PORT ;
+   // used to send messages to the server.
    private static ClientController clientController;
   //Instance variables **********************************************
 

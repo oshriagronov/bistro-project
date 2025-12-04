@@ -21,6 +21,7 @@ public class BistroClient extends AbstractClient
    * the display method in the client.
    */
   ChatIF clientUI; 
+  //ArrayList which will hold the order details that was asked from the client, it will hold null if there wasn't a order with that number
   public static ArrayList<String> orderedReturned;
   public static boolean awaitResponse = false;
 
@@ -52,8 +53,10 @@ public class BistroClient extends AbstractClient
   public void handleMessageFromServer(Object msg) 
   {
 	  awaitResponse = false;
-	  if(msg instanceof ArrayList<?>)
-		  orderedReturned = (ArrayList<String>)msg;
+	  orderedReturned = new ArrayList<>();
+	  for (Object o : (ArrayList <?>)msg) {
+		  orderedReturned.add((String) o);   // safe if you know they are strings
+	    }
   }
 
   /**

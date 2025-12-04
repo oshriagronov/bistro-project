@@ -23,7 +23,7 @@
             </HBox>
             <HBox prefHeight="67.0" prefWidth="224.0">
                <children>
-                  <Button fx:id="newReservation" mnemonicParsing="false" onAction="#newScreen" text="New reservation" />
+                  <Button fx:id="newReservation" mnemonicParsing="false" onAction="#newOrderScreen" text="New reservation" />
                </children>
             </HBox>
             <HBox prefHeight="47.0" prefWidth="224.0">

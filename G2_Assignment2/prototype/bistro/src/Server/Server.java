@@ -43,16 +43,17 @@ public class Server extends AbstractServer
 			  db.insertNewOrder((Reservation)msg);
 			  log(client + ": Inserted new order.");
 		  }
-		  //if the query is for update an existing order, fields to update are: order_date, number_of_guests. search the order by order_number.
 		  else if(msg instanceof ArrayList<?>){
 			  ArrayList<String> arrayListMsg = new ArrayList<>();
 			    for (Object o : (ArrayList <?>)msg) {
 			    	arrayListMsg.add((String) o);   // safe if you know they are strings
 			    }
-			  if(arrayListMsg.get(0).toLowerCase().equals("search")) {
+				  //if the query is for Search an order,The search is done order_number.
+			    if(arrayListMsg.get(0).toLowerCase().equals("search")) {
 				  result = db.searchOrder(Integer.valueOf(arrayListMsg.get(1)));
 				  log(client + ": Asked for order number: " + arrayListMsg.get(1) + " .");
 			  }
+			  //if the query is for update an existing order, fields to update are: order_date, number_of_guests. search the order by order_number.
 			  else if(arrayListMsg.get(0).toLowerCase().equals("update")){				  
 				  db.updateOrder(Integer.parseInt(arrayListMsg.get(1)), LocalDate.parse(arrayListMsg.get(2)), Integer.parseInt(arrayListMsg.get(3)));
 				  log(client + ": Updated order number: " + arrayListMsg.get(1) + ".");
@@ -61,17 +62,13 @@ public class Server extends AbstractServer
 		  }
 		  // if none of the above then the server doesn't know how to handle such request.
 		  else {
-				result = client + (": Request query doesn't exist.");
+				log(client + (": Request query doesn't exist."));
 		  }
-		  // if it log, then return the log of the server, if not then return the respond.
 		  try {
 			  client.sendToClient(result);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-
-
+		  } catch (IOException e) {
+			  e.printStackTrace();
+		  }
 	}
 
   /**
