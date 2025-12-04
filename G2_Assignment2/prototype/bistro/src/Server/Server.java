@@ -18,11 +18,11 @@ public class Server extends AbstractServer
    * The default port to listen on.
    */
   final public static int DEFAULT_PORT = 5555;
+  private ConnectionToDB db;
   //Constructors ****************************************************
   
   /**
    * Constructs an instance of the server.
-   *
    * @param port The port number to connect on.
    */
   public Server(int port) 
@@ -33,8 +33,6 @@ public class Server extends AbstractServer
   //Instance methods ************************************************
   /**
    * This method handles any messages received from the client.
-   * TODO: 
-   * 1. random confirmation code.
    * @param msg The message received from the client.
    * @param client The connection from which the message originated.
    */
@@ -42,19 +40,22 @@ public class Server extends AbstractServer
 		Object result = null;
 		  //if the query is for adding new order to the DB.
 		  if(msg instanceof Reservation) {
-			  ConnectionToDB db = new ConnectionToDB();
 			  db.insertNewOrder((Reservation)msg);
+			  log(client + ": Inserted new order.");
 		  }
 		  //if the query is for update an existing order, fields to update are: order_date, number_of_guests. search the order by order_number.
 		  else if(msg instanceof ArrayList<?>){
-			  ArrayList<String> arrayListMsg = (ArrayList<String>)msg;
-			  if(arrayListMsg.get(1).equals("search")) {
-				  ConnectionToDB db = new ConnectionToDB();
-				  result = db.searchOrder(Integer.valueOf(arrayListMsg.get(2)));				  
+			  ArrayList<String> arrayListMsg = new ArrayList<>();
+			    for (Object o : (ArrayList <?>)msg) {
+			    	arrayListMsg.add((String) o);   // safe if you know they are strings
+			    }
+			  if(arrayListMsg.get(0).toLowerCase().equals("search")) {
+				  result = db.searchOrder(Integer.valueOf(arrayListMsg.get(1)));
+				  log(client + ": Asked for order number: " + arrayListMsg.get(1) + " .");
 			  }
-			  else if(arrayListMsg.get(1).equals("update")){				  
-				  ConnectionToDB db = new ConnectionToDB();
-				  db.updateOrder(Integer.parseInt(arrayListMsg.get(1)), parseStringIntoDate(arrayListMsg.get(2)), Integer.parseInt(arrayListMsg.get(3)));
+			  else if(arrayListMsg.get(0).toLowerCase().equals("update")){				  
+				  db.updateOrder(Integer.parseInt(arrayListMsg.get(1)), LocalDate.parse(arrayListMsg.get(2)), Integer.parseInt(arrayListMsg.get(3)));
+				  log(client + ": Updated order number: " + arrayListMsg.get(1) + ".");
 			  }
 			  
 		  }
@@ -72,37 +73,7 @@ public class Server extends AbstractServer
 
 
 	}
-	/**
-	 * This method get data of the reservation and create an Reservation object and parsing the data in correct way for query.
-	 * @param data
-	 * @return Reservation object after parsing the data and ready to be inserted to the DB
-	 */
-	public Reservation parsingDataIntoReservation(String[] data) {
-			LocalDate order_date = parseStringIntoDate(data[1]);
-			LocalDate date_of_placing_order = parseStringIntoDate(data[5]);
-			return new Reservation(
-					order_date,
-					Integer.parseInt(data[2]),
-					Integer.parseInt(data[3]), 
-					Integer.parseInt(data[4]),
-					date_of_placing_order);
-			
-	}
-	/**
-	 * This method parse string of date to LocalDate type to easily insert order into the database.
-	 * @param date - a string of date we get.
-	 * @return the date the method got but returned as LocalDate type.
-	 */
-	  
-	public LocalDate parseStringIntoDate(String date) {
-		String [] string_arr_date = date.split("-");
-		LocalDate result = LocalDate.of(
-				Integer.parseInt(string_arr_date[2]), 
-				Integer.parseInt(string_arr_date[1]),
-				Integer.parseInt(string_arr_date[0]));
-		return result;
-	}
-  
+
   /**
    * This method overrides the one in the superclass.  Called
    * when the server starts listening for connections.
@@ -112,6 +83,7 @@ public class Server extends AbstractServer
 	    System.out.println
 	      ("Server listening for connections on port " + getPort());
 	    log("Server listening for connections on port " + getPort());
+	    db = new ConnectionToDB();
 	  }
   
 	  /**
@@ -122,7 +94,6 @@ public class Server extends AbstractServer
 	  {
 	    System.out.println
 	      ("Server has stopped listening for connections.");
-	    log("Server has stopped listening for connections.");
 	}
 	/**
 	 * Logs when a client establishes a new connection with the server.
