@@ -7,6 +7,9 @@ package gui;
 
 import client.ClientController;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -24,7 +27,6 @@ public class Main extends Application {
 	 * Static reference to the primary Stage of the application.
 	 */
 	private static Stage primaryStage;
-	
 	/**
 	 * The main entry method for all JavaFX applications. 
 	 * This method initializes the client connection, loads the MainMenu FXML, 
@@ -33,10 +35,15 @@ public class Main extends Application {
 	 * the application scene can be set.
 	 */
 	public void start(@SuppressWarnings("exports") Stage primaryStage) {
+	    List<String> args = getParameters().getRaw(); // get the arguments in form of list.
+	    String host;
+	    // if there no arguments provided to us for the ip of the server, then we use localhost.
+	    if(args.isEmpty())
+	    	host = "localhost";
+	    else
+	    	host = args.get(0);
 		Parent root;
-		this.primaryStage = primaryStage;
-		// Initialize the client connection to localhost on port 5555
-		client = ClientController.getInstance("localhost", 5555);
+		Main.primaryStage = primaryStage;
 		try {
 			// Load the main menu FXML file
 			FXMLLoader loader = new FXMLLoader();
@@ -47,7 +54,8 @@ public class Main extends Application {
 			e.printStackTrace();
 			return;
 		}
-		
+		// Initialize the client connection with host name and default port.
+		client = ClientController.getInstance(host, ClientController.DEFAULT_PORT);
 		// Set up the scene and display the stage
 		Scene s = new Scene(root);
 		primaryStage.setScene(s);

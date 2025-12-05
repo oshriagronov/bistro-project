@@ -1,10 +1,5 @@
-// This file contains material supporting section 3.7 of the textbook:
-// "Object Oriented Software Engineering" and is issued under the open-source
-// license found at www.lloseng.com 
-
 package client;
 import ocsf.client.*;
-import common.ChatIF;
 import java.io.*;
 import java.util.ArrayList;
 
@@ -15,32 +10,24 @@ import java.util.ArrayList;
 public class BistroClient extends AbstractClient
 {
   //Instance variables **********************************************
-  
-  /**
-   * The interface type variable.  It allows the implementation of 
-   * the display method in the client.
-   */
-  ChatIF clientUI; 
+	// a boolean variable to time the wait for the server response.
+  private static boolean awaitResponse = false;
   //ArrayList which will hold the order details that was asked from the client, it will hold null if there wasn't a order with that number
   public static ArrayList<String> orderedReturned;
-  public static boolean awaitResponse = false;
 
   //Constructors ****************************************************
   
   /**
-   * Constructs an instance of the chat client.
+   * Constructs an instance of the Bistro client.
    *
    * @param host The server to connect to.
    * @param port The port number to connect on.
-   * @param clientUI The interface type variable.
    */
 	 
-  public BistroClient(String host, int port, ChatIF clientUI) 
+  public BistroClient(String host, int port) 
     throws IOException 
   {
     super(host, port); //Call the superclass constructor
-    this.clientUI = clientUI;
-    //openConnection();
   }
 
   //Instance methods ************************************************
@@ -84,8 +71,7 @@ public class BistroClient extends AbstractClient
     catch(IOException e)
     {
     	e.printStackTrace();
-      clientUI.display("Could not send message to server: Terminating client."+ e);
-      quit();
+    	quit();
     }
   }
 

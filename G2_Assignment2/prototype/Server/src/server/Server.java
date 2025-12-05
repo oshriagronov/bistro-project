@@ -43,10 +43,18 @@ public class Server extends AbstractServer
 			  log(client + ": Inserted new order.");
 		  }
 		  else if(msg instanceof ArrayList<?>){
+			  int notSafeFlag = 0;
+			  // casting the msg safely to ArrayList<String>, if it's not, then continue.
 			  ArrayList<String> arrayListMsg = new ArrayList<>();
 			    for (Object o : (ArrayList <?>)msg) {
-			    	arrayListMsg.add((String) o);   // safe if you know they are strings
+			    	if(o instanceof String)
+			    		arrayListMsg.add((String) o);
+			    	else
+			    		notSafeFlag = 1;
+			    		break;
 			    }
+			    // if the msg is ArrayList<String> then we can check if it one of the query.
+			    if(notSafeFlag == 0) {	
 				  //if the query is for Search an order,The search is done order_number.
 			    if(arrayListMsg.get(0).toLowerCase().equals("search")) {
 				  result = db.searchOrder(Integer.valueOf(arrayListMsg.get(1)));
@@ -58,6 +66,7 @@ public class Server extends AbstractServer
 				  log(client + ": Updated order number: " + arrayListMsg.get(1) + ".");
 			  }
 			  
+		    }
 		  }
 		  // if none of the above then the server doesn't know how to handle such request.
 		  else {

@@ -4,20 +4,17 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
-import java.sql.Time;
 import java.time.LocalDate;
 import java.util.ArrayList;
-
 import logic.Reservation;
 public class ConnectionToDB {
-	Connection conn;
+	private Connection conn;
 	public ConnectionToDB() 
 	{
         try 
         {
         	// "password" argument is for the db password.
-			conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/test", "root", "Oshri@Agronov");
+			conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/test", "root", "password");
             System.out.println("SQL connection succeed");
      	} catch (SQLException ex) 
      	    {/* handle any errors*/

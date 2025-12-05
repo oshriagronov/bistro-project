@@ -33,8 +33,9 @@ public class ServerScreen extends Application {
         grid.add(logArea, 0, 1, 2, 1); // span 2 columns
         Scene scene = new Scene(grid, 450, 350);
         primaryStage.setScene(scene);
+        // Creating instance of the server.
         startServer(serverPort);
-        // Handle closing the window
+        // Anonymous method to handle closing the window
         primaryStage.setOnCloseRequest(event -> {
             if (server != null) {
                 try {

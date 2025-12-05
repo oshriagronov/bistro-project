@@ -1,11 +1,7 @@
 package client;
 import java.io.*;
 import common.ChatIF;
-/**
- * This class constructs the UI for a chat client.  It implements the
- * chat interface in order to activate the display() method.
- * Warning: Some of the code here is cloned in ServerConsole 
- */
+
 public class ClientController implements ChatIF 
 {
   //Class variables *************************************************
@@ -13,30 +9,30 @@ public class ClientController implements ChatIF
   /**
    * The default port to connect on.
    */
-   public static int DEFAULT_PORT ;
+	final public static int DEFAULT_PORT = 5555;
    // used to send messages to the server.
    private static ClientController clientController;
   //Instance variables **********************************************
 
   
   /**
-   * The instance of the client that created this ConsoleChat.
+   * The instance of the BistroClient.
    */
-  BistroClient client;
+  protected BistroClient client;
   
   //Constructors ****************************************************
 
   /**
-   * Constructs an instance of the ClientConsole UI.
+   * Constructs an instance of the ClientController with singleton design pattern.
    *
    * @param host The host to connect to.
    * @param port The port to connect on.
    */
   private ClientController(String host, int port) 
   {
-    try 
+    try
     {
-      client= new BistroClient(host, port, this);
+      client= new BistroClient(host, port);
     } 
     catch(IOException exception) 
     {
@@ -56,13 +52,17 @@ public class ClientController implements ChatIF
   //Instance methods ************************************************
 
   /**
-   * This method waits for input from the console.  Once it is 
+   * This method waits for input from the GUI. Once it is 
    * received, it sends it to the client's message handler.
    */
   public void accept(Object o) 
   {
 	  client.handleMessageFromClientUI(o);
   }
+  
+  /*
+   * This method quit close the connection of BistroClient, should be invoke when the GUI is closed.
+   */
   public void quit() {
 	  client.quit();
   }
@@ -70,12 +70,9 @@ public class ClientController implements ChatIF
   /**
    * This method overrides the method in the ChatIF interface.  It
    * displays a message onto the screen.
-   *
    * @param message The string to be displayed.
    */
   public void display(String message) 
   {
-    System.out.println("> " + message);
   }
 }
-//End of ConsoleChat class
