@@ -49,9 +49,10 @@ public class Server extends AbstractServer
 			    for (Object o : (ArrayList <?>)msg) {
 			    	if(o instanceof String)
 			    		arrayListMsg.add((String) o);
-			    	else
+			    	else {			    		
 			    		notSafeFlag = 1;
 			    		break;
+			    	}
 			    }
 			    // if the msg is ArrayList<String> then we can check if it one of the query.
 			    if(notSafeFlag == 0) {	
