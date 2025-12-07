@@ -1,0 +1,77 @@
+package server;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.time.LocalDate;
+import logic.Reservation;
+public class ConnectionToDB {
+	private Connection conn;
+	public ConnectionToDB() 
+	{
+        try 
+        {
+        	// "password" argument is for the db password.
+			conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/test", "root", "Oshri@Agronov");
+            System.out.println("SQL connection succeed");
+     	} catch (SQLException ex) 
+     	    {/* handle any errors*/
+            System.out.println("SQLException: " + ex.getMessage());
+            System.out.println("SQLState: " + ex.getSQLState());
+            System.out.println("VendorError: " + ex.getErrorCode());
+            }
+   	}
+
+	/**
+	 * This method update existing order by the order number(pk), fields that are going to be update are: order_date, number_of_guests
+	 * @param order_number int type
+	 * @param order_date LocalDate type, need to use java.sql.Date.valueOf method to get valid value for mySQL table
+	 * @param number_of_guests int type
+	 * @return number bigger then 1 if succeed or 0 if failed
+	 */
+	public int updateOrder(int order_number ,LocalDate order_date, int number_of_guests) {
+		PreparedStatement stmt;
+		try {
+			stmt = conn.prepareStatement("UPDATE `Order` SET order_date = ?, number_of_guests = ? WHERE order_number = ?");
+			stmt.setDate(1, java.sql.Date.valueOf(order_date));
+			stmt.setInt(2, number_of_guests);
+			stmt.setInt(3, order_number);
+			return stmt.executeUpdate();
+		}
+		catch(SQLException e){
+			e.printStackTrace();
+			return 0;
+		}
+	}
+	/**
+	 * This method Search order by the order number(pk), and return the value of : order_date, number_of_guests
+	 * @param order_number int type
+	 * @return ArrayList<String> that hold the values that returned from the DB.
+	 */
+	public Reservation searchOrder(int order_number) {
+		String orderDate;
+		String DateOfPlacingOrder;
+		int numberOfGuests;
+		int confirmationCode;
+		int subscriberId;
+		String sql = "SELECT order_date, number_of_guests, confirmation_code, subscriber_id, date_of_placing_order FROM `Order` WHERE order_number = ?";
+		PreparedStatement stmt;
+		try {
+			stmt = conn.prepareStatement(sql);
+			stmt.setInt(1, order_number);   
+			ResultSet rs = stmt.executeQuery();
+			if (rs.next()) {
+				orderDate = rs.getString("order_date");
+				numberOfGuests = rs.getInt("number_of_guests");
+				confirmationCode = rs.getInt("confirmation_code");
+				subscriberId = rs.getInt("subscriber_id");
+				DateOfPlacingOrder = rs.getString("date_of_placing_order");
+				return new Reservation(LocalDate.parse(orderDate), numberOfGuests, confirmationCode, subscriberId, LocalDate.parse(DateOfPlacingOrder));
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+}
