@@ -1,5 +1,7 @@
 package server;
 import java.io.*;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import ocsf.server.*;
@@ -87,17 +89,24 @@ public class Server extends AbstractServer
 			e.printStackTrace();
 		}
 	}
-
   /**
    * This method overrides the one in the superclass.  Called
    * when the server starts listening for connections.
    */
 	  protected void serverStarted()
 	  {
-	    System.out.println
-	      ("Server listening for connections on port " + getPort());
-	    log("Server listening for connections on port " + getPort());
-	    db = new ConnectionToDB();
+		String ipString = null;
+		try {
+        	InetAddress host = InetAddress.getLocalHost();
+			ipString = host.getHostAddress();
+			log("Server listening for connections on port " + getPort());
+    	} catch (UnknownHostException e) {
+        	log("Server listening for connections on port " + getPort());
+    	}
+    	db = ConnectionToDB.getConnInstance();
+    	if (ServerScreen.instance != null) {
+    		ServerScreen.instance.updateServerInfo(ipString, db.getDbPassword());
+    	}
 	  }
   
 	  /**
@@ -110,22 +119,34 @@ public class Server extends AbstractServer
 	      ("Server has stopped listening for connections.");
 	}
 	/**
-	 * Logs when a client establishes a new connection with the server.
-	 * @param client the client that connected.
+	 * Records the remote host information when a new client connects and writes a
+	 * connection log entry. The formatted host name/IP is stored via
+	 * use setInfo(String, Object) so it can be retrieved to later even after the socket closes.
+	 * @param client active connection that was just established
 	 */
+	@Override
 	protected void clientConnected(ConnectionToClient client) {
-		log(client.toString() + " connected");
+		InetAddress addr = client.getInetAddress();
+ 		if (addr != null) {
+        	client.setInfo("remoteAddress",
+            addr.getHostName() + " (" + addr.getHostAddress() + ")");
+    	}
+    	log(client.getInfo("remoteAddress").toString() + " connected");
 	}
 	
-	  /**
-	   * Logs when a client disconnects to keep the session history consistent.
-	   * @param client the client that disconnected.
-	   */
-	  synchronized protected void clientDisconnected(
-		    ConnectionToClient client) {
-		  log(client.toString() + " disconnected");
+	/**
+	 * Logs a disconnection event for a client that terminated with an exception.
+	 * The client socket has already been closed, so the previously stored
+	 * "remoteAddress" info is used to identify which client disconnected.
+	 * @param client connection that raised the exception
+	 * @param exception cause of the disconnection
+	 */
+	@Override
+	synchronized protected void clientException(ConnectionToClient client, Throwable exception){
+		Object stored = client.getInfo("remoteAddress");
+    	String id = stored != null ? stored.toString() : "Unknown client";
+	    log(id + " disconnected");
 	  }
-	  
 	    /**
 	     * Writes the provided message to the GUI log if available, otherwise stdout.
 	     * @param msg the text to append to the log.

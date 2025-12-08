@@ -27,6 +27,7 @@ public class BistroClient extends AbstractClient
     throws IOException 
   {
     super(host, port); //Call the superclass constructor
+    openConnection();//in order to send more than one message
   }
 
   //Instance methods ************************************************
@@ -57,17 +58,16 @@ public class BistroClient extends AbstractClient
   {
     try
     {
-    	openConnection();//in order to send more than one message
-       	awaitResponse = true;
+      awaitResponse = true;
     	sendToServer(message);
-		// wait for response
-		while (awaitResponse) {
-			try {
-				Thread.sleep(100);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-		}
+		  // wait for response
+		  while (awaitResponse) {
+        try {
+          Thread.sleep(100);
+        } catch (InterruptedException e) {
+          e.printStackTrace();
+        }
+		  }
     }
     catch(IOException e)
     {

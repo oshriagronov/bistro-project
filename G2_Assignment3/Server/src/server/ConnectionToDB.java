@@ -7,13 +7,15 @@ import java.sql.SQLException;
 import java.time.LocalDate;
 import logic.Reservation;
 public class ConnectionToDB {
+	private static final String DB_PASSWORD = "Oshri@Agronov";
+	private static ConnectionToDB connectionToDB = null;
 	private Connection conn;
-	public ConnectionToDB() 
+	private ConnectionToDB() 
 	{
         try 
         {
         	// "password" argument is for the db password.
-			conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/test", "root", "Oshri@Agronov");
+			conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/test", "root", DB_PASSWORD);
             System.out.println("SQL connection succeed");
      	} catch (SQLException ex) 
      	    {/* handle any errors*/
@@ -22,6 +24,17 @@ public class ConnectionToDB {
             System.out.println("VendorError: " + ex.getErrorCode());
             }
    	}
+
+	public static ConnectionToDB getConnInstance() {
+		if(connectionToDB == null) {
+			connectionToDB = new ConnectionToDB();
+		}
+		return connectionToDB;
+	}
+	
+	public String getDbPassword() {
+		return DB_PASSWORD;
+	}
 
 	/**
 	 * This method update existing order by the order number(pk), fields that are going to be update are: order_date, number_of_guests

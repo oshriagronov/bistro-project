@@ -2,8 +2,10 @@ package server;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.scene.Scene;
+import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.geometry.Insets;
 
@@ -14,6 +16,8 @@ public class ServerScreen extends Application {
     public static ServerScreen instance;
     private Server server;
     private TextArea logArea;
+    private Label ipLabel;
+    private Label dbPasswordLabel;
     private String serverPort = "5555";
     /**
      * Builds the UI and launches the server listening on the configured port.
@@ -30,7 +34,12 @@ public class ServerScreen extends Application {
         logArea = new TextArea();
         logArea.setEditable(false);
         logArea.setPrefSize(350, 200);
-        grid.add(logArea, 0, 1, 2, 1); // span 2 columns
+        grid.add(logArea, 0, 1); // occupies first column
+        ipLabel = new Label("Server IP: pending...");
+        dbPasswordLabel = new Label("DB Password: pending...");
+        VBox infoBox = new VBox(10);
+        infoBox.getChildren().addAll(ipLabel, dbPasswordLabel);
+        grid.add(infoBox, 1, 1);
         Scene scene = new Scene(grid, 450, 350);
         primaryStage.setScene(scene);
         // Creating instance of the server.
@@ -63,6 +72,17 @@ public class ServerScreen extends Application {
      */
     public void appendLog(String msg) {
         Platform.runLater(() -> logArea.appendText(msg + "\n"));
+    }
+    /**
+     * Print the server ip and DB password to the Server UI on the FX thread.
+     * @param ip the server got on startup.
+     * * @param dbPassword that is known form the beginning.
+     */
+    public void updateServerInfo(String ip, String dbPassword) {
+        Platform.runLater(() -> {
+            ipLabel.setText("Server IP: " + (ip == null ? "Unavailable" : ip));
+            dbPasswordLabel.setText("DB Password: " + (dbPassword == null ? "Unavailable" : dbPassword));
+        });
     }
     
     /**

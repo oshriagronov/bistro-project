@@ -5,11 +5,9 @@
  * the reservation date and the number of diners.
  */
 package gui;
-
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
-
 import client.BistroClient;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -124,15 +122,12 @@ public class UpdateScreen {
 		List<String> search = new ArrayList<>();
 		Reservation reservation;
 		String order_number;
-		
 		// Prepare search command for the server
 		search.add("search");
 		order_number = orderNumber.getText();
 		search.add(order_number);
-		
 		// Send search request to the server via the client controller
 		Main.client.accept(search); 
-		
 		// Retrieve the ordered data returned from the client (assumes static variable usage)
 		reservation = BistroClient.orderedReturned;
 		if (reservation != null) {
