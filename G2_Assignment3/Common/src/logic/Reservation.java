@@ -8,6 +8,7 @@ public class Reservation implements Serializable{
 	private int number_of_guests;
 	private int confirmation_code;
 	private int subscriber_id;
+	private int orderNumber;
 	private LocalDate date_of_placing_order;
 	private String phone_number;
 	
@@ -20,6 +21,10 @@ public class Reservation implements Serializable{
 		this.phone_number = phone_number;
 	}
 
+	public Reservation(LocalDate order_date, int orderNumber, int number_of_guests, int confirmation_code, int subscriber_id, LocalDate date_of_placing_order, String phone_number) {
+		this(order_date, number_of_guests, confirmation_code,  subscriber_id, date_of_placing_order, phone_number);
+		this.orderNumber = orderNumber;
+	}
 
 
 	public LocalDate getOrderDate() {
@@ -40,6 +45,10 @@ public class Reservation implements Serializable{
 	
 	public String getPhone_number() {
 		return phone_number;
+	}
+	
+	public int getOrderNumber() {
+		return orderNumber;
 	}
 
 

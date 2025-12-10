@@ -14,6 +14,8 @@ public class BistroClient extends AbstractClient
   //ArrayList which will hold the order details that was asked from the client, it will hold null if there wasn't a order with that number
   public static Reservation orderedReturned = null;
 
+  public static Reservation numoforderedReturned = null;
+
   //Constructors ****************************************************
   
   /**

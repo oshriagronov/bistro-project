@@ -5,8 +5,11 @@
  * the reservation date and the number of diners.
  */
 package gui;
+import java.lang.reflect.Array;
 import java.time.LocalDate;
+import java.util.ArrayList;
 
+import client.BistroClient;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.Scene;
@@ -35,11 +38,14 @@ public class UpdateScreen {
 	    @FXML
 	    private HBox dateHbox;
 
-	    @FXML
-	    private ComboBox<?> dinersAmount;
+		@FXML
+		private ComboBox<String> dinersAmount;
 
 	    @FXML
 	    private VBox infoVbox;
+
+		@FXML
+	    private VBox ordersVBox;
 
 	    @FXML
 	    private Button menuBTN;
@@ -56,6 +62,9 @@ public class UpdateScreen {
 	    @FXML
 	    private Button submitBTN;
 
+		@FXML
+		private ComboBox<String> orderNumber;
+
 	    
 	
 	/**
@@ -68,7 +77,7 @@ public class UpdateScreen {
 	public void initialize() {
 		// Hide the update fields until a successful search is performed
 		infoVbox.setVisible(false);
-		
+		ordersVBox.setVisible(false);
 		// Configure the DatePicker to restrict selection: only today up to one month ahead is allowed
 		orderDate.setDayCellFactory(d -> new DateCell() {
 			@Override
@@ -123,41 +132,22 @@ public class UpdateScreen {
 	 */
 	@FXML
 	void search(ActionEvent event) {
-		List<String> search = new ArrayList<>();
 		Reservation reservation;
-		String phone_number;
+		String phone_number, number_of_guests;
+		ArrayList<Reservation> reservations= new ArrayList<>();
 		// Prepare search command for the server
-		search.add("search");
 		phone_number = phoneNum.getText();
-		search.add(phone_number);
-		// Send search request to the server via the client controller
-		Main.client.accept(search); 
+		Main.client.accept(phone_number); 
 		// Retrieve the ordered data returned from the client (assumes static variable usage)
-		search = BistroClient.orderedReturned; // need to return array list of all the orders found
-		if (search != null) { 
-			public void start(Stage stage) {
-			        TableView<Reservation> table = new TableView<>();
-			        TableColumn<Reservation, String> idCol = new TableColumn<>("Order Number");
-			        TableColumn<Reservation, String> orderDateCol = new TableColumn<>("Order Date");
-			        TableColumn<Reservation, String> NumOfGuestsCol = new TableColumn<>("Number Of Guests");
-	
-			        for(Reservation r : search) {
-			        	idCol.setCellValueFactory(new PropertyValueFactory<>("order_number"));
-			        	orderDateCol.setCellValueFactory(new PropertyValueFactory<>("order_date"));
-			        	NumOfGuestsCol.setCellValueFactory(new PropertyValueFactory<>("number_of_guests"));
-	
-			        	table.getColumns().addAll(idCol, orderDateCol, NumOfGuestsCol);
-			        	
-			        }
-			        stage.setScene(new Scene(table, 600, 400));
-			        stage.show();
-			    }
-
+		reservations = BistroClient.numoforderedReturned; // need to return array list of all the orders found
+		if (reservations != null) { //need to call the start method to show all the reservations found
+			CreateTable(reservations);
 			// Success: Display fields and populate with returned data
-		
-			infoVbox.setVisible(true);
-			orderDate.setValue(reservation.getOrderDate());
-			dinersAmount.setValue(number_of_guests);
+			ordersVBox.setVisible(true); // initially ordersnumber from the arraylist
+			orderNumber.getItems().clear();
+			for(Reservation r : reservations) {
+				orderNumber.getItems().add(String.valueOf(r.getOrderNumber()));
+			}
 		} else {
 			// Failure: Hide fields and show error
 			infoVbox.setVisible(false);
@@ -165,6 +155,36 @@ public class UpdateScreen {
 		}
 	}
 
+	public void CreateTable(ArrayList<Reservation> reservations) { 
+		TableView<Reservation> table = new TableView<>();
+		TableColumn<Reservation, String> idCol = new TableColumn<>("Order Number");
+		TableColumn<Reservation, String> orderDateCol = new TableColumn<>("Order Date");
+		TableColumn<Reservation, String> NumOfGuestsCol = new TableColumn<>("Number Of Guests");
+
+		for(Reservation r : reservations) {// for each reservation found create a row in the table
+			idCol.setCellValueFactory(new PropertyValueFactory<>("order_number"));
+			orderDateCol.setCellValueFactory(new PropertyValueFactory<>("order_date"));
+			NumOfGuestsCol.setCellValueFactory(new PropertyValueFactory<>("number_of_guests"));
+			table.getColumns().addAll(idCol, orderDateCol, NumOfGuestsCol);
+			table.getItems().add(r);
+		}
+		Stage stage = new Stage();
+		stage.setScene(new Scene(table, 600, 400));
+		stage.show();
+	}
+	
+	@FXML
+	void choose(ActionEvent event) {
+		Reservation reservation;
+		String order_number;
+		order_number = orderNumber.getValue(); // get the selected order number from the combobox
+		// Find the reservation object corresponding to the selected order number with the server
+		Main.client.accept(order_number);
+		reservation = BistroClient.orderedReturned;
+		infoVbox.setVisible(true);
+		orderDate.setValue(reservation.getOrderDate());
+		dinersAmount.setValue(String.valueOf(reservation.getNumberOfGuests()));
+	}
 	/**
 	 * Handles the action when the "Submit" button is clicked after searching.
 	 * Validates the updated date and diners amount. 
@@ -175,29 +195,25 @@ public class UpdateScreen {
 	void submit(ActionEvent event) {
 		StringBuilder str = new StringBuilder();
 		boolean check = true;
-	
 		String order_number,number_of_guests;
 		LocalDate date = orderDate.getValue();
-		order_number = orderNumber.getText();
-		number_of_guests = dinersAmount.getValue();
+		order_number =  (String) orderNumber.getValue();
+		number_of_guests = (String) dinersAmount.getValue();
 		// 2. Validate Order Number
 		if (order_number == null || order_number.isBlank()) {
 			check = false;
 			str.append("Please enter an order number\n");
-
-		
+		}
 		// 3. Validate Date
 		if (date == null) {
 			check = false;
 			str.append("Please pick a date\n");
-
-		
+		}
 		// 4. Validate Diners Amount
 		if (number_of_guests == null) {
 			check = false;
 			str.append("Please choose the diners amount\n");
-
-		
+		}
 		// Final Check: Display errors or process update
 		if (!check) {
 			showAlert("Update Failure", str.toString());
@@ -207,7 +223,7 @@ public class UpdateScreen {
 			Reservation updated = new Reservation(date, order_number,number_of_guests,);
 			Main.client.accept(updated);
 		}
-	}
+}
 
 	/**
 	 * Handles the action when the "Back to Menu" button is clicked.
