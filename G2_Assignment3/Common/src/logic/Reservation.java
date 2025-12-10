@@ -9,14 +9,18 @@ public class Reservation implements Serializable{
 	private int confirmation_code;
 	private int subscriber_id;
 	private LocalDate date_of_placing_order;
+	private String phone_number;
 	
-	public Reservation(LocalDate order_date, int number_of_guests, int confirmation_code, int subscriber_id, LocalDate date_of_placing_order) {
+	public Reservation(LocalDate order_date, int number_of_guests, int confirmation_code, int subscriber_id, LocalDate date_of_placing_order, String phone_number) {
 		this.order_date = order_date;
 		this.date_of_placing_order = date_of_placing_order;
 		this.number_of_guests = number_of_guests;
 		this.confirmation_code = confirmation_code;
 		this.subscriber_id = subscriber_id;
+		this.phone_number = phone_number;
 	}
+
+
 
 	public LocalDate getOrderDate() {
 		return order_date;
@@ -33,4 +37,34 @@ public class Reservation implements Serializable{
 	public int getSubscriberId() {
 		return subscriber_id;
 	}
+	
+	public String getPhone_number() {
+		return phone_number;
+	}
+
+
+	public void setOrder_date(LocalDate order_date) {
+		this.order_date = order_date;
+	}
+
+	public void setNumber_of_guests(int number_of_guests) {
+		this.number_of_guests = number_of_guests;
+	}
+
+	public void setConfirmation_code(int confirmation_code) {
+		this.confirmation_code = confirmation_code;
+	}
+
+	public void setSubscriber_id(int subscriber_id) {
+		this.subscriber_id = subscriber_id;
+	}
+
+	public void setDate_of_placing_order(LocalDate date_of_placing_order) {
+		this.date_of_placing_order = date_of_placing_order;
+	}
+	
+	public void setPhone_number(String phone_number) {
+		this.phone_number = phone_number;
+	}
+	
 }

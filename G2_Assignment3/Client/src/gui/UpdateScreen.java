@@ -6,19 +6,22 @@
  */
 package gui;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
-import client.BistroClient;
+
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.DateCell;
 import javafx.scene.control.DatePicker;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
+import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import javafx.stage.Stage;
 import logic.Reservation;
 
 public class UpdateScreen {
@@ -26,34 +29,35 @@ public class UpdateScreen {
 	/** Alert object used to display success or failure messages to the user. */
 	Alert alert = new Alert(Alert.AlertType.INFORMATION);
 	
-	@FXML
-	private HBox amountHbox;
+	    @FXML
+	    private HBox amountHbox;
 
-	@FXML
-	private HBox dateHbox;
+	    @FXML
+	    private HBox dateHbox;
 
-	@FXML
-	private ComboBox<String> dinersAmount;
+	    @FXML
+	    private ComboBox<?> dinersAmount;
 
-	@FXML
-	private Button menuBTN;
+	    @FXML
+	    private VBox infoVbox;
 
-	@FXML
-	private DatePicker orderDate;
+	    @FXML
+	    private Button menuBTN;
 
-	@FXML
-	private TextField orderNumber;
+	    @FXML
+	    private DatePicker orderDate;
 
-	@FXML
-	private Button searchBTN;
+	    @FXML
+	    private TextField phoneNum;
 
-	@FXML
-	private Button submitBTN;
+	    @FXML
+	    private Button searchBTN;
 
-	/** Container for the reservation information fields (Date and Diners Amount). */
-	@FXML
-	private VBox infoVbox;
+	    @FXML
+	    private Button submitBTN;
 
+	    
+	
 	/**
 	 * Initializes the controller. This method is called automatically after the FXML 
 	 * file has been loaded.
@@ -121,33 +125,43 @@ public class UpdateScreen {
 	void search(ActionEvent event) {
 		List<String> search = new ArrayList<>();
 		Reservation reservation;
-		String order_number;
+		String phone_number;
 		// Prepare search command for the server
 		search.add("search");
-		order_number = orderNumber.getText();
-		search.add(order_number);
+		phone_number = phoneNum.getText();
+		search.add(phone_number);
 		// Send search request to the server via the client controller
 		Main.client.accept(search); 
 		// Retrieve the ordered data returned from the client (assumes static variable usage)
-		reservation = BistroClient.orderedReturned;
-		if (reservation != null) {
-			String order_date = reservation.getOrderDate().toString();
-			String date_of_placing_order = reservation.getDateOfPlacingOrder().toString();
-			String number_of_guests = String.valueOf(reservation.getNumberOfGuests());
-			String message = "Order date: " + order_date + "\n"
-							+ "Number Of guests: " + number_of_guests + "\n"
-							+ "Confiramtion code: " + reservation.getConfirmationCode() + "\n"
-							+ "Subscriber id: " + reservation.getSubscriberId() + "\n"
-							+ "Date of placing order: " + date_of_placing_order + "\n";
+		search = BistroClient.orderedReturned; // need to return array list of all the orders found
+		if (search != null) { 
+			public void start(Stage stage) {
+			        TableView<Reservation> table = new TableView<>();
+			        TableColumn<Reservation, String> idCol = new TableColumn<>("Order Number");
+			        TableColumn<Reservation, String> orderDateCol = new TableColumn<>("Order Date");
+			        TableColumn<Reservation, String> NumOfGuestsCol = new TableColumn<>("Number Of Guests");
+	
+			        for(Reservation r : search) {
+			        	idCol.setCellValueFactory(new PropertyValueFactory<>("order_number"));
+			        	orderDateCol.setCellValueFactory(new PropertyValueFactory<>("order_date"));
+			        	NumOfGuestsCol.setCellValueFactory(new PropertyValueFactory<>("number_of_guests"));
+	
+			        	table.getColumns().addAll(idCol, orderDateCol, NumOfGuestsCol);
+			        	
+			        }
+			        stage.setScene(new Scene(table, 600, 400));
+			        stage.show();
+			    }
+
 			// Success: Display fields and populate with returned data
-			showAlert("Order Details", message);
+		
 			infoVbox.setVisible(true);
 			orderDate.setValue(reservation.getOrderDate());
 			dinersAmount.setValue(number_of_guests);
 		} else {
 			// Failure: Hide fields and show error
 			infoVbox.setVisible(false);
-			showAlert("Search Failure", "Please enter a valid order number.");
+			showAlert("Search Failure", "Please enter a valid phone number.");
 		}
 	}
 
@@ -161,37 +175,28 @@ public class UpdateScreen {
 	void submit(ActionEvent event) {
 		StringBuilder str = new StringBuilder();
 		boolean check = true;
-		List<String> info = new ArrayList<>();
-		
-		info.add("update"); // 1. Add "update" command flag
-		
-		String order_number;
+	
+		String order_number,number_of_guests;
 		LocalDate date = orderDate.getValue();
 		order_number = orderNumber.getText();
-		
+		number_of_guests = dinersAmount.getValue();
 		// 2. Validate Order Number
 		if (order_number == null || order_number.isBlank()) {
 			check = false;
 			str.append("Please enter an order number\n");
-		} else {
-			info.add(order_number); // 2. Add order number
-		}
+
 		
 		// 3. Validate Date
 		if (date == null) {
 			check = false;
 			str.append("Please pick a date\n");
-		} else {
-			info.add(date.toString()); // 3. Add reservation date
-		}
+
 		
 		// 4. Validate Diners Amount
-		if (dinersAmount.getValue() == null) {
+		if (number_of_guests == null) {
 			check = false;
 			str.append("Please choose the diners amount\n");
-		} else {
-			info.add(dinersAmount.getValue().toString()); // 4. Add diners amount
-		}
+
 		
 		// Final Check: Display errors or process update
 		if (!check) {
@@ -199,7 +204,8 @@ public class UpdateScreen {
 		} else {
 			showAlert("Update Success", "Reservation successfully updated.");
 			// Send the update command and new details to the server
-			Main.client.accept(info);
+			Reservation updated = new Reservation(date, order_number,number_of_guests,);
+			Main.client.accept(updated);
 		}
 	}
 

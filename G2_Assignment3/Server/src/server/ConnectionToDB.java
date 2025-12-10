@@ -68,7 +68,7 @@ public class ConnectionToDB {
 		int numberOfGuests;
 		int confirmationCode;
 		int subscriberId;
-		String sql = "SELECT order_date, number_of_guests, confirmation_code, subscriber_id, date_of_placing_order FROM `Order` WHERE order_number = ?";
+		String sql = "SELECT order_date, number_of_guests, confirmation_code, subscriber_id, date_of_placing_order FROM `Order` WHERE phone_number = ?";
 		PreparedStatement stmt;
 		try {
 			stmt = conn.prepareStatement(sql);
