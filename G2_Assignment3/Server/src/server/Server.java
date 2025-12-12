@@ -65,7 +65,7 @@ public class Server extends AbstractServer
 			String action = arrayListMsg.get(0).toLowerCase();
 			switch (action) {
 			case "search":
-				result = db.searchOrder(Integer.parseInt(arrayListMsg.get(1)));
+				result = db.searchOrder(arrayListMsg.get(1));
 				log(client + ": Asked for order number: " + arrayListMsg.get(1) + " .");
 				break;
 			case "update":

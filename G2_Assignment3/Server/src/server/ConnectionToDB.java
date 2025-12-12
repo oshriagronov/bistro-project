@@ -7,7 +7,7 @@ import java.sql.SQLException;
 import java.time.LocalDate;
 import logic.Reservation;
 public class ConnectionToDB {
-	private static final String DB_PASSWORD = "Oshri@Agronov";
+	private static final String DB_PASSWORD = "6911";
 	private static ConnectionToDB connectionToDB = null;
 	private Connection conn;
 	private ConnectionToDB() 
@@ -15,7 +15,7 @@ public class ConnectionToDB {
         try 
         {
         	// "password" argument is for the db password.
-			conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/test", "root", DB_PASSWORD);
+			conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/sys", "root", DB_PASSWORD);
             System.out.println("SQL connection succeed");
      	} catch (SQLException ex) 
      	    {/* handle any errors*/
@@ -62,9 +62,9 @@ public class ConnectionToDB {
 	 * @param order_number int type
 	 * @return ArrayList<String> that hold the values that returned from the DB.
 	 */
-	public Reservation searchOrder(int order_number) {
-		String orderDate;
-		String DateOfPlacingOrder;
+	public Reservation searchOrder(String phone_number) {
+		LocalDate orderDate;
+		LocalDate DateOfPlacingOrder;
 		int numberOfGuests;
 		int confirmationCode;
 		int subscriberId;
@@ -72,15 +72,15 @@ public class ConnectionToDB {
 		PreparedStatement stmt;
 		try {
 			stmt = conn.prepareStatement(sql);
-			stmt.setInt(1, order_number);   
+			stmt.setString(1, phone_number); 
 			ResultSet rs = stmt.executeQuery();
 			if (rs.next()) {
-				orderDate = rs.getString("order_date");
+				orderDate = LocalDate.parse(rs.getString("order_date"));
 				numberOfGuests = rs.getInt("number_of_guests");
 				confirmationCode = rs.getInt("confirmation_code");
 				subscriberId = rs.getInt("subscriber_id");
-				DateOfPlacingOrder = rs.getString("date_of_placing_order");
-				return new Reservation(LocalDate.parse(orderDate), numberOfGuests, confirmationCode, subscriberId, LocalDate.parse(DateOfPlacingOrder));
+				DateOfPlacingOrder = LocalDate.parse(rs.getString("date_of_placing_order"));
+				return new Reservation(orderDate, numberOfGuests, confirmationCode, subscriberId, DateOfPlacingOrder,phone_number);//added phone number
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
