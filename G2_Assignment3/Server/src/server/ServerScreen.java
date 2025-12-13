@@ -1,6 +1,7 @@
 package server;
 import javafx.application.Application;
 import javafx.application.Platform;
+import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
@@ -12,7 +13,7 @@ import javafx.geometry.Insets;
 /**
  * Simple JavaFX screen that boots the server and shows a rolling log.
  */
-public class ServerScreen extends Application {
+public class ServerScreen  {
     public static ServerScreen instance;
     private Server server;
     private TextArea logArea;
@@ -23,42 +24,29 @@ public class ServerScreen extends Application {
      * Builds the UI and launches the server listening on the configured port.
      * @param primaryStage the hosting stage supplied by JavaFX.
      */
-    @Override
-    public void start(Stage primaryStage) {
-        primaryStage.setTitle("Server Log");
+    public Parent createContent() {
         GridPane grid = new GridPane();
         grid.setVgap(10);
         grid.setHgap(10);
         grid.setPadding(new Insets(10));
-        // TEXT AREA TO DISPLAY SERVER LOGS
+
         logArea = new TextArea();
         logArea.setEditable(false);
         logArea.setPrefSize(350, 200);
-        grid.add(logArea, 0, 1); // occupies first column
+        grid.add(logArea, 0, 1);
+
         ipLabel = new Label("Server IP: pending...");
         dbPasswordLabel = new Label("DB Password: pending...");
-        VBox infoBox = new VBox(10);
-        infoBox.getChildren().addAll(ipLabel, dbPasswordLabel);
-        grid.add(infoBox, 1, 1);
-        Scene scene = new Scene(grid, 450, 350);
-        primaryStage.setScene(scene);
-        // Creating instance of the server.
-        startServer(serverPort);
-        // Anonymous method to handle closing the window
-        primaryStage.setOnCloseRequest(event -> {
-            if (server != null) {
-                try {
-                    server.close();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-            Platform.exit();
-            System.exit(0);
-        });
 
-        primaryStage.show();
+        VBox infoBox = new VBox(10, ipLabel, dbPasswordLabel);
+        grid.add(infoBox, 1, 1);
+
+        // start server after UI exists
+        startServer(serverPort);
+
+        return grid;
     }
+    
     /**
      * Default constructor keeps a static reference for the server callbacks.
      */
@@ -115,12 +103,10 @@ public class ServerScreen extends Application {
 	      appendLog("Server error: " + e.getMessage());
 	    }
     }
-
-    /**
-     * Entry point for launching the JavaFX application.
-     * @param args CLI arguments forwarded to JavaFX.
-     */
-    public static void main(String[] args) {
-        Application.launch(args);
+    public void stopServer() {
+        if (server != null) {
+            try { server.close(); } catch (Exception ignored) {}
+        }
     }
+
 }

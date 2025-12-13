@@ -7,7 +7,7 @@ import java.sql.SQLException;
 import java.time.LocalDate;
 import logic.Reservation;
 public class ConnectionToDB {
-	private static final String DB_PASSWORD = "6911";
+	private static String DB_PASSWORD = "6911";
 	private static ConnectionToDB connectionToDB = null;
 	private Connection conn;
 	private ConnectionToDB() 
@@ -35,6 +35,10 @@ public class ConnectionToDB {
 	public String getDbPassword() {
 		return DB_PASSWORD;
 	}
+	
+    public static void setPassword(String password) {
+        DB_PASSWORD = password;
+    }
 
 	/**
 	 * This method update existing order by the order number(pk), fields that are going to be update are: order_date, number_of_guests
