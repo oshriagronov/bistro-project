@@ -6,11 +6,15 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.ArrayList;
+<<<<<<< HEAD
 import java.util.Arrays;
+=======
+import java.util.List;
+>>>>>>> 40d26816b92f6f7cddc69ee45e114b2360cb0d54
 
 import logic.Reservation;
 public class ConnectionToDB {
-	private static final String DB_PASSWORD = "Oshri@Agronov";
+	private static String DB_PASSWORD = "6911";
 	private static ConnectionToDB connectionToDB = null;
 	private Connection conn;
 	private ConnectionToDB() 
@@ -18,7 +22,7 @@ public class ConnectionToDB {
         try 
         {
         	// "password" argument is for the db password.
-			conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/test", "root", DB_PASSWORD);
+			conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/sys", "root", DB_PASSWORD);
             System.out.println("SQL connection succeed");
      	} catch (SQLException ex) 
      	    {/* handle any errors*/
@@ -38,6 +42,10 @@ public class ConnectionToDB {
 	public String getDbPassword() {
 		return DB_PASSWORD;
 	}
+	
+    public static void setPassword(String password) {
+        DB_PASSWORD = password;
+    }
 
 	/**
 	 * This method update existing order by the order number(pk), fields that are going to be update are: order_date, number_of_guests
@@ -62,13 +70,19 @@ public class ConnectionToDB {
 		}
 	}
 	/**
-	 * This method Search order by the order number(pk), and return the value of : order_date, number_of_guests
+	 * This method Search order by the phone number, and return the value of : order_date, number_of_guests
 	 * @param order_number int type
-	 * @return ArrayList<String> that hold the values that returned from the DB.
+	 * @return Reservation that hold the values that returned from the DB.
 	 */
+<<<<<<< HEAD
 	public ArrayList<Reservation> searchOrder(int order_number) {
 		String orderDate;
 		String DateOfPlacingOrder;
+=======
+	public Reservation searchOrderByPhoneNumber(String phone_number) {
+		LocalDate orderDate;
+		LocalDate DateOfPlacingOrder;
+>>>>>>> 40d26816b92f6f7cddc69ee45e114b2360cb0d54
 		int numberOfGuests;
 		int confirmationCode;
 		int subscriberId;
@@ -85,15 +99,20 @@ public class ConnectionToDB {
 		PreparedStatement stmt;
 		try {
 			stmt = conn.prepareStatement(sql);
-			stmt.setInt(1, order_number);   
+			stmt.setString(1, phone_number); 
 			ResultSet rs = stmt.executeQuery();
 			if (rs.next()) {
-				orderDate = rs.getString("order_date");
+				orderDate = LocalDate.parse(rs.getString("order_date"));
 				numberOfGuests = rs.getInt("number_of_guests");
 				confirmationCode = rs.getInt("confirmation_code");
 				subscriberId = rs.getInt("subscriber_id");
+<<<<<<< HEAD
 				DateOfPlacingOrder = rs.getString("date_of_placing_order");
 				return null;
+=======
+				DateOfPlacingOrder = LocalDate.parse(rs.getString("date_of_placing_order"));
+				return new Reservation(orderDate, numberOfGuests, confirmationCode, subscriberId, DateOfPlacingOrder,phone_number);
+>>>>>>> 40d26816b92f6f7cddc69ee45e114b2360cb0d54
 			}
 		} catch (SQLException e) {
 			System.out.println("SQLException: " + "searchOrder failed.");
@@ -101,4 +120,72 @@ public class ConnectionToDB {
 		}
 		return null;
 	}
+	/**
+	 * This method Search order by the phone number, and return the value of : order_date, number_of_guests
+	 * @param order_number int type
+	 * @return ArrayList<Reservation> that hold the values that returned from the DB.
+	 */
+	public List<Reservation> searchOrdersByPhoneNumberList(String phone_number) {
+	    List<Reservation> reservations = new ArrayList<>();
+	    LocalDate orderDate;
+		LocalDate DateOfPlacingOrder;
+		int numberOfGuests;
+		int confirmationCode;
+		int subscriberId;
+	    String sql = "SELECT order_date, number_of_guests, confirmation_code, subscriber_id, date_of_placing_order " +
+	                 "FROM `Order` WHERE phone_number = ?";
+	    PreparedStatement stmt;
+	    try {
+	    	stmt=conn.prepareStatement(sql);
+	        stmt.setString(1, phone_number);
+	        ResultSet rs = stmt.executeQuery();
+	        while (rs.next()) {
+	            orderDate = LocalDate.parse(rs.getString("order_date"));
+	            numberOfGuests = rs.getInt("number_of_guests");
+	            confirmationCode = rs.getInt("confirmation_code");
+	            subscriberId = rs.getInt("subscriber_id");
+	            DateOfPlacingOrder = LocalDate.parse(rs.getString("date_of_placing_order"));
+	            Reservation reservation = new Reservation(orderDate, numberOfGuests, confirmationCode, subscriberId, DateOfPlacingOrder, phone_number);
+	            reservations.add(reservation);
+	        }
+
+	    } catch (SQLException e) {
+	        e.printStackTrace();
+	    }
+
+	    return reservations;
+	}
+	/**
+	 * This method Search order by the order number(pk), and return the value of : order_date, number_of_guests
+	 * @param order_number int type
+	 * @return Reservation that hold the values that returned from the DB.
+	 */
+	public Reservation searchOrderByOrderNumber(int order_number) {
+		LocalDate orderDate;
+		LocalDate DateOfPlacingOrder;
+		int numberOfGuests;
+		int confirmationCode;
+		int subscriberId;
+		String phone_number;
+		String sql = "SELECT order_date, number_of_guests,confirmation_code, subscriber_id, date_of_placing_order FROM `Order` WHERE order_number = ?;";
+		PreparedStatement stmt;
+		try {
+			stmt = conn.prepareStatement(sql);
+			stmt.setInt(1,order_number); 
+			ResultSet rs = stmt.executeQuery();
+			if (rs.next()) {
+				orderDate = LocalDate.parse(rs.getString("order_date"));
+				numberOfGuests = rs.getInt("number_of_guests");
+				confirmationCode = rs.getInt("confirmation_code");
+				subscriberId = rs.getInt("subscriber_id");
+				DateOfPlacingOrder = LocalDate.parse(rs.getString("date_of_placing_order"));
+				phone_number=rs.getString("phone_number");
+				return new Reservation(orderDate, numberOfGuests, confirmationCode, subscriberId, DateOfPlacingOrder,phone_number);
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+	
 }

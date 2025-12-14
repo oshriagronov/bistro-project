@@ -6,8 +6,14 @@
 		</attributes>
 	</classpathentry>
 	<classpathentry kind="src" path="src"/>
+<<<<<<< HEAD
 	<classpathentry kind="lib" path="/Users/oshriagronov/Documents/bistro-project/G2_Assignment3/Server/mysql-connector-j-9.5.0.jar"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/OCSF"/>
+=======
+	<classpathentry kind="lib" path="C:/Users/טל מצגר/Desktop/mysql-connector-j-9.5.0.jar"/>
+>>>>>>> 40d26816b92f6f7cddc69ee45e114b2360cb0d54
 	<classpathentry combineaccessrules="false" kind="src" path="/Common"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/OCSF"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/Client"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

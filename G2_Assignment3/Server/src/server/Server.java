@@ -19,6 +19,7 @@ public class Server extends AbstractServer
    */
   final public static int DEFAULT_PORT = 5555;
   private ConnectionToDB db;
+  private static String dbPassword;
   //Constructors ****************************************************
   
   /**
@@ -35,7 +36,11 @@ public class Server extends AbstractServer
    * This method handles any messages received from the client.
    * @param msg The message received from the client.
    * @param client The connection from which the message originated.
+ * @return 
    */
+  public static void ServerScreen(String password) {
+      dbPassword = password;
+  }
 	public void handleMessageFromClient(Object msg, ConnectionToClient client){
 		BistroRequest request = (BistroRequest)msg; // try catch for casting
 		Object dbReturnedValue = null;
