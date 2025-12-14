@@ -10,6 +10,8 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 
 import client.BistroClient;
+import communication.BistroCommand;
+import communication.BistroRequest;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.Scene;
@@ -139,20 +141,22 @@ public class UpdateScreen {
 		phone_number = phoneNum.getText();
 		Main.client.accept(phone_number); 
 		// Retrieve the ordered data returned from the client (assumes static variable usage)
-		reservations = BistroClient.numoforderedReturned; // need to return array list of all the orders found
-		if (reservations != null) { //need to call the start method to show all the reservations found
-			CreateTable(reservations);
-			// Success: Display fields and populate with returned data
-			ordersVBox.setVisible(true); // initially ordersnumber from the arraylist
-			orderNumber.getItems().clear();
-			for(Reservation r : reservations) {
-				orderNumber.getItems().add(String.valueOf(r.getOrderNumber()));
-			}
-		} else {
-			// Failure: Hide fields and show error
-			infoVbox.setVisible(false);
-			showAlert("Search Failure", "Please enter a valid phone number.");
-		}
+		// example on how to get the data after the client asked the server
+		reservations = (ArrayList<Reservation>)Main.client.getResponse().getData(); // need to return array list of all the orders found
+		// This section bellow throw null pointer errors from orderNumber, don't know why.
+		// if (reservations != null) { //need to call the start method to show all the reservations found
+		// 	CreateTable(reservations);
+		// 	// Success: Display fields and populate with returned data
+		// 	ordersVBox.setVisible(true); // initially ordersnumber from the arraylist
+		// 	orderNumber.getItems().clear();
+		// 	for(Reservation r : reservations) {
+		// 		orderNumber.getItems().add(String.valueOf(r.getOrderNumber()));
+		// 	}
+		// } else {
+		// 	// Failure: Hide fields and show error
+		// 	infoVbox.setVisible(false);
+		// 	showAlert("Search Failure", "Please enter a valid phone number.");
+		// }
 	}
 
 	public void CreateTable(ArrayList<Reservation> reservations) { 
@@ -180,7 +184,8 @@ public class UpdateScreen {
 		order_number = orderNumber.getValue(); // get the selected order number from the combobox
 		// Find the reservation object corresponding to the selected order number with the server
 		Main.client.accept(order_number);
-		reservation = BistroClient.orderedReturned;
+		// another example on how to get data after request, should make try & catch for the casting
+		reservation = (Reservation)Main.client.getResponse().getData();
 		infoVbox.setVisible(true);
 		orderDate.setValue(reservation.getOrderDate());
 		dinersAmount.setValue(String.valueOf(reservation.getNumberOfGuests()));
@@ -220,8 +225,8 @@ public class UpdateScreen {
 		} else {
 			showAlert("Update Success", "Reservation successfully updated.");
 			// Send the update command and new details to the server
-			Reservation updated = new Reservation(date, order_number,number_of_guests,);
-			Main.client.accept(updated);
+			//Reservation updated = new Reservation(date, order_number,number_of_guests,);
+			//Main.client.accept(updated);
 		}
 }
 

@@ -2,8 +2,9 @@ package server;
 import java.io.*;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.time.LocalDate;
-import java.util.ArrayList;
+import communication.BistroRequest;
+import communication.BistroResponse;
+import communication.BistroResponseStatus;
 import ocsf.server.*;
 /**
  * This class overrides some of the methods in the abstract 
@@ -29,106 +30,82 @@ public class Server extends AbstractServer
     super(port);
   }
 
-  //Instance methods ************************************************
+  //SuperClass methods(override) ************************************************
   /**
    * This method handles any messages received from the client.
    * @param msg The message received from the client.
    * @param client The connection from which the message originated.
    */
 	public void handleMessageFromClient(Object msg, ConnectionToClient client){
-		Object result = null;
-		boolean validQuery = msg instanceof ArrayList<?>;
-		ArrayList<String> arrayListMsg = new ArrayList<>();
-		if (validQuery) {
-			for (Object item : (ArrayList<?>) msg) {
-				if (item instanceof String) {
-					arrayListMsg.add((String) item);
-				} else {
-					validQuery = false;
-					break;
-				}
-			}
-		}
-
-		if (validQuery && (arrayListMsg.size() < 2 || arrayListMsg.get(1).isEmpty()) ) {
-			validQuery = false;
-		}
-		if (validQuery) {
-			try {
-				Integer.parseInt(arrayListMsg.get(1));
-			} catch (NumberFormatException nfe) {
-				validQuery = false;
-			}
-		}
-
-		if (validQuery) {
-			String action = arrayListMsg.get(0).toLowerCase();
-			switch (action) {
-			case "search":
-				result = db.searchOrder(Integer.parseInt(arrayListMsg.get(1)));
-				log(client + ": Asked for order number: " + arrayListMsg.get(1) + " .");
+		BistroRequest request = (BistroRequest)msg; // try catch for casting
+		Object dbReturnedValue = null;
+		Object data = request.getData();
+		BistroResponse response;
+		switch (request.getCommand()) {
+			case GET_ACTIVE_RESERVATIONS_BY_PHONE:
+				int phoneNumber = handleStringRequest(data);
+				if (phoneNumber == -1) { response = new BistroResponse(BistroResponseStatus.FAILURE, "Bad phone number."); break; }
+				dbReturnedValue = db.searchOrdersByPhoneNumberList(phoneNumber);// try catch for casting
+				response = new BistroResponse(BistroResponseStatus.SUCCESS, dbReturnedValue);
 				break;
-			case "update":
-				db.updateOrder(Integer.parseInt(arrayListMsg.get(1)), LocalDate.parse(arrayListMsg.get(2)),
-						Integer.parseInt(arrayListMsg.get(3)));
-				log(client + ": Updated order number: " + arrayListMsg.get(1) + ".");
+			case GET_RESERVATION_BY_ORDER_NUMBER:
+				int orderNumber = handleStringRequest(data);
+				if (orderNumber == -1) { response = new BistroResponse(BistroResponseStatus.FAILURE, "Bad order number."); break; }
+				dbReturnedValue = db.searchOrderByOrderNumber(orderNumber);// try catch for casting
+				response = new BistroResponse(BistroResponseStatus.SUCCESS, dbReturnedValue);
 				break;
 			default:
-				validQuery = false;
+				response = new BistroResponse(BistroResponseStatus.INVALID_REQUEST, null);
 				break;
 			}
-		}
-
-		if(!validQuery) {
-			log(client + (": Request query doesn't exist."));
-		}
-
-		try {
-			client.sendToClient(result);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+			try {
+				client.sendToClient(response);
+			} catch (IOException e) {
+				System.out.println("Error: Can't send message to client.");
+			}
 	}
-  /**
-   * This method overrides the one in the superclass.  Called
-   * when the server starts listening for connections.
-   */
-	  protected void serverStarted()
-	  {
+	
+	
+	/**
+	 * This method overrides the one in the superclass.  Called
+	 * when the server starts listening for connections.
+	*/
+	protected void serverStarted()
+	{
 		String ipString = null;
 		try {
-        	InetAddress host = InetAddress.getLocalHost();
+			InetAddress host = InetAddress.getLocalHost();
 			ipString = host.getHostAddress();
 			log("Server listening for connections on port " + getPort());
     	} catch (UnknownHostException e) {
-        	log("Server listening for connections on port " + getPort());
+			log("Server listening for connections on port " + getPort());
     	}
     	db = ConnectionToDB.getConnInstance();
     	if (ServerScreen.instance != null) {
-    		ServerScreen.instance.updateServerInfo(ipString, db.getDbPassword());
+			ServerScreen.instance.updateServerInfo(ipString, db.getDbPassword());
     	}
-	  }
-  
-	  /**
-	   * This method overrides the one in the superclass.  Called
-	   * when the server stops listening for connections.
-	   */
+	}
+	
+	/**
+	 * This method overrides the one in the superclass.  Called
+	 * when the server stops listening for connections.
+	*/
 	protected void serverStopped()
-	  {
-	    System.out.println
-	      ("Server has stopped listening for connections.");
+	{
+		System.out.println
+		("Server has stopped listening for connections.");
 	}
 	/**
 	 * Records the remote host information when a new client connects and writes a
 	 * connection log entry. The formatted host name/IP is stored via
 	 * use setInfo(String, Object) so it can be retrieved to later even after the socket closes.
 	 * @param client active connection that was just established
-	 */
+	*/
 	@Override
 	protected void clientConnected(ConnectionToClient client) {
 		InetAddress addr = client.getInetAddress();
- 		if (addr != null) {
-        	client.setInfo("remoteAddress",
+		if (addr != null) {
+			client.setInfo("remoteAddress",
             addr.getHostName() + " (" + addr.getHostAddress() + ")");
     	}
     	log(client.getInfo("remoteAddress").toString() + " connected");
@@ -140,21 +117,44 @@ public class Server extends AbstractServer
 	 * "remoteAddress" info is used to identify which client disconnected.
 	 * @param client connection that raised the exception
 	 * @param exception cause of the disconnection
-	 */
+	*/
 	@Override
 	synchronized protected void clientException(ConnectionToClient client, Throwable exception){
 		Object stored = client.getInfo("remoteAddress");
     	String id = stored != null ? stored.toString() : "Unknown client";
 	    log(id + " disconnected");
-	  }
-	    /**
-	     * Writes the provided message to the GUI log if available, otherwise stdout.
-	     * @param msg the text to append to the log.
-	     */
-	    private void log(String msg) {
-	        if (ServerScreen.instance != null)
-	            ServerScreen.instance.appendLog(msg);
-	        else
-	        	System.out.println(msg);	        	
-	    }
 	}
+
+	//Instance methods ************************************************
+	/**
+	 * Method that take data Object and check if it a string, if not then throw exception. if everything alright then return the number in int.
+	 * @param data
+	 * @return
+	*/
+	private int handleStringRequest(Object data){
+		int numberReturned = -1;
+		try {
+			if (!(data instanceof String s)) {
+				throw new IllegalArgumentException("Expected String, got: " +
+				(data == null ? "null" : data.getClass().getName()));
+			}
+			numberReturned = Integer.parseInt((String)data);
+			
+		} catch (NumberFormatException e) {
+			log(e.getMessage());
+		} catch (IllegalArgumentException e) {
+			log("Error: handleStringRequest: couldn't parse string to int.");
+		}
+		return numberReturned;
+	}
+	/**
+	 * Writes the provided message to the GUI log if available, otherwise stdout.
+	 * @param msg the text to append to the log.
+	*/
+	private void log(String msg) {
+		if (ServerScreen.instance != null)
+			ServerScreen.instance.appendLog(msg);
+		else
+			System.out.println(msg);	        	
+	}
+}

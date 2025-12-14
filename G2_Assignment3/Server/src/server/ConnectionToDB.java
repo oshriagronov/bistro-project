@@ -5,6 +5,9 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.Arrays;
+
 import logic.Reservation;
 public class ConnectionToDB {
 	private static final String DB_PASSWORD = "Oshri@Agronov";
@@ -53,6 +56,7 @@ public class ConnectionToDB {
 			return stmt.executeUpdate();
 		}
 		catch(SQLException e){
+			System.out.println("SQLException: " + "updateOrder failed.");
 			e.printStackTrace();
 			return 0;
 		}
@@ -62,12 +66,21 @@ public class ConnectionToDB {
 	 * @param order_number int type
 	 * @return ArrayList<String> that hold the values that returned from the DB.
 	 */
-	public Reservation searchOrder(int order_number) {
+	public ArrayList<Reservation> searchOrder(int order_number) {
 		String orderDate;
 		String DateOfPlacingOrder;
 		int numberOfGuests;
 		int confirmationCode;
 		int subscriberId;
+		// array list of reservation for example
+// 		 return new ArrayList<Reservation>(Arrays.asList(
+//     new Reservation(
+//         LocalDate.of(2024, 5, 10), 5001, 4, 742001, 21111,
+//         LocalDate.of(2024, 4, 20), "555-0100"),
+//     new Reservation(
+//         LocalDate.of(2024, 5, 12), 5002, 2, 742002, 21112,
+//         LocalDate.of(2024, 4, 22), "555-0101")
+// ));
 		String sql = "SELECT order_date, number_of_guests, confirmation_code, subscriber_id, date_of_placing_order FROM `Order` WHERE phone_number = ?";
 		PreparedStatement stmt;
 		try {
@@ -80,9 +93,10 @@ public class ConnectionToDB {
 				confirmationCode = rs.getInt("confirmation_code");
 				subscriberId = rs.getInt("subscriber_id");
 				DateOfPlacingOrder = rs.getString("date_of_placing_order");
-				return new Reservation(LocalDate.parse(orderDate), numberOfGuests, confirmationCode, subscriberId, LocalDate.parse(DateOfPlacingOrder));
+				return null;
 			}
 		} catch (SQLException e) {
+			System.out.println("SQLException: " + "searchOrder failed.");
 			e.printStackTrace();
 		}
 		return null;

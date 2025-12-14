@@ -1,7 +1,12 @@
 package client;
 import java.io.*;
-public class ClientController
-{
+import common.BistroController;
+import communication.BistroCommand;
+import communication.BistroRequest;
+import communication.BistroResponse;
+import communication.BistroResponseStatus;
+
+public class ClientController implements BistroController{
   //Class variables *************************************************
   
   /**
@@ -11,7 +16,7 @@ public class ClientController
    // used to send messages to the server.
    private static ClientController clientController;
   //Instance variables **********************************************
-
+  private BistroResponse response;
   
   /**
    * The instance of the BistroClient.
@@ -30,7 +35,7 @@ public class ClientController
   {
     try
     {
-      client= new BistroClient(host, port);
+      client= BistroClient.getInstance(host, port, this);
     } 
     catch(IOException exception) 
     {
@@ -55,14 +60,31 @@ public class ClientController
    */
   public void accept(Object o) 
   {
-	  client.handleMessageFromClientUI(o);
+	  client.handleMessageFromClientUI(new BistroRequest(BistroCommand.GET_ACTIVE_RESERVATIONS_BY_PHONE, o));
+  }
+
+  public void serverResponse(BistroResponse response){
+    BistroResponseStatus status = response.getStatus();
+    switch (status) {
+      case SUCCESS:
+        this.response = response;
+        break;
+
+      default:
+        this.response = null;
+        break;
+    }
   }
   
+  public BistroResponse getResponse(){
+    return response;
+  }
   /*
    * This method quit close the connection of BistroClient, should be invoke when the GUI is closed.
    */
   public void quit() {
 	  client.quit();
+    clientController = null;
   }
   
 }

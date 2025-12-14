@@ -1,7 +1,9 @@
 package client;
 import ocsf.client.*;
 import java.io.*;
-import logic.Reservation;
+
+import common.BistroController;
+import communication.BistroResponse;
 /**
  * This class overrides some of the methods defined in the abstract
  * superclass in order to give more functionality to the client.
@@ -9,13 +11,11 @@ import logic.Reservation;
 public class BistroClient extends AbstractClient
 {
   //Instance variables **********************************************
+  private static BistroClient bistroClient;
 	// a boolean variable to time the wait for the server response.
   private static boolean awaitResponse = false;
-  //ArrayList which will hold the order details that was asked from the client, it will hold null if there wasn't a order with that number
-  public static Reservation orderedReturned = null;
-
-  public static Reservation numoforderedReturned = null;
-
+  
+  private BistroController controller;
   //Constructors ****************************************************
   
   /**
@@ -25,15 +25,23 @@ public class BistroClient extends AbstractClient
    * @param port The port number to connect on.
    */
 	 
-  public BistroClient(String host, int port) 
+  public BistroClient(String host, int port, BistroController controller) 
     throws IOException 
   {
     super(host, port); //Call the superclass constructor
+    this.controller = controller;
     openConnection();//in order to send more than one message
   }
 
+  // Singleton design pattern
+  public static BistroClient getInstance(String host, int port, BistroController controller) throws IOException {
+	  if (bistroClient == null){
+		  bistroClient = new BistroClient(host, port, controller);
+	  }
+	  return bistroClient;
+  }
   //Instance methods ************************************************
-    
+  
   /**
    * This method handles all data that comes in from the server.
    *
@@ -42,12 +50,7 @@ public class BistroClient extends AbstractClient
   public void handleMessageFromServer(Object msg) 
   {
 	  awaitResponse = false;
-	  if(msg instanceof Reservation) {
-		  orderedReturned = (Reservation)msg;
-	  }
-	  else {
-		  orderedReturned = null;
-	  }
+    controller.serverResponse((BistroResponse)msg);
   }
 
   /**
@@ -67,13 +70,15 @@ public class BistroClient extends AbstractClient
         try {
           Thread.sleep(100);
         } catch (InterruptedException e) {
-          e.printStackTrace();
+          System.out.println("Error at handleMessageFromClientUI: Can't sleep!\n");
+          quit();
         }
 		  }
     }
     catch(IOException e)
     {
     	e.printStackTrace();
+      System.out.println("Error at handleMessageFromClientUI: Can't send message to server!");
     	quit();
     }
   }
@@ -88,7 +93,12 @@ public class BistroClient extends AbstractClient
     {
       closeConnection();
     }
-    catch(IOException e) {}
+    catch(IOException e) {
+      System.out.println("Error at quit method: Can't close connection!");
+    }
+    finally{
+      bistroClient = null;
+    }
     System.exit(0);
   }
 }
