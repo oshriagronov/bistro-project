@@ -5,6 +5,9 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
+
 import logic.Reservation;
 public class ConnectionToDB {
 	private static String DB_PASSWORD = "6911";
@@ -62,11 +65,11 @@ public class ConnectionToDB {
 		}
 	}
 	/**
-	 * This method Search order by the order number(pk), and return the value of : order_date, number_of_guests
+	 * This method Search order by the phone number, and return the value of : order_date, number_of_guests
 	 * @param order_number int type
-	 * @return ArrayList<String> that hold the values that returned from the DB.
+	 * @return Reservation that hold the values that returned from the DB.
 	 */
-	public Reservation searchOrder(String phone_number) {
+	public Reservation searchOrderByPhoneNumber(String phone_number) {
 		LocalDate orderDate;
 		LocalDate DateOfPlacingOrder;
 		int numberOfGuests;
@@ -84,11 +87,79 @@ public class ConnectionToDB {
 				confirmationCode = rs.getInt("confirmation_code");
 				subscriberId = rs.getInt("subscriber_id");
 				DateOfPlacingOrder = LocalDate.parse(rs.getString("date_of_placing_order"));
-				return new Reservation(orderDate, numberOfGuests, confirmationCode, subscriberId, DateOfPlacingOrder,phone_number);//added phone number
+				return new Reservation(orderDate, numberOfGuests, confirmationCode, subscriberId, DateOfPlacingOrder,phone_number);
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
 		return null;
 	}
+	/**
+	 * This method Search order by the phone number, and return the value of : order_date, number_of_guests
+	 * @param order_number int type
+	 * @return ArrayList<Reservation> that hold the values that returned from the DB.
+	 */
+	public List<Reservation> searchOrdersByPhoneNumberList(String phone_number) {
+	    List<Reservation> reservations = new ArrayList<>();
+	    LocalDate orderDate;
+		LocalDate DateOfPlacingOrder;
+		int numberOfGuests;
+		int confirmationCode;
+		int subscriberId;
+	    String sql = "SELECT order_date, number_of_guests, confirmation_code, subscriber_id, date_of_placing_order " +
+	                 "FROM `Order` WHERE phone_number = ?";
+	    PreparedStatement stmt;
+	    try {
+	    	stmt=conn.prepareStatement(sql);
+	        stmt.setString(1, phone_number);
+	        ResultSet rs = stmt.executeQuery();
+	        while (rs.next()) {
+	            orderDate = LocalDate.parse(rs.getString("order_date"));
+	            numberOfGuests = rs.getInt("number_of_guests");
+	            confirmationCode = rs.getInt("confirmation_code");
+	            subscriberId = rs.getInt("subscriber_id");
+	            DateOfPlacingOrder = LocalDate.parse(rs.getString("date_of_placing_order"));
+	            Reservation reservation = new Reservation(orderDate, numberOfGuests, confirmationCode, subscriberId, DateOfPlacingOrder, phone_number);
+	            reservations.add(reservation);
+	        }
+
+	    } catch (SQLException e) {
+	        e.printStackTrace();
+	    }
+
+	    return reservations;
+	}
+	/**
+	 * This method Search order by the order number(pk), and return the value of : order_date, number_of_guests
+	 * @param order_number int type
+	 * @return Reservation that hold the values that returned from the DB.
+	 */
+	public Reservation searchOrderByOrderNumber(int order_number) {
+		LocalDate orderDate;
+		LocalDate DateOfPlacingOrder;
+		int numberOfGuests;
+		int confirmationCode;
+		int subscriberId;
+		String phone_number;
+		String sql = "SELECT order_date, number_of_guests,confirmation_code, subscriber_id, date_of_placing_order FROM `Order` WHERE order_number = ?;";
+		PreparedStatement stmt;
+		try {
+			stmt = conn.prepareStatement(sql);
+			stmt.setInt(1,order_number); 
+			ResultSet rs = stmt.executeQuery();
+			if (rs.next()) {
+				orderDate = LocalDate.parse(rs.getString("order_date"));
+				numberOfGuests = rs.getInt("number_of_guests");
+				confirmationCode = rs.getInt("confirmation_code");
+				subscriberId = rs.getInt("subscriber_id");
+				DateOfPlacingOrder = LocalDate.parse(rs.getString("date_of_placing_order"));
+				phone_number=rs.getString("phone_number");
+				return new Reservation(orderDate, numberOfGuests, confirmationCode, subscriberId, DateOfPlacingOrder,phone_number);
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+	
 }
