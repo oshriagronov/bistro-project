@@ -6,11 +6,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.ArrayList;
-<<<<<<< HEAD
-import java.util.Arrays;
-=======
 import java.util.List;
->>>>>>> 40d26816b92f6f7cddc69ee45e114b2360cb0d54
 
 import logic.Reservation;
 public class ConnectionToDB {
@@ -74,15 +70,9 @@ public class ConnectionToDB {
 	 * @param order_number int type
 	 * @return Reservation that hold the values that returned from the DB.
 	 */
-<<<<<<< HEAD
-	public ArrayList<Reservation> searchOrder(int order_number) {
-		String orderDate;
-		String DateOfPlacingOrder;
-=======
 	public Reservation searchOrderByPhoneNumber(String phone_number) {
 		LocalDate orderDate;
 		LocalDate DateOfPlacingOrder;
->>>>>>> 40d26816b92f6f7cddc69ee45e114b2360cb0d54
 		int numberOfGuests;
 		int confirmationCode;
 		int subscriberId;
@@ -106,13 +96,8 @@ public class ConnectionToDB {
 				numberOfGuests = rs.getInt("number_of_guests");
 				confirmationCode = rs.getInt("confirmation_code");
 				subscriberId = rs.getInt("subscriber_id");
-<<<<<<< HEAD
-				DateOfPlacingOrder = rs.getString("date_of_placing_order");
-				return null;
-=======
 				DateOfPlacingOrder = LocalDate.parse(rs.getString("date_of_placing_order"));
 				return new Reservation(orderDate, numberOfGuests, confirmationCode, subscriberId, DateOfPlacingOrder,phone_number);
->>>>>>> 40d26816b92f6f7cddc69ee45e114b2360cb0d54
 			}
 		} catch (SQLException e) {
 			System.out.println("SQLException: " + "searchOrder failed.");

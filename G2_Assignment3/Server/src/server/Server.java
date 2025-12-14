@@ -48,9 +48,8 @@ public class Server extends AbstractServer
 		BistroResponse response;
 		switch (request.getCommand()) {
 			case GET_ACTIVE_RESERVATIONS_BY_PHONE:
-				int phoneNumber = handleStringRequest(data);
-				if (phoneNumber == -1) { response = new BistroResponse(BistroResponseStatus.FAILURE, "Bad phone number."); break; }
-				dbReturnedValue = db.searchOrdersByPhoneNumberList(phoneNumber);// try catch for casting
+				if (!(data instanceof String)) { response = new BistroResponse(BistroResponseStatus.FAILURE, "Bad phone number."); break; }
+				dbReturnedValue = db.searchOrdersByPhoneNumberList((String)data);// try catch for casting
 				response = new BistroResponse(BistroResponseStatus.SUCCESS, dbReturnedValue);
 				break;
 			case GET_RESERVATION_BY_ORDER_NUMBER:
