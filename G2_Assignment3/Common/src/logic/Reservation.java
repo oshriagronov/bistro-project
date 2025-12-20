@@ -25,6 +25,12 @@ public class Reservation implements Serializable{
 		this(order_date, number_of_guests, confirmation_code,  subscriber_id, date_of_placing_order, phone_number);
 		this.orderNumber = orderNumber;
 	}
+	
+	public Reservation(int number_of_guests, int subscriber_id, String phone_number) {
+		this.number_of_guests = number_of_guests;
+		this.subscriber_id = subscriber_id;
+		this.phone_number = phone_number;
+	}
 
 
 	public LocalDate getOrderDate() {
