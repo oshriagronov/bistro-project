@@ -69,7 +69,7 @@ public class Main extends Application {
 			client.quit();
 			System.exit(0);
 		});
-		primaryStage.setTitle("New Order"); 
+		primaryStage.setTitle("Bistro Project"); 
 		primaryStage.show();
 	}
 

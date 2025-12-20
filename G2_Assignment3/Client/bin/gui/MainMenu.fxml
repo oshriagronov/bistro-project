@@ -26,6 +26,11 @@
                   <Button fx:id="updateReservation" mnemonicParsing="false" onAction="#updateScreen" prefHeight="25.0" prefWidth="124.0" text="Update reservation" />
                </children>
             </HBox>
+            <HBox prefHeight="47.0" prefWidth="224.0">
+               <children>
+                  <Button fx:id="subscriberLogin" mnemonicParsing="false" onAction="#subscriberLogin" prefHeight="25.0" prefWidth="124.0" text="Subscriber login" />
+               </children>
+            </HBox>
          </children>
       </VBox>
    </children>

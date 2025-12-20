@@ -19,6 +19,12 @@ public class MainMenuScreen {
     private Button updateReservation;
 
     /**
+     * Button used to navigate to the subscriber login screen.
+     */
+    @FXML
+    private Button subscriberLogin;
+
+    /**
      * Handles the action when the "New Reservation" button is clicked.
      * Changes the application's view to the {@code Order.fxml} screen.
      * * @param event The ActionEvent triggered by the button click.
@@ -39,4 +45,17 @@ public class MainMenuScreen {
         }
     }
 
+    /**
+     * Handles the action when the "Subscriber Login" button is clicked.
+     * Changes the application's view to the {@code SubscriberLogin.fxml} screen.
+     * * @param event The ActionEvent triggered by the button click.
+     */
+    @FXML
+    void subscriberLogin(ActionEvent event) {
+        try {
+            Main.changeRoot("SubscriberLogin.fxml");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 }

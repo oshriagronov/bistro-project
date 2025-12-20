@@ -58,7 +58,6 @@ public class WaitingListScreen {
         int num=0;
 		phone_number = prePhone.getValue() +phoneField.getText();
 		number_of_guests = (String) diners.getValue();
-
 		//Validate Diners Amount
 		if (number_of_guests == null) {
 			check = false;
@@ -70,9 +69,9 @@ public class WaitingListScreen {
 		} else {
 			showAlert("Reservasion Success", "Reservation successfully created.");
 			// Send the update command and new details to the server
-			Reservation waitinglist = new Reservation(Integer.parseInt(number_of_guests), num, phone_number);
+			Reservation waitingList = new Reservation(Integer.parseInt(number_of_guests), num, phone_number);
+			Main.client.accept(waitingList);
 		}
-        Main.client.accept(waitinglist);
     }
 
     @FXML

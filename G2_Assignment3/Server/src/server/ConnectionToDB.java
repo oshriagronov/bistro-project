@@ -76,15 +76,6 @@ public class ConnectionToDB {
 		int numberOfGuests;
 		int confirmationCode;
 		int subscriberId;
-		// array list of reservation for example
-// 		 return new ArrayList<Reservation>(Arrays.asList(
-//     new Reservation(
-//         LocalDate.of(2024, 5, 10), 5001, 4, 742001, 21111,
-//         LocalDate.of(2024, 4, 20), "555-0100"),
-//     new Reservation(
-//         LocalDate.of(2024, 5, 12), 5002, 2, 742002, 21112,
-//         LocalDate.of(2024, 4, 22), "555-0101")
-// ));
 		String sql = "SELECT order_date, number_of_guests, confirmation_code, subscriber_id, date_of_placing_order FROM `Order` WHERE phone_number = ?";
 		PreparedStatement stmt;
 		try {
