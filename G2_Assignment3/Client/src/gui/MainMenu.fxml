@@ -32,12 +32,12 @@
             </HBox>
             <HBox prefHeight="45.0" prefWidth="224.0">
                <children>
-                  <Button id="WaitingListBtn" mnemonicParsing="false" onAction="#WaitingListScreen" prefHeight="25.0" prefWidth="124.0" text="Waiting List" />
+                  <Button id="WaitingListBtn" mnemonicParsing="false" onAction="#WaitingList" prefHeight="25.0" prefWidth="124.0" text="Waiting List" />
                </children>
             </HBox>
             <HBox prefHeight="28.0" prefWidth="224.0">
                <children>
-                  <Button id="NewReservationBtn" mnemonicParsing="false" onAction="#OrderScreen" prefHeight="25.0" prefWidth="124.0" text="New Reservation" />
+                  <Button id="NewReservationBtn" mnemonicParsing="false" onAction="#Order" prefHeight="25.0" prefWidth="124.0" text="New Reservation" />
                </children>
             </HBox>
          </children>
