@@ -58,4 +58,32 @@ public class MainMenuScreen {
             e.printStackTrace();
         }
     }
+    /**
+     * Handles the action when the "New Reservation" button is clicked.
+     * Changes the application's view to the {@code Order.fxml} screen.
+     * @param event The ActionEvent triggered by the button click.
+     */
+    @FXML
+    void openNewReservation(ActionEvent event) {
+        try {
+            Main.changeRoot("Order.fxml");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Handles the action when the "Waiting List" button is clicked.
+     * Changes the application's view to the {@code WaitingList.fxml} screen.
+     * @param event The ActionEvent triggered by the button click.
+     */
+    @FXML
+    void openWaitingList(ActionEvent event) {
+        try {
+            Main.changeRoot("WaitingList.fxml");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
 }
