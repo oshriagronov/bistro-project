@@ -10,32 +10,9 @@ import java.util.List;
 
 import logic.Reservation;
 public class ConnectionToDB {
-	private static String DB_PASSWORD = "6911";
-	private static ConnectionToDB connectionToDB = null;
-	private Connection conn;
-	private ConnectionToDB() 
-	{
-        try 
-        {
-        	// "password" argument is for the db password.
-			conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/sys", "root", DB_PASSWORD);
-            System.out.println("SQL connection succeed");
-     	} catch (SQLException ex) 
-     	    {/* handle any errors*/
-            System.out.println("SQLException: " + ex.getMessage());
-            System.out.println("SQLState: " + ex.getSQLState());
-            System.out.println("VendorError: " + ex.getErrorCode());
-            }
-   	}
+	private static String DB_PASSWORD;
 
-	public static ConnectionToDB getConnInstance() {
-		if(connectionToDB == null) {
-			connectionToDB = new ConnectionToDB();
-		}
-		return connectionToDB;
-	}
-	
-	public String getDbPassword() {
+	public static String getDbPassword() {
 		return DB_PASSWORD;
 	}
 	
@@ -51,9 +28,16 @@ public class ConnectionToDB {
 	 * @return number bigger then 1 if succeed or 0 if failed
 	 */
 	public int updateOrder(int order_number ,LocalDate order_date, int number_of_guests) {
-		PreparedStatement stmt;
+		// the two line bellow are needed to use the pool connection
+		MySQLConnectionPool pool = MySQLConnectionPool.getInstance();
+        PooledConnection pConn = null;
 		try {
-			stmt = conn.prepareStatement("UPDATE `Order` SET order_date = ?, number_of_guests = ? WHERE order_number = ?");
+			// get connection from the pull
+			pConn = pool.getConnection();
+			if (pConn == null) return 0;
+			// get the actual connection from the class
+            Connection conn = pConn.getConnection();
+			PreparedStatement stmt = conn.prepareStatement("UPDATE `Order` SET order_date = ?, number_of_guests = ? WHERE order_number = ?");
 			stmt.setDate(1, java.sql.Date.valueOf(order_date));
 			stmt.setInt(2, number_of_guests);
 			stmt.setInt(3, order_number);
@@ -64,6 +48,10 @@ public class ConnectionToDB {
 			e.printStackTrace();
 			return 0;
 		}
+		finally {
+            // Crucial: Return connection to the pool here!
+            pool.releaseConnection(pConn);
+        }
 	}
 	/**
 	 * This method Search order by the phone number, and return the value of : order_date, number_of_guests
@@ -71,15 +59,19 @@ public class ConnectionToDB {
 	 * @return Reservation that hold the values that returned from the DB.
 	 */
 	public Reservation searchOrderByPhoneNumber(String phone_number) {
+		MySQLConnectionPool pool = MySQLConnectionPool.getInstance();
+        PooledConnection pConn = null;
 		LocalDate orderDate;
 		LocalDate DateOfPlacingOrder;
 		int numberOfGuests;
 		int confirmationCode;
 		int subscriberId;
 		String sql = "SELECT order_date, number_of_guests, confirmation_code, subscriber_id, date_of_placing_order FROM `Order` WHERE phone_number = ?";
-		PreparedStatement stmt;
 		try {
-			stmt = conn.prepareStatement(sql);
+			pConn = pool.getConnection();
+			if (pConn == null) return 0;
+            Connection conn = pConn.getConnection();
+			PreparedStatement stmt = conn.prepareStatement(sql);
 			stmt.setString(1, phone_number); 
 			ResultSet rs = stmt.executeQuery();
 			if (rs.next()) {
@@ -94,6 +86,10 @@ public class ConnectionToDB {
 			System.out.println("SQLException: " + "searchOrder failed.");
 			e.printStackTrace();
 		}
+				finally {
+            // Crucial: Return connection to the pool here!
+            pool.releaseConnection(pConn);
+        }
 		return null;
 	}
 	/**
@@ -102,6 +98,8 @@ public class ConnectionToDB {
 	 * @return ArrayList<Reservation> that hold the values that returned from the DB.
 	 */
 	public List<Reservation> searchOrdersByPhoneNumberList(String phone_number) {
+		MySQLConnectionPool pool = MySQLConnectionPool.getInstance();
+        PooledConnection pConn = null;
 	    List<Reservation> reservations = new ArrayList<>();
 	    LocalDate orderDate;
 		LocalDate DateOfPlacingOrder;
@@ -110,9 +108,11 @@ public class ConnectionToDB {
 		int subscriberId;
 	    String sql = "SELECT order_date, number_of_guests, confirmation_code, subscriber_id, date_of_placing_order " +
 	                 "FROM `Order` WHERE phone_number = ?";
-	    PreparedStatement stmt;
-	    try {
-	    	stmt=conn.prepareStatement(sql);
+		try {
+			pConn = pool.getConnection();
+			if (pConn == null) return null;
+            Connection conn = pConn.getConnection();
+			PreparedStatement stmt = conn.prepareStatement(sql);
 	        stmt.setString(1, phone_number);
 	        ResultSet rs = stmt.executeQuery();
 	        while (rs.next()) {
@@ -128,6 +128,10 @@ public class ConnectionToDB {
 	    } catch (SQLException e) {
 	        e.printStackTrace();
 	    }
+				finally {
+            // Crucial: Return connection to the pool here!
+            pool.releaseConnection(pConn);
+        }
 
 	    return reservations;
 	}
@@ -137,6 +141,8 @@ public class ConnectionToDB {
 	 * @return Reservation that hold the values that returned from the DB.
 	 */
 	public Reservation searchOrderByOrderNumber(int order_number) {
+		MySQLConnectionPool pool = MySQLConnectionPool.getInstance();
+        PooledConnection pConn = null;
 		LocalDate orderDate;
 		LocalDate DateOfPlacingOrder;
 		int numberOfGuests;
@@ -144,9 +150,11 @@ public class ConnectionToDB {
 		int subscriberId;
 		String phone_number;
 		String sql = "SELECT order_date, number_of_guests,confirmation_code, subscriber_id, date_of_placing_order FROM `Order` WHERE order_number = ?;";
-		PreparedStatement stmt;
 		try {
-			stmt = conn.prepareStatement(sql);
+			pConn = pool.getConnection();
+			if (pConn == null) return 0;
+			Connection conn = pConn.getConnection();
+			PreparedStatement stmt = conn.prepareStatement(sql);
 			stmt.setInt(1,order_number); 
 			ResultSet rs = stmt.executeQuery();
 			if (rs.next()) {
@@ -161,7 +169,45 @@ public class ConnectionToDB {
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
+				finally {
+            // Crucial: Return connection to the pool here!
+            pool.releaseConnection(pConn);
+        }
 		return null;
 	}
+
+	//template for read queries from DB table(if we have multiply sql queries from the same table) helper method to avoid repeating code
+	/*
+    private String executeReadQuery(String sql) {
+        MySQLConnectionPool pool = MySQLConnectionPool.getInstance();
+        PooledConnection pConn = null;
+        StringBuilder result = new StringBuilder();
+		
+        try {
+            pConn = pool.getConnection();
+            if (pConn == null) return "Error: Database Down";
+			
+            Connection conn = pConn.getConnection();
+            PreparedStatement ps = conn.prepareStatement(sql);
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                result.append(rs.getString("username"))
+				.append(" - ")
+				.append(rs.getString("role"))
+				.append("\n");
+            }
+            rs.close();
+            ps.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return "DB Error: " + e.getMessage();
+        } finally {
+            // Crucial: Return connection to the pool here!
+            pool.releaseConnection(pConn);
+        }
+        
+        return result.toString();
+    }
+	*/
 	
 }

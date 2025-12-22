@@ -120,7 +120,7 @@ public class OrdersManagementScreen {
 	@FXML
 	void clickMenu(ActionEvent event) {
 		try {
-			Main.changeRoot("MainMenu.fxml", 500, 400);
+			Main.changeRoot("MainMenu.fxml");
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

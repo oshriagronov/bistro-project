@@ -19,7 +19,6 @@ public class Server extends AbstractServer
    */
   final public static int DEFAULT_PORT = 5555;
   private ConnectionToDB db;
-  private static String dbPassword;
   //Constructors ****************************************************
   
   /**
@@ -30,7 +29,10 @@ public class Server extends AbstractServer
   {
     super(port);
   }
-
+  
+  public static void ServerScreen(String password) {
+	  ConnectionToDB.setPassword(password);
+  }
   //SuperClass methods(override) ************************************************
   /**
    * This method handles any messages received from the client.
@@ -38,9 +40,6 @@ public class Server extends AbstractServer
    * @param client The connection from which the message originated.
  * @return 
    */
-  public static void ServerScreen(String password) {
-      dbPassword = password;
-  }
 	public void handleMessageFromClient(Object msg, ConnectionToClient client){
 		BistroRequest request = (BistroRequest)msg; // try catch for casting
 		Object dbReturnedValue = null;
@@ -84,9 +83,9 @@ public class Server extends AbstractServer
     	} catch (UnknownHostException e) {
 			log("Server listening for connections on port " + getPort());
     	}
-    	db = ConnectionToDB.getConnInstance();
+		db = new ConnectionToDB();
     	if (ServerScreen.instance != null) {
-			ServerScreen.instance.updateServerInfo(ipString, db.getDbPassword());
+			ServerScreen.instance.updateServerInfo(ipString, ConnectionToDB.getDbPassword());
     	}
 	}
 	
