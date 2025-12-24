@@ -85,5 +85,21 @@ public class MainMenuScreen {
             e.printStackTrace();
         }
     }
+    /**
+     * Handles the action when the "Back to Login" button is clicked.
+     * 
+     * Returns the user to the login menu screen.
+     *
+     * @param event The ActionEvent triggered by the button click.
+     */
+    @FXML
+    void backToLoginMenu(ActionEvent event) {
+        try {
+            Main.changeRoot("LoginMenu.fxml");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
 
 }

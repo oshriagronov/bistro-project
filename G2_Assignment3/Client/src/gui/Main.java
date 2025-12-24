@@ -53,7 +53,7 @@ public class Main extends Application {
 		try {
 			// Load the main menu FXML file
 			FXMLLoader loader = new FXMLLoader();
-			loader.setLocation(getClass().getResource("MainMenu.fxml"));
+			loader.setLocation(getClass().getResource("LoginMenu.fxml"));
 			root = loader.load();
 		} catch (IOException e) {
 			// Print stack trace if FXML loading fails and exit
