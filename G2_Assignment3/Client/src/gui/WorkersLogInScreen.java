@@ -71,7 +71,7 @@ public class WorkersLogInScreen {
         if (pass.equals("12345")) {
             showAlert("Success", "Login Successful (Test)");
             try {
-                Main.changeRoot("employeeScreen.fxml");
+                Main.changeRoot("WorkerMenu.fxml");
             } catch (Exception e) {
                 e.printStackTrace();
                 showAlert("Navigation Error", e.getMessage());
@@ -89,7 +89,7 @@ public class WorkersLogInScreen {
             if (data instanceof Boolean && (Boolean) data) {
                 showAlert("Success", "Login Successful");
                 try {
-                	Main.changeRoot("employeeScreen.fxml");
+                	Main.changeRoot("WorkerMenu.fxml");
                 } catch (Exception e) {
                     e.printStackTrace();
                 }

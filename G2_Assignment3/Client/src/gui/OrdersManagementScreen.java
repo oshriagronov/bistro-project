@@ -15,7 +15,6 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
 import logic.Reservation;
-import logic.Status;
 
 public class OrdersManagementScreen {
 
