@@ -11,15 +11,36 @@ public class Reservation implements Serializable{
 	private int orderNumber;
 	private LocalDate date_of_placing_order;
 	private String phone_number;
+	private  Status status=Status.PENDING;
 	
-	public Reservation(LocalDate order_date, int number_of_guests, int confirmation_code, int subscriber_id, LocalDate date_of_placing_order) {
+	public Reservation(LocalDate order_date, int number_of_guests, int confirmation_code, int subscriber_id, LocalDate date_of_placing_order, String phone_number) {
 		this.order_date = order_date;
 		this.date_of_placing_order = date_of_placing_order;
 		this.number_of_guests = number_of_guests;
 		this.confirmation_code = confirmation_code;
 		this.subscriber_id = subscriber_id;
+		this.phone_number = phone_number;
 	}
 	
+	public Reservation(LocalDate order_date, int number_of_guests, int confirmation_code, int subscriber_id, LocalDate date_of_placing_order, String phone_number, Status order_status) {
+		this.order_date = order_date;
+		this.date_of_placing_order = date_of_placing_order;
+		this.number_of_guests = number_of_guests;
+		this.confirmation_code = confirmation_code;
+		this.subscriber_id = subscriber_id;
+		this.phone_number = phone_number;
+		this.status=order_status;
+	}
+
+	public Reservation(LocalDate order_date, int orderNumber, int number_of_guests, int confirmation_code, int subscriber_id, LocalDate date_of_placing_order, String phone_number) {
+		this(order_date, number_of_guests, confirmation_code,  subscriber_id, date_of_placing_order, phone_number);
+		this.orderNumber = orderNumber;
+	}
+	public Reservation(LocalDate order_date, int orderNumber, int number_of_guests, int confirmation_code, int subscriber_id, LocalDate date_of_placing_order, String phone_number, Status order_status)
+	{
+		this(order_date,orderNumber,number_of_guests, confirmation_code, subscriber_id,date_of_placing_order, phone_number);
+		this.status=order_status;
+	}
 	public Reservation(int number_of_guests, int subscriber_id, String phone_number) {
 		this.number_of_guests = number_of_guests;
 		this.subscriber_id = subscriber_id;
@@ -50,6 +71,10 @@ public class Reservation implements Serializable{
 	public int getOrderNumber() {
 		return orderNumber;
 	}
+	
+	public Status getStatus() {
+		return status;
+	}
 
 
 	public void setOrder_date(LocalDate order_date) {
@@ -75,5 +100,11 @@ public class Reservation implements Serializable{
 	public void setPhone_number(String phone_number) {
 		this.phone_number = phone_number;
 	}
+
+	public void setStatus(Status status) {
+		this.status = status;
+		
+	}
+
 	
 }
