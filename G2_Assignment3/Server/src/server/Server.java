@@ -2,13 +2,17 @@ package server;
 import java.io.*;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.sql.SQLException;
+import org.mindrot.jbcrypt.BCrypt;
 import communication.BistroRequest;
 import communication.BistroResponse;
 import communication.BistroResponseStatus;
+import communication.NewSubscriberInfo;
 import communication.StatusUpdate;
 import communication.TableSizeUpdate;
 import communication.TableStatusUpdate;
 import db.ConnectionToDB;
+import logic.Subscriber;
 import ocsf.server.*;
 /**
  * This class overrides some of the methods in the abstract 
@@ -95,6 +99,23 @@ public class Server extends AbstractServer
 				break;
 			case SUBSCRIBER_LOGIN:
 				break;
+			case ADD_SUBSCRIBER:
+			if (data instanceof NewSubscriberInfo) {
+				NewSubscriberInfo s = (NewSubscriberInfo) data;
+				Subscriber subscriber = s.getSubscriber();
+				String rawPassword = s.getRawPassword();
+				String hash = BCrypt.hashpw(rawPassword, BCrypt.gensalt());
+				subscriber.setPasswordHash(hash);
+		        try {
+					db.addSubscriber(subscriber);
+				} catch (SQLException e) {
+
+					e.printStackTrace();
+				}
+				response = new BistroResponse(BistroResponseStatus.SUCCESS, dbReturnedValue);
+			} else
+				response = new BistroResponse(BistroResponseStatus.FAILURE, "update failed.");
+			break;
 
 			default:
 				response = new BistroResponse(BistroResponseStatus.INVALID_REQUEST, null);
