@@ -49,7 +49,7 @@ public class LoginMenuScreen {
     /**
      * Handles the action when the "Continue as Guest" button is clicked.
      * 
-     * Changes the application's view to the GuestScreen.fxml.
+     * Changes the application's view to the Order.fxml.
      *
      * @param event The ActionEvent triggered by the button click.
      */
@@ -57,9 +57,28 @@ public class LoginMenuScreen {
     void continueAsGuest(ActionEvent event) {
         try {
             // Switch to the guest screen
-            Main.changeRoot("MainMenu.fxml");
+            Main.changeRoot("Order.fxml");
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
+    /**
+     * Handles the action when the "Back To Menu" button is clicked.
+     *
+     * Changes the application's view back to the Main Menu screen
+     * ({@code MainMenu.fxml}).
+     *
+     * @param event The ActionEvent triggered by the button click.
+     */
+    @FXML
+    void backToMenu(ActionEvent event) {
+        try {
+            // Switch back to the main menu screen
+            Main.changeRoot("MainMenu.fxml");
+        } catch (Exception e) {
+            // Print stack trace if navigation fails
+            e.printStackTrace();
+        }
+    }
+
 }
