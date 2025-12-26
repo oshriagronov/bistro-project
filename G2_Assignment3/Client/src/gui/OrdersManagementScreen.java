@@ -15,6 +15,7 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
 import logic.Reservation;
+import logic.Status;
 
 public class OrdersManagementScreen {
 
@@ -67,7 +68,7 @@ public class OrdersManagementScreen {
 		statusCombo.setPromptText("Select status...");
 
 		orderIdCol.setCellValueFactory(new PropertyValueFactory<>("orderNumber"));
-		
+
 		statusCol.setCellValueFactory(new PropertyValueFactory<>("status"));
 
 		dateCol.setCellValueFactory(new PropertyValueFactory<>("orderDate"));
@@ -77,7 +78,6 @@ public class OrdersManagementScreen {
 		ordersTable.getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, newSelection) -> {
 
 			if (newSelection != null) {
-				System.out.println("Selected order: " + newSelection.getOrderNumber());
 				applyStatusBTN.setDisable(false);
 				deleteBTN.setDisable(false);
 			} else {
@@ -90,18 +90,21 @@ public class OrdersManagementScreen {
 	@FXML
 	void clickApplyStatus(ActionEvent event) {
 		Reservation selected = ordersTable.getSelectionModel().getSelectedItem();
-	    selected.setStatus(statusCombo.getValue());
-	    Main.client.accept(new BistroRequest(
-	            BistroCommand.CHANGE_STATUS,
-	            new StatusUpdate(selected.getOrderNumber(), statusCombo.getValue())
-	        ));
-	    ordersTable.refresh();
+		selected.setStatus(statusCombo.getValue());
+		Main.client.accept(new BistroRequest(BistroCommand.CHANGE_STATUS,
+				new StatusUpdate(selected.getOrderNumber(), statusCombo.getValue())));
+		ordersTable.refresh();
 
 	}
 
 	@FXML
 	void clickClear(ActionEvent event) {
 		phoneTXT.setText("");
+		phoneTXT.clear();
+		ordersTable.getItems().clear();
+		ordersTable.getSelectionModel().clearSelection();
+		applyStatusBTN.setDisable(true);
+		deleteBTN.setDisable(true);
 	}
 
 	@FXML
@@ -119,7 +122,7 @@ public class OrdersManagementScreen {
 	@FXML
 	void clickMenu(ActionEvent event) {
 		try {
-			Main.changeRoot("MainMenu.fxml");
+			Main.changeRoot("employeeScreen.fxml", 600, 500);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -129,11 +132,8 @@ public class OrdersManagementScreen {
 	void clickSearch(ActionEvent event) {
 		String phone_number = phoneTXT.getText();
 		Main.client.accept(new BistroRequest(BistroCommand.GET_ACTIVE_RESERVATIONS_BY_PHONE, phone_number));
-
 		Object data = Main.client.getResponse().getData();
 		ArrayList<Reservation> reservations = (ArrayList<Reservation>) data;
-
-		// להציג בטבלה:
 		ordersTable.setItems(javafx.collections.FXCollections.observableArrayList(reservations));
 
 	}
