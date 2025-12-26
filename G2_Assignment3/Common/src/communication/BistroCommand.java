@@ -13,5 +13,9 @@ public enum BistroCommand {
     CONFIRM_ARRIVAL,
     GET_BILL,
     PAY_BILL,
-    GET_MONTHLY_REPORTS
+    GET_MONTHLY_REPORTS,
+    //Add this 3
+    GET_TABLES,
+    CHANGE_TABLE_STATUS,
+    CHANGE_TABLE_SIZE
 }
