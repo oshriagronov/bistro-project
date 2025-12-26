@@ -9,8 +9,10 @@ import java.util.ArrayList;
 import java.util.List;
 import logic.Reservation;
 import logic.Status;
+import logic.Subscriber;
 import logic.Table;
 import logic.TableStatus;
+import java.sql.Statement;
 
 public class ConnectionToDB {
 	private static String DB_PASSWORD;
@@ -250,6 +252,46 @@ public class ConnectionToDB {
 		String sql = "UPDATE `tables` SET table_size = ? WHERE table_number = ?";
 		return executeWriteQuery(sql, table_number, table_size);
 	}
+
+	public void addSubscriber(Subscriber subscriber) throws SQLException {
+
+    String sql = """
+        INSERT INTO subscriber
+        (username, first_name, last_name, email, phone, password_hash)
+        VALUES (?, ?, ?, ?, ?, ?)
+    """;
+
+    MySQLConnectionPool pool = MySQLConnectionPool.getInstance();
+    PooledConnection pConn = null;
+
+    try {
+        pConn = pool.getConnection();
+        if (pConn == null) throw new SQLException("No connection available from pool");
+
+        try (PreparedStatement ps = pConn.getConnection()
+                .prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+
+            ps.setString(1, subscriber.getUsername());
+            ps.setString(2, subscriber.getFirstName());
+            ps.setString(3, subscriber.getLastName());
+            ps.setString(4, subscriber.getEmail());
+            ps.setString(5, subscriber.getPhone());
+            ps.setString(6, subscriber.getPasswordHash());
+
+            ps.executeUpdate();
+
+            // set generated sub_id back into object
+            try (ResultSet rs = ps.getGeneratedKeys()) {
+                if (rs.next()) {
+                    subscriber.setSubscriberId(rs.getInt(1));
+                }
+            }
+        }
+
+    } finally {
+        pool.releaseConnection(pConn);
+    }
+}
 
 
 	private int executeWriteQuery(String sql, Object... params){
