@@ -2,7 +2,7 @@
 
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
-<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.PasswordField?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Pane?>
 <?import javafx.scene.layout.VBox?>
@@ -21,7 +21,7 @@
                         <Insets right="20.0" />
                      </HBox.margin>
                   </Text>
-                  <TextField fx:id="pwText" />
+                  <PasswordField fx:id="pwText" />
                </children>
             </HBox>
             <Button fx:id="enterBTN" mnemonicParsing="false" text="Enter" onAction="#clickEnter" />

@@ -1,5 +1,9 @@
-package gui;
+package subscriber;
 
+import communication.BistroCommand;
+import communication.BistroRequest;
+import communication.BistroResponseStatus;
+import gui.Main;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
@@ -65,17 +69,24 @@ public class SubscriberLoginScreen {
 			ok = false;
 			errors.append("Subscriber code must contain only digits\n");
 		}
-
-		if (!ok) {
+		if(!ok){
+			Main.client.accept(new BistroRequest(BistroCommand.SUBSCRIBER_LOGIN, new String[] { username, code }));
+			if (Main.client.getResponse().getStatus() == BistroResponseStatus.SUCCESS) {
+				try {
+					Main.changeRoot("SubscriberScreen.fxml");
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+			else{
+				Object data = Main.client.getResponse().getData();
+				if(data instanceof String)
+					errors.append((String) data);
+				ok = false;
+			}
+		}
+		if (!ok)
 			showAlert("Login Failure", errors.toString());
-			return;
-		}
-
-		try {
-			Main.changeRoot("SubscriberScreen.fxml");
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
 	}
 
 	@FXML

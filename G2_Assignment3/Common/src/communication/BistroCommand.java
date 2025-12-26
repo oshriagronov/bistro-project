@@ -1,7 +1,8 @@
 package communication;
 
 public enum BistroCommand {
-    LOGIN,
+    SUBSCRIBER_LOGIN,
+    EMPLOYEE_LOGIN,
     REGISTER_MEMBER,
     CREATE_RESERVATION,
     CANCEL_RESERVATION,
@@ -13,5 +14,9 @@ public enum BistroCommand {
     CONFIRM_ARRIVAL,
     GET_BILL,
     PAY_BILL,
-    GET_MONTHLY_REPORTS
+    GET_MONTHLY_REPORTS,
+    CHANGE_STATUS,
+    GET_TABLES,
+    CHANGE_TABLE_STATUS,
+    CHANGE_TABLE_SIZE
 }

@@ -11,7 +11,6 @@ public class Main extends Application {
 	/**
 	 * Static reference to the primary Stage of the application.
 	 */
-	private static Stage primaryStage;
 
 	/**
 	 * The main entry method for all JavaFX applications. This method initializes
@@ -21,7 +20,6 @@ public class Main extends Application {
 	 */
 	public void start(@SuppressWarnings("exports") Stage primaryStage) {
 		Parent root;
-		Main.primaryStage = primaryStage;
 		try {
 			// Load the main menu FXML file
 			FXMLLoader loader = new FXMLLoader();

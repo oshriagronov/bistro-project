@@ -1,22 +1,19 @@
-package gui;
+package employee;
 
 import java.util.ArrayList;
 
 import communication.BistroCommand;
 import communication.BistroRequest;
-import communication.StatusUpdate;
 import communication.TableSizeUpdate;
 import communication.TableStatusUpdate;
+import gui.Main;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
-import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
-import logic.Reservation;
-import logic.Status;
 import logic.Table;
 import logic.TableStatus;
 

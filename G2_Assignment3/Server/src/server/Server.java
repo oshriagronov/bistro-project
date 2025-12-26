@@ -5,6 +5,10 @@ import java.net.UnknownHostException;
 import communication.BistroRequest;
 import communication.BistroResponse;
 import communication.BistroResponseStatus;
+import communication.StatusUpdate;
+import communication.TableSizeUpdate;
+import communication.TableStatusUpdate;
+import db.ConnectionToDB;
 import ocsf.server.*;
 /**
  * This class overrides some of the methods in the abstract 
@@ -57,6 +61,41 @@ public class Server extends AbstractServer
 				dbReturnedValue = db.searchOrderByOrderNumber(orderNumber);// try catch for casting
 				response = new BistroResponse(BistroResponseStatus.SUCCESS, dbReturnedValue);
 				break;
+			case CANCEL_RESERVATION:
+            dbReturnedValue = db.deleteOrderByOrderNumber((int) data);
+            response = new BistroResponse(BistroResponseStatus.SUCCESS, dbReturnedValue);
+            break;
+			case CHANGE_STATUS:
+				if (data instanceof StatusUpdate) {
+					dbReturnedValue = db.changeOrderStatus(((StatusUpdate) data).getOrderNumber(),
+							((StatusUpdate) data).getStatus());
+					response = new BistroResponse(BistroResponseStatus.SUCCESS, dbReturnedValue);
+				} else
+					response = new BistroResponse(BistroResponseStatus.FAILURE, "update failed.");
+				break;
+			case GET_TABLES:
+				dbReturnedValue = db.loadTables();
+				response = new BistroResponse(BistroResponseStatus.SUCCESS, dbReturnedValue);
+				break;
+			case CHANGE_TABLE_STATUS:
+				if (data instanceof TableStatusUpdate) {
+					dbReturnedValue = db.changeTableStatus(((TableStatusUpdate) data).getTableNumber(),
+							((TableStatusUpdate) data).getStatus());
+					response = new BistroResponse(BistroResponseStatus.SUCCESS, dbReturnedValue);
+				} else
+					response = new BistroResponse(BistroResponseStatus.FAILURE, "update failed.");
+				break;
+			case CHANGE_TABLE_SIZE:
+				if (data instanceof TableSizeUpdate) {
+					dbReturnedValue = db.changeTableSize(((TableSizeUpdate) data).getTable_number(),
+							((TableSizeUpdate) data).getTable_size());
+					response = new BistroResponse(BistroResponseStatus.SUCCESS, dbReturnedValue);
+				} else
+					response = new BistroResponse(BistroResponseStatus.FAILURE, "update failed.");
+				break;
+			case SUBSCRIBER_LOGIN:
+				break;
+
 			default:
 				response = new BistroResponse(BistroResponseStatus.INVALID_REQUEST, null);
 				break;
@@ -137,7 +176,7 @@ public class Server extends AbstractServer
 	private int handleStringRequest(Object data){
 		int numberReturned = -1;
 		try {
-			if (!(data instanceof String s)) {
+			if (!(data instanceof String)) {
 				throw new IllegalArgumentException("Expected String, got: " +
 				(data == null ? "null" : data.getClass().getName()));
 			}

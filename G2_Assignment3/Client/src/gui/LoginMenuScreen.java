@@ -9,7 +9,6 @@ package gui;
 
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-
 public class LoginMenuScreen {
 
     /**
@@ -23,7 +22,7 @@ public class LoginMenuScreen {
     void loginAsSubscriber(ActionEvent event) {
         try {
             // Switch to the subscriber login screen
-            Main.changeRoot("SubscriberLogin.fxml");
+            Main.changeRoot("/subscriber/SubscriberLogin.fxml");
         } catch (Exception e) {
             // Prints the error if the FXML file cannot be loaded
             e.printStackTrace();

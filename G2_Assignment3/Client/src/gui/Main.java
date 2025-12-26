@@ -88,8 +88,15 @@ public class Main extends Application {
 	 * * @param fxmlName The name of the FXML file (e.g., "Login.fxml") to load as the new root.
 	 * @throws IOException If the FXML file cannot be found or loaded.
 	 */
+	// TODO: make those functions that we can load fxml of different packages
 	public static void changeRoot(String fxmlName) throws IOException {
 	    Parent newRoot = FXMLLoader.load(Main.class.getResource("/gui/" + fxmlName));
 	    primaryStage.getScene().setRoot(newRoot);
 	}
+	public static void changeRoot(String fxmlName, int width, int height) throws IOException {
+        Parent newRoot = FXMLLoader.load(Main.class.getResource("/gui/" + fxmlName));
+        primaryStage.getScene().setRoot(newRoot);
+        primaryStage.setWidth(width);
+        primaryStage.setHeight(height);
+    }
 }
