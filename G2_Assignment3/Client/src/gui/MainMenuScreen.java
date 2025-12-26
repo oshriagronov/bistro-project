@@ -86,16 +86,16 @@ public class MainMenuScreen {
         }
     }
     /**
-     * Handles the action when the "Back to Login" button is clicked.
+     * Handles the action when the "Accept Table" button is clicked.
      * 
-     * Returns the user to the login menu screen.
+     * Change the application to the accept table screen.
      *
      * @param event The ActionEvent triggered by the button click.
      */
     @FXML
-    void backToLoginMenu(ActionEvent event) {
+    void AcceptTable(ActionEvent event) {
         try {
-            Main.changeRoot("LoginMenu.fxml");
+            Main.changeRoot("AcceptTable.fxml");
         } catch (Exception e) {
             e.printStackTrace();
         }
