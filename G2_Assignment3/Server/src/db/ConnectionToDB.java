@@ -220,7 +220,7 @@ public class ConnectionToDB {
 		PooledConnection pConn = null;
 		// get connection from the pull
 		pConn = pool.getConnection();
-		if (pConn == null) return null;
+		if (pConn == null) return new ArrayList<>();;
 		try{
 			PreparedStatement stmt = pConn.getConnection().prepareStatement(sql);
 			ResultSet rs = stmt.executeQuery();
@@ -263,6 +263,34 @@ public class ConnectionToDB {
 	public int changeTableSize(int table_number, int table_size) {
 		String sql = "UPDATE `tables` SET table_size = ? WHERE table_number = ?";
 		return executeWriteQuery(sql, table_number, table_size);
+	}
+	
+	/**
+	 * Adds a new table to the tables table.
+	 *
+	 * @param tableNumber the table number (primary key)
+	 * @param tableSize number of seats
+	 * @param status initial table status
+	 * @return number of rows affected (1 = success, 0 = failure)
+	 */
+	public int addTable(int tableNumber, int tableSize, TableStatus status) {
+	    String sql = """
+	        INSERT INTO tables (table_number, table_size, table_status)
+	        VALUES (?, ?, ?)
+	    """;
+
+	    return executeWriteQuery(sql, tableNumber, tableSize, status.name());
+	}
+	
+	/**
+	 * Deletes a table from the DB by table number.
+	 *
+	 * @param tableNumber the table number (primary key)
+	 * @return number of rows affected (1 = success, 0 = not found)
+	 */
+	public int deleteTable(int tableNumber) {
+	    String sql = "DELETE FROM tables WHERE table_number = ?";
+	    return executeWriteQuery(sql, tableNumber);
 	}
 	
 	// ** Subscriber related methods **
