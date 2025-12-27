@@ -228,7 +228,7 @@ public class OrderScreen {
 			str.append("Please enter a valid 7-digit phone number\n");
 			check = false;
 		}
-		
+		//TODO: fix the proccess according to the tables of the db
 		// Final Check: Display errors or process reservation
 		if (!check) {
 			showAlert("Reservation Failure", str.toString());
@@ -239,10 +239,10 @@ public class OrderScreen {
 			int confirmation_code = random.nextInt(90000) + 10000;
 			
 			// Create Reservation object: date, amount, code, subscriber ID, today's date (for tracking)
-			Reservation r = new Reservation(date, amount, confirmation_code, Integer.parseInt(ID), today);
+			//Reservation r = new Reservation(date, amount, confirmation_code, Integer.parseInt(ID), today);
 			
 			// Send the reservation object to the client controller for server communication
-			Main.client.accept(r);
+			//Main.client.accept(r);
 		}
 	}
 

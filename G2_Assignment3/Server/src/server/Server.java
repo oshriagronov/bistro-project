@@ -41,7 +41,7 @@ public class Server extends AbstractServer
   public static void ServerScreen(String password) {
 	  ConnectionToDB.setPassword(password);
   }
-  //SuperClass methods(override) ************************************************
+  //Handle Messages and parsing methods(override) ************************************************
   /**
    * This method handles any messages received from the client.
    * @param msg The message received from the client.
@@ -101,8 +101,8 @@ public class Server extends AbstractServer
 				if (data instanceof Subscriber){
 					Subscriber s = (Subscriber) data;
 					//s.setPasswordHash(BCrypt.hashpw(s.getPasswordHash(), BCrypt.gensalt()));
-					boolean flag = db.subscriberLogin(s.getUsername(), s.getPasswordHash());
-					if(flag)
+					if(db.subscriberLogin(s.getUsername(), s.getPasswordHash()))
+						// TODO: on success pull the order history of the subscriber
 						response = new BistroResponse(BistroResponseStatus.SUCCESS, null);
 					else
 						response = new BistroResponse(BistroResponseStatus.FAILURE, null);
@@ -139,7 +139,7 @@ public class Server extends AbstractServer
 			}
 	}
 	
-	
+	//Server methods ************************************************
 	/**
 	 * This method overrides the one in the superclass.  Called
 	 * when the server starts listening for connections.
@@ -169,6 +169,8 @@ public class Server extends AbstractServer
 		System.out.println
 		("Server has stopped listening for connections.");
 	}
+
+	//Client methods ************************************************
 	/**
 	 * Records the remote host information when a new client connects and writes a
 	 * connection log entry. The formatted host name/IP is stored via

@@ -335,6 +335,7 @@ public class ConnectionToDB {
 			stmt.setString(1, username);
 			stmt.setString(2, passwordHash);
 			ResultSet rs = stmt.executeQuery();
+			// TODO: on success pull the order history of the subscriber and pass it
 			if (rs.next())
 				success = true;
 		}catch(SQLException e){
