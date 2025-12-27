@@ -27,6 +27,5 @@
                   <Button id="ContinueAsGuestBtn" onAction="#continueAsGuest" prefHeight="29.0" prefWidth="129.0" text="Continue as Guest" />
               </children>
           </VBox>
-      <Button id="Back To Menu" layoutX="494.0" layoutY="361.0" mnemonicParsing="false" text="Back To Menu" />
     </children>
 </Pane>
