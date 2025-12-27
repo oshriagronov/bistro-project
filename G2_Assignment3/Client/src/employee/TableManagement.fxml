@@ -7,6 +7,7 @@
 <?import javafx.scene.control.Separator?>
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
@@ -68,6 +69,23 @@
 
                 <Button fx:id="applyStatusBtn" onAction="#clickApplyStatus" prefWidth="200.0" text="Apply Status" />
             <Separator />
+            <Label style="-fx-font-size: 14px; -fx-font-weight: bold;" text="Add a new table" />
+            <HBox spacing="10.0">
+               <children>
+                  <Label prefWidth="80.0" text="Table number" />
+                  <TextField fx:id="newTableNumber" />
+               </children>
+            </HBox>
+            <HBox spacing="10.0">
+               <children>
+                  <Label prefWidth="80.0" text="Table size" />
+                  <ComboBox fx:id="newTableSize" prefWidth="150.0" />
+               </children>
+            </HBox>
+            <Button fx:id="addBtn" onAction="#addNewTable" prefWidth="200.0" text="Add" />
+            <HBox spacing="10.0" />
+            <Separator />
+            <Button fx:id="deleteBtn" onAction="#deleteTable" prefWidth="200.0" text="Delete selected" />
             <Button fx:id="menuBtn" mnemonicParsing="false" onAction="#clickMenu" text="Back to menu">
                <VBox.margin>
                   <Insets />
