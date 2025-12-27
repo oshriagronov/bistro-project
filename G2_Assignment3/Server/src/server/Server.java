@@ -13,6 +13,7 @@ import communication.TableSizeUpdate;
 import communication.TableStatusUpdate;
 import db.ConnectionToDB;
 import logic.Subscriber;
+import logic.Table;
 import ocsf.server.*;
 /**
  * This class overrides some of the methods in the abstract 
@@ -106,6 +107,23 @@ public class Server extends AbstractServer
 						response = new BistroResponse(BistroResponseStatus.SUCCESS, null);
 					else
 						response = new BistroResponse(BistroResponseStatus.FAILURE, null);
+				}
+				else
+					response = new BistroResponse(BistroResponseStatus.FAILURE, null);
+				break;
+			case ADD_TABLE:
+				if (data instanceof Table) {
+					Table t=(Table)data;
+					dbReturnedValue=db.addTable(t.getTable_number(), t.getTable_size(), t.getTable_status());
+					response = new BistroResponse(BistroResponseStatus.SUCCESS, null);
+				}
+				else
+					response = new BistroResponse(BistroResponseStatus.FAILURE, null);
+				break;
+			case DELETE_TABLE:
+				if (data instanceof Integer) {
+					dbReturnedValue=db.deleteTable((int)data);
+					response = new BistroResponse(BistroResponseStatus.SUCCESS, null);
 				}
 				else
 					response = new BistroResponse(BistroResponseStatus.FAILURE, null);
