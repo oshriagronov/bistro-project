@@ -18,5 +18,6 @@ public enum BistroCommand {
     CHANGE_STATUS,
     GET_TABLES,
     CHANGE_TABLE_STATUS,
-    CHANGE_TABLE_SIZE
+    CHANGE_TABLE_SIZE,
+    ADD_SUBSCRIBER
 }

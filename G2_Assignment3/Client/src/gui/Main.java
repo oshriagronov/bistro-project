@@ -90,7 +90,7 @@ public class Main extends Application {
 	 */
 	// TODO: make those functions that we can load fxml of different packages
 	public static void changeRoot(String fxmlName) throws IOException {
-	    Parent newRoot = FXMLLoader.load(Main.class.getResource("/gui/" + fxmlName));
+	    Parent newRoot = FXMLLoader.load(Main.class.getResource(fxmlName));
 	    primaryStage.getScene().setRoot(newRoot);
 	}
 	public static void changeRoot(String fxmlName, int width, int height) throws IOException {

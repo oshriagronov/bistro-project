@@ -15,22 +15,23 @@ public class MySQLConnectionPool {
     // DB Config
     private static final String DB_URL = "jdbc:mysql://localhost:3306/sys";    
     private static final String USER = "root";
-    private static String PASS = "root";
-
+    private static String PASS = "Oshri@Agronov";
+    
+    
     // Pool Config (Short times for Example)
     private static final int MAX_POOL_SIZE = 10;
     private static final long MAX_IDLE_TIME = 5000; // 5 Seconds Timeout
     private static final long CHECK_INTERVAL = 2;   // Check every 2 Seconds
-
+    
     private BlockingQueue<PooledConnection> pool;
     private ScheduledExecutorService cleanerService;
-
+    
     private MySQLConnectionPool() {
         pool = new LinkedBlockingQueue<>(MAX_POOL_SIZE);
         startCleanupTimer();
         System.out.println("[Pool] Initialized. Max Size: " + MAX_POOL_SIZE);
     }
-
+    
     public static synchronized MySQLConnectionPool getInstance() {
         if (instance == null) {
             instance = new MySQLConnectionPool();
@@ -38,6 +39,13 @@ public class MySQLConnectionPool {
         return instance;
     }
 
+    public static String getDbPassword() {
+		return MySQLConnectionPool.getDbPassword();
+	}
+    public static void setPassword(String password) {
+        PASS = password;
+    }
+    
     public PooledConnection getConnection() {
         PooledConnection pConn = pool.poll(); // Try to get from queue
         

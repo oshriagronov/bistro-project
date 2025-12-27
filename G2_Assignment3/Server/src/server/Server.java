@@ -98,6 +98,17 @@ public class Server extends AbstractServer
 					response = new BistroResponse(BistroResponseStatus.FAILURE, "update failed.");
 				break;
 			case SUBSCRIBER_LOGIN:
+				if (data instanceof Subscriber){
+					Subscriber s = (Subscriber) data;
+					s.setPasswordHash(BCrypt.hashpw(s.getPasswordHash(), BCrypt.gensalt()));
+					boolean flag = db.subscriberLogin(s.getUsername(), s.getPasswordHash());
+					if(flag)
+						response = new BistroResponse(BistroResponseStatus.SUCCESS, null);
+					else
+						response = new BistroResponse(BistroResponseStatus.FAILURE, null);
+				}
+				else
+					response = new BistroResponse(BistroResponseStatus.FAILURE, null);
 				break;
 			case ADD_SUBSCRIBER:
 			if (data instanceof NewSubscriberInfo) {

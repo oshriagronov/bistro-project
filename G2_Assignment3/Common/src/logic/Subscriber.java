@@ -1,6 +1,8 @@
 package logic;
 
-public class Subscriber {
+import java.io.Serializable;
+
+public class Subscriber implements Serializable {
 
 	private Integer subscriberId; // DB-generated
 	private String username;
@@ -10,6 +12,10 @@ public class Subscriber {
 	private String phone;
 	private String passwordHash;
 
+	public Subscriber(String username, String passwordHash) {
+		this.username = username;
+		this.passwordHash = passwordHash;
+	}
 	public Subscriber(String username, String firstName, String lastName, String email, String phone) {
 		this.subscriberId = null;
 		this.username = username;

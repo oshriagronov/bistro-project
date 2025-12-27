@@ -64,12 +64,13 @@ public class ClientController implements BistroController{
   public void serverResponse(BistroResponse response){
     BistroResponseStatus status = response.getStatus();
     switch (status) {
-      case SUCCESS:
-        this.response = response;
-        break;
+      // case SUCCESS:
+      //   this.response = response;
+      //   break;
 
       default:
-        this.response = null;
+        //this.response = null;
+        this.response = response;
         break;
     }
   }

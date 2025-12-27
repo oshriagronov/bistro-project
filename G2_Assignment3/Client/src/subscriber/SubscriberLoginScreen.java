@@ -9,6 +9,7 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
+import logic.Subscriber;
 
 /**
  * Controller for the subscriber login view.
@@ -69,19 +70,17 @@ public class SubscriberLoginScreen {
 			ok = false;
 			errors.append("Subscriber code must contain only digits\n");
 		}
-		if(!ok){
-			Main.client.accept(new BistroRequest(BistroCommand.SUBSCRIBER_LOGIN, new String[] { username, code }));
+		if(ok){
+			Main.client.accept(new BistroRequest(BistroCommand.SUBSCRIBER_LOGIN, new Subscriber(username, code)));
 			if (Main.client.getResponse().getStatus() == BistroResponseStatus.SUCCESS) {
 				try {
-					Main.changeRoot("SubscriberScreen.fxml");
+					Main.changeRoot("/subscriber/SubscriberScreen.fxml");
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
 			}
 			else{
-				Object data = Main.client.getResponse().getData();
-				if(data instanceof String)
-					errors.append((String) data);
+				errors.append("Username or password are wrong.");
 				ok = false;
 			}
 		}
