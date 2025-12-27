@@ -30,7 +30,7 @@ import javafx.stage.Stage;
 import logic.Reservation;
 
 public class UpdateScreen {
-	
+	public static final String fxmlPath = "/gui/Update.fxml";
 	/** Alert object used to display success or failure messages to the user. */
 	Alert alert = new Alert(Alert.AlertType.INFORMATION);
 	
@@ -50,7 +50,7 @@ public class UpdateScreen {
 	    private VBox ordersVBox;
 
 	    @FXML
-	    private Button menuBTN;
+	    private Button backBtn;
 
 	    @FXML
 	    private DatePicker orderDate;
@@ -231,15 +231,15 @@ public class UpdateScreen {
 }
 
 	/**
-	 * Handles the action when the "Back to Menu" button is clicked.
+	 * Handles the action when the "Back to MainMenu" button is clicked.
 	 * Navigates the application back to the main menu screen.
 	 * * @param event The ActionEvent triggered by the Back button.
 	 */
 	@FXML
-	void backToMenu(ActionEvent event) {
+	void back(ActionEvent event) {
 		try {
 			// Use the static method in Main to switch the scene root
-			Main.changeRoot("MainMenu.fxml");
+			Main.changeRoot(MainMenuScreen.fxmlPath);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

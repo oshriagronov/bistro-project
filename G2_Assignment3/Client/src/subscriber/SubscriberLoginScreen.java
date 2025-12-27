@@ -3,6 +3,7 @@ package subscriber;
 import communication.BistroCommand;
 import communication.BistroRequest;
 import communication.BistroResponseStatus;
+import gui.LoginMenuScreen;
 import gui.Main;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -16,7 +17,7 @@ import logic.Subscriber;
  * Handles basic input validation and navigation to the account screen.
  */
 public class SubscriberLoginScreen {
-
+	public static final String fxmlPath = "/subscriber/SubscriberLogin.fxml";
 	/** Alert used to show validation messages to the user. */
 	private final Alert alert = new Alert(Alert.AlertType.INFORMATION);
 
@@ -34,7 +35,7 @@ public class SubscriberLoginScreen {
 
 	@FXML
 	/** Button that returns the user to the main menu. */
-	private Button menuBtn;
+	private Button backBtn;
 
 	/**
 	 * Shows a simple modal alert.
@@ -93,9 +94,9 @@ public class SubscriberLoginScreen {
 	 * Returns the user to the main menu.
 	 * @param event JavaFX action event
 	 */
-	void backToMenu(ActionEvent event) {
+	void backToLoginMenu(ActionEvent event) {
 		try {
-			Main.changeRoot("MainMenu.fxml");
+			Main.changeRoot(LoginMenuScreen.fxmlPath);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

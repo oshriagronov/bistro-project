@@ -1,10 +1,11 @@
-package gui;
+package employee;
 
 import java.util.ArrayList;
 
 import communication.BistroCommand;
 import communication.BistroRequest;
 import communication.StatusUpdate;
+import gui.Main;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -18,7 +19,7 @@ import logic.Reservation;
 import logic.Status;
 
 public class OrdersManagementScreen {
-
+	public static final String fxmlPath = "/employee/OrdersManagement.fxml";
 	@FXML
 	private Button applyStatusBTN;
 

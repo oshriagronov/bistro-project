@@ -47,29 +47,7 @@ public class ConnectionToDB {
 	 */
 	public int updateOrder(int order_number, LocalDate order_date, int number_of_guests) {
 		String sql = "UPDATE `Order` SET order_date = ?, number_of_guests = ? WHERE order_number = ?";
-		// the two line bellow are needed to use the pool connection
-		MySQLConnectionPool pool = MySQLConnectionPool.getInstance();
-        PooledConnection pConn = null;
-		try {
-			// get connection from the pull
-			pConn = pool.getConnection();
-			if (pConn == null) return 0;
-			// get the actual connection from the class
-			PreparedStatement stmt = pConn.getConnection()
-					.prepareStatement(sql);
-			stmt.setDate(1, java.sql.Date.valueOf(order_date));
-			stmt.setInt(2, number_of_guests);
-			stmt.setInt(3, order_number);
-			return stmt.executeUpdate();
-		}catch(SQLException e){
-			System.out.println("SQLException: " + "updateOrder failed.");
-			e.printStackTrace();
-		}
-		finally {
-			// Crucial: Return connection to the pool here!
-            pool.releaseConnection(pConn);
-        }
-		return 0;
+		return executeWriteQuery(sql, order_date, number_of_guests, order_number);
 	}
 	/**
 	 * Searches for the latest order by phone number and returns the order details.
@@ -360,7 +338,7 @@ public class ConnectionToDB {
 			if (rs.next())
 				success = true;
 		}catch(SQLException e){
-			System.out.println("SQLException: " + "updateOrder failed.");
+			System.out.println("SQLException: " + "subscriberLogin failed.");
 			e.printStackTrace();
 		}
 		finally {
@@ -392,6 +370,7 @@ public class ConnectionToDB {
 				int idx = i + 1;
 				if (p instanceof Integer) stmt.setInt(idx, (Integer) p);
 				else if (p instanceof String) stmt.setString(idx, (String) p);
+				else if(p instanceof LocalDate) stmt.setDate(1, java.sql.Date.valueOf((LocalDate)p));
 				else throw new SQLException();
         	}
 			return stmt.executeUpdate();

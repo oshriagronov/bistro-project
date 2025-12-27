@@ -94,7 +94,7 @@ public class Main extends Application {
 	    primaryStage.getScene().setRoot(newRoot);
 	}
 	public static void changeRoot(String fxmlName, int width, int height) throws IOException {
-        Parent newRoot = FXMLLoader.load(Main.class.getResource("/gui/" + fxmlName));
+        Parent newRoot = FXMLLoader.load(Main.class.getResource(fxmlName));
         primaryStage.getScene().setRoot(newRoot);
         primaryStage.setWidth(width);
         primaryStage.setHeight(height);

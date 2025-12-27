@@ -18,7 +18,7 @@ import javafx.scene.text.Text;
  * by entering their phone number and confirmation code to receive their table number.
  */
 public class AcceptTableScreen {
-
+    public static final String fxmlPath = "/gui/AcceptTable.fxml";
     /** Alert object used to display success or failure messages to the user. */
     Alert alert = new Alert(Alert.AlertType.INFORMATION);
 
@@ -37,6 +37,9 @@ public class AcceptTableScreen {
     /** Button to submit the confirmation details. */
     @FXML
     private Button submitBTN;
+    
+    @FXML
+	private Button backBtn;
 
     /** Text element to display the assigned table number. */
     @FXML
@@ -107,6 +110,19 @@ public class AcceptTableScreen {
         }
     }
 
-    //TODO: maybe add return to main menu
+	/**
+	 * Handles the action when the "Back to MainMenu" button is clicked.
+	 * Navigates the application back to the main menu screen.
+	 * * @param event The ActionEvent triggered by the Back button.
+	 */
+	@FXML
+	void back(ActionEvent event) {
+		try {
+			// Use the static method in Main to switch the scene root
+			Main.changeRoot(MainMenuScreen.fxmlPath);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
 
 }

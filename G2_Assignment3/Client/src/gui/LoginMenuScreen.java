@@ -7,10 +7,12 @@
  */
 package gui;
 
+import employee.employeeMenu;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import subscriber.SubscriberLoginScreen;
 public class LoginMenuScreen {
-
+    public static final String fxmlPath = "/gui/LoginMenu.fxml";
     /**
      * Handles the action when the "Login as Subscriber" button is clicked.
      * 
@@ -22,7 +24,7 @@ public class LoginMenuScreen {
     void loginAsSubscriber(ActionEvent event) {
         try {
             // Switch to the subscriber login screen
-            Main.changeRoot("/subscriber/SubscriberLogin.fxml");
+            Main.changeRoot(SubscriberLoginScreen.fxmlPath);
         } catch (Exception e) {
             // Prints the error if the FXML file cannot be loaded
             e.printStackTrace();
@@ -40,7 +42,7 @@ public class LoginMenuScreen {
     void loginAsEmployee(ActionEvent event) {
         try {
             // Switch to the employee login screen
-            Main.changeRoot("WorkersLogin.fxml");
+            Main.changeRoot(employeeMenu.fxmlPath);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -57,7 +59,7 @@ public class LoginMenuScreen {
     void continueAsGuest(ActionEvent event) {
         try {
             // Switch to the guest screen
-            Main.changeRoot("Order.fxml");
+            Main.changeRoot(MainMenuScreen.fxmlPath);
         } catch (Exception e) {
             e.printStackTrace();
         }

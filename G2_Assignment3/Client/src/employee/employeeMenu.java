@@ -1,14 +1,15 @@
 package employee;
 
+import gui.LoginMenuScreen;
 import gui.Main;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 
 public class employeeMenu {
-
+	public static final String fxmlPath = "/employee/employeeScreen.fxml";
 	@FXML
-	private Button menuBTN;
+	private Button backBtn;
 
 	@FXML
 	private Button ordersBTN;
@@ -23,9 +24,9 @@ public class employeeMenu {
     private Button subscriberBtn;
 
 	@FXML
-	void mainMenu(ActionEvent event) {
+	void backToLoginMenu(ActionEvent event) {
 		try {
-			Main.changeRoot("MainMenu.fxml");
+			Main.changeRoot(LoginMenuScreen.fxmlPath);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -34,7 +35,7 @@ public class employeeMenu {
 	@FXML
 	void manageOrders(ActionEvent event) {
 		try {
-			Main.changeRoot("OrdersManagement.fxml", 1000, 800);
+			Main.changeRoot(OrdersManagementScreen.fxmlPath, 1000, 800);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -43,7 +44,7 @@ public class employeeMenu {
 	@FXML
 	void manageTables(ActionEvent event) {
 		try {
-			Main.changeRoot("TableManagement.fxml", 1000, 800);
+			Main.changeRoot(TablesManagementScreen.fxmlPath, 1000, 800);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -52,7 +53,7 @@ public class employeeMenu {
     @FXML
     void addSubscriber(ActionEvent event) {
     	try {
-			Main.changeRoot("AddSubscriber.fxml", 1000, 800);
+			Main.changeRoot(AddSubscriberScreen.fxmlPath, 1000, 800);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

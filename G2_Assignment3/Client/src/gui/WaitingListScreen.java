@@ -9,7 +9,7 @@ import javafx.scene.control.ComboBox;
 import logic.Reservation;
 
 public class WaitingListScreen {
-
+	public static final String fxmlPath = "/gui/WaitingList.fxml";
     Alert alert = new Alert(Alert.AlertType.INFORMATION);
 
     @FXML
@@ -26,6 +26,9 @@ public class WaitingListScreen {
 
     @FXML
     private Button submit;
+
+	@FXML
+	private Button backBtn;
 
     public void showAlert(String title, String body) {
 		alert.setTitle(title);
@@ -71,11 +74,16 @@ public class WaitingListScreen {
 		}
     }
 
-    @FXML
-	void backToMenu(ActionEvent event) {
+	/**
+	 * Handles the action when the "Back to MainMenu" button is clicked.
+	 * Navigates the application back to the main menu screen.
+	 * * @param event The ActionEvent triggered by the Back button.
+	 */
+	@FXML
+	void back(ActionEvent event) {
 		try {
 			// Use the static method in Main to switch the scene root
-			Main.changeRoot("MainMenu.fxml");
+			Main.changeRoot(MainMenuScreen.fxmlPath);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

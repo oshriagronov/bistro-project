@@ -10,7 +10,7 @@ import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 
 public class AddSubscriberScreen {
-
+	public static final String fxmlPath = "/employee/AddSubscriber.fxml";
 	@FXML
 	private Button MenuBtn;
 

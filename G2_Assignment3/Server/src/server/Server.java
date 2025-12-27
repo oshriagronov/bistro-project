@@ -100,7 +100,7 @@ public class Server extends AbstractServer
 			case SUBSCRIBER_LOGIN:
 				if (data instanceof Subscriber){
 					Subscriber s = (Subscriber) data;
-					s.setPasswordHash(BCrypt.hashpw(s.getPasswordHash(), BCrypt.gensalt()));
+					//s.setPasswordHash(BCrypt.hashpw(s.getPasswordHash(), BCrypt.gensalt()));
 					boolean flag = db.subscriberLogin(s.getUsername(), s.getPasswordHash());
 					if(flag)
 						response = new BistroResponse(BistroResponseStatus.SUCCESS, null);

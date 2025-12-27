@@ -44,7 +44,7 @@ public class SubscriberScreen {
 
 	@FXML
 	/** Button that returns the user to the main menu. */
-	private Button menuBtn;
+	private Button backBtn;
 
 	@FXML
 	/**
@@ -124,9 +124,9 @@ public class SubscriberScreen {
 	 * Returns the user to the main menu.
 	 * @param event JavaFX action event
 	 */
-	void backToMenu(ActionEvent event) {
+	void backToSubscriberLogin(ActionEvent event) {
 		try {
-			Main.changeRoot("MainMenu.fxml");
+			Main.changeRoot(SubscriberLoginScreen.fxmlPath);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

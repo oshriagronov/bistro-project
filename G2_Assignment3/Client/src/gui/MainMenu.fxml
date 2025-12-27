@@ -29,12 +29,6 @@
                </children>
             </HBox>
 
-            <HBox alignment="CENTER" prefHeight="47.0" prefWidth="224.0">
-               <children>
-                  <Button fx:id="subscriberLogin" mnemonicParsing="false" onAction="#subscriberLogin" prefHeight="25.0" prefWidth="124.0" text="Subscriber login" />
-               </children>
-            </HBox>
-
             <HBox alignment="CENTER" prefHeight="45.0" prefWidth="224.0">
                <children>
                   <Button id="WaitingListBtn" mnemonicParsing="false" onAction="#openWaitingList" prefHeight="25.0" prefWidth="124.0" text="Waiting List" />
@@ -48,7 +42,12 @@
             </HBox>
             <HBox alignment="CENTER" prefHeight="51.0" prefWidth="224.0">
                <children>
-                  <Button id="AcceptTable" mnemonicParsing="false" prefHeight="25.0" prefWidth="124.0" text="Accept Table" />
+                  <Button id="AcceptTable" mnemonicParsing="false" onAction="#AcceptTable" prefHeight="25.0" prefWidth="124.0" text="Accept Table" />
+               </children>
+            </HBox>
+            <HBox alignment="CENTER" prefHeight="45.0" prefWidth="224.0">
+               <children>
+                  <Button fx:id="backBtn" mnemonicParsing="false" onAction="#backToLogin" prefHeight="25.0" prefWidth="124.0" text="Back" />
                </children>
             </HBox>
          </children>

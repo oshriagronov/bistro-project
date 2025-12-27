@@ -47,6 +47,6 @@
             </HBox>
          </children>
       </VBox>
-      <Button fx:id="menuBtn" layoutX="508.0" layoutY="360.0" mnemonicParsing="false" onAction="#backToMenu" text="Main menu" />
+      <Button fx:id="backBtn" layoutX="508.0" layoutY="360.0" mnemonicParsing="false" onAction="#backToLoginMenu" text="Back" />
    </children>
 </Pane>

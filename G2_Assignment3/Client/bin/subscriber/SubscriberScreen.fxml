@@ -79,6 +79,6 @@
             </StackPane>
          </children>
       </VBox>
-      <Button fx:id="menuBtn" layoutX="508.0" layoutY="360.0" mnemonicParsing="false" onAction="#backToMenu" text="Main menu" />
+      <Button fx:id="backBtn" layoutX="508.0" layoutY="360.0" mnemonicParsing="false" onAction="#backToSubscriberLogin" text="Back" />
    </children>
 </Pane>

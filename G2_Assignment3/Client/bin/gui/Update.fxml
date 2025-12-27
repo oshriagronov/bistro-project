@@ -18,7 +18,7 @@
             <Font name="Calibri Bold" size="18.0" />
          </font>
       </Text>
-      <Button fx:id="menuBTN" layoutX="509.0" layoutY="352.0" mnemonicParsing="false" onAction="#backToMenu" text="Main menu" />
+      <Button fx:id="backBtn" layoutX="509.0" layoutY="352.0" mnemonicParsing="false" onAction="#back" text="Back" />
       <VBox layoutX="163.0" layoutY="80.0" prefHeight="45.0" prefWidth="259.0">
          <children>
             <HBox prefHeight="35.0" prefWidth="205.0">

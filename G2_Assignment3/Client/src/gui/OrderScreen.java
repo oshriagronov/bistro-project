@@ -23,7 +23,7 @@ import javafx.scene.layout.HBox;
 import logic.Reservation;
 
 public class OrderScreen {
-	
+	public static final String fxmlPath = "/gui/Order.fxml";
 	/** Utility for generating a random confirmation code. */
 	private Random random = new Random();
 	
@@ -37,7 +37,7 @@ public class OrderScreen {
 	private Button orderBtn;
 
 	@FXML
-	private Button menuBtn;
+	private Button backBtn;
 
 	@FXML
 	private DatePicker orderDate;
@@ -247,17 +247,16 @@ public class OrderScreen {
 	}
 
 	/**
-	 * Handles the action when the "Back to Menu" button is clicked.
+	 * Handles the action when the "Back to MainMenu" button is clicked.
 	 * Navigates the application back to the main menu screen.
 	 * * @param event The ActionEvent triggered by the Back button.
 	 */
 	@FXML
-	void backToMenu(ActionEvent event) {
+	void back(ActionEvent event) {
 		try {
 			// Use the static method in Main to switch the scene root
-			Main.changeRoot("MainMenu.fxml");
+			Main.changeRoot(MainMenuScreen.fxmlPath);
 		} catch (Exception e) {
-			// Log error if navigation fails
 			e.printStackTrace();
 		}
 	}

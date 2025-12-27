@@ -18,7 +18,7 @@ import logic.Table;
 import logic.TableStatus;
 
 public class TablesManagementScreen {
-
+	public static final String fxmlPath = "/employee/TableManagementScreen.fxml";
 	@FXML
 	private Button applySizeBtn;
 

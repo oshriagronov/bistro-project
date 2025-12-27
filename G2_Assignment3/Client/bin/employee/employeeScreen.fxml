@@ -33,7 +33,7 @@
             </Button>
          </children>
       </VBox>
-      <Button fx:id="menuBTN" layoutX="509.0" layoutY="344.0" mnemonicParsing="false" onAction="#mainMenu" text="Main menu" />
+      <Button fx:id="backBtn" layoutX="509.0" layoutY="344.0" mnemonicParsing="false" onAction="#backToLoginMenu" text="Back" />
       <Text fill="#0838bc" layoutX="215.0" layoutY="44.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Employee Menu">
          <font>
             <Font name="Calibri Bold" size="24.0" />

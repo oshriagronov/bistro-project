@@ -40,7 +40,7 @@ public class MySQLConnectionPool {
     }
 
     public static String getDbPassword() {
-		return MySQLConnectionPool.getDbPassword();
+		return PASS;
 	}
     public static void setPassword(String password) {
         PASS = password;
