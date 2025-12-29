@@ -4,6 +4,8 @@ import java.util.ArrayList;
 
 import communication.BistroResponse;
 import communication.BistroResponseStatus;
+import communication.BistroCommand;
+import communication.BistroRequest;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
@@ -95,7 +97,8 @@ public class AcceptTableScreen {
 
         search.add(phoneNum);
         search.add(code);
-        Main.client.accept(search); //TODO: edit the accept/send somthing else
+        BistroRequest request = new BistroRequest(BistroCommand.GET_TABLE_BY_PHONE_AND_CODE, search);
+        Main.client.accept(request);
         
         BistroResponse response = Main.client.getResponse();
         if (response != null && response.getStatus() == BistroResponseStatus.SUCCESS) {

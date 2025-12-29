@@ -12,9 +12,11 @@ import communication.StatusUpdate;
 import communication.TableSizeUpdate;
 import communication.TableStatusUpdate;
 import db.ConnectionToDB;
+import logic.Reservation;
 import logic.Subscriber;
 import logic.Table;
 import ocsf.server.*;
+import java.util.ArrayList;
 /**
  * This class overrides some of the methods in the abstract 
  * superclass in order to give more functionality to the server.
@@ -65,6 +67,27 @@ public class Server extends AbstractServer
 				if (orderNumber == -1) { response = new BistroResponse(BistroResponseStatus.FAILURE, "Bad order number."); break; }
 				dbReturnedValue = db.searchOrderByOrderNumber(orderNumber);// try catch for casting
 				response = new BistroResponse(BistroResponseStatus.SUCCESS, dbReturnedValue);
+				break;
+			case GET_TABLE_BY_PHONE_AND_CODE:
+				if (data instanceof ArrayList) {
+					ArrayList<?> params = (ArrayList<?>) data;
+					String phone = (String) params.get(0);
+					int code = Integer.parseInt((String) params.get(1));
+					
+					Reservation res = db.getOrderByPhoneAndCode(phone, code);
+					if (res != null) {
+						int tableNum = db.searchAvailableTableBySize(res.getNumberOfGuests());
+						if (tableNum > 0) {
+							response = new BistroResponse(BistroResponseStatus.SUCCESS, tableNum);
+						} else {
+							response = new BistroResponse(BistroResponseStatus.NO_AVAILABLE_TABLE, null);
+						}
+					} else {
+						response = new BistroResponse(BistroResponseStatus.NOT_FOUND, null);
+					}
+				} else {
+					response = new BistroResponse(BistroResponseStatus.INVALID_REQUEST, null);
+				}
 				break;
 			case CANCEL_RESERVATION:
             dbReturnedValue = db.deleteOrderByOrderNumber((int) data);
