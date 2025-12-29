@@ -7,6 +7,7 @@
  */
 package gui;
 
+import employee.WorkersLogInScreen;
 import employee.employeeMenu;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -42,7 +43,7 @@ public class LoginMenuScreen {
     void loginAsEmployee(ActionEvent event) {
         try {
             // Switch to the employee login screen
-            Main.changeRoot(employeeMenu.fxmlPath);
+            Main.changeRoot(WorkersLogInScreen.fxmlPath);
         } catch (Exception e) {
             e.printStackTrace();
         }

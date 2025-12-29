@@ -7,11 +7,18 @@ import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+
+import org.mindrot.jbcrypt.BCrypt;
+
+import logic.CurrentDinerRow;
 import logic.Reservation;
 import logic.Status;
 import logic.Subscriber;
 import logic.Table;
 import logic.TableStatus;
+import logic.Worker;
+import logic.WorkerType;
+
 import java.sql.Statement;
 
 public class ConnectionToDB {
@@ -181,53 +188,6 @@ public class ConnectionToDB {
 		}
 		return null;
 	}
-
-	/**
-	 * Retrieves a reservation based on the customer's phone number and the confirmation code provided.
-	 * 
-	 * @param phone_number      the customer's phone number
-	 * @param confirmation_code the confirmation code for the order
-	 * @return the Reservation object if found, null otherwise
-	 */
-	public Reservation getOrderByPhoneAndCode (String phone_number, int confirmation_code){
-		String sql = "SELECT order_number ,order_date, number_of_guests, confirmation_code, subscriber_id, date_of_placing_order, order_status "
-				+ "FROM `Order` WHERE phone_number = ? AND confirmation_code = ?";
-		Reservation reservation;
-		LocalDate orderDate;
-		LocalDate DateOfPlacingOrder;
-		int orderNumber;
-		int numberOfGuests;
-		int subscriberId;
-		Status status;
-		// the two line bellow are needed to use the pool connection
-		MySQLConnectionPool pool = MySQLConnectionPool.getInstance();
-        PooledConnection pConn = null;
-		// get connection from the pull
-		pConn = pool.getConnection();
-		if (pConn == null) return null;
-		try {
-			PreparedStatement stmt = pConn.getConnection().prepareStatement(sql);
-			stmt.setString(1, phone_number);
-			stmt.setInt(2, confirmation_code);
-			ResultSet rs = stmt.executeQuery();
-			orderNumber = rs.getInt("order_number");
-			orderDate = LocalDate.parse(rs.getString("order_date"));
-			numberOfGuests = rs.getInt("number_of_guests");
-			subscriberId = rs.getInt("subscriber_id");
-			status = Status.valueOf(rs.getString("order_status"));
-			DateOfPlacingOrder = LocalDate.parse(rs.getString("date_of_placing_order"));
-			reservation = new Reservation(orderDate, orderNumber, numberOfGuests, confirmation_code, subscriberId, DateOfPlacingOrder, phone_number, status);
-
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
-		finally {
-			// Crucial: Return connection to the pool here!
-            pool.releaseConnection(pConn);
-        }
-
-		return reservation;
-	}
 	
 	/**
 	 * Deletes an order from the DB by order number (primary key)
@@ -260,84 +220,32 @@ public class ConnectionToDB {
 	 * @return list of tables in the system (empty if none found)
 	 */
 	public List<Table> loadTables() {
-		String sql = "SELECT table_number, table_size, table_status FROM `tables`";
-		List<Table> tables = new ArrayList<>();
-		// the two line bellow are needed to use the pool connection
-		MySQLConnectionPool pool = MySQLConnectionPool.getInstance();
-		PooledConnection pConn = null;
-		// get connection from the pull
-		pConn = pool.getConnection();
-		if (pConn == null) return new ArrayList<>();;
-		try{
-			PreparedStatement stmt = pConn.getConnection().prepareStatement(sql);
-			ResultSet rs = stmt.executeQuery();
-			while (rs.next()) {
-				int tableNumber = rs.getInt("table_number");
-				int tableSize = rs.getInt("table_size");
-				TableStatus status = TableStatus.valueOf(rs.getString("table_status"));
-				tables.add(new Table(tableNumber, tableSize, status));
-			}
-			
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
-		finally {
-			// Crucial: Return connection to the pool here!
-			pool.releaseConnection(pConn);
-		}
-		return tables;
-	}
-	
-	/**
-	 * Searches for an available table that can accommodate the specified number of guests.
-	 * 
-	 * @param number_of_guests the minimum number of seats required
-	 * @return the table number of a suitable table, or 0 if no such table is found
-	 */
-	public int searchAvailableTableBySize(int number_of_guests){
-		String sql = "SELECT table_number, table_size FROM `tablestable` WHERE res_id IS NULL AND table_size >= ?";
-		int min = 10;
-		int table_number = 0;
-		// the two line bellow are needed to use the pool connection
-		MySQLConnectionPool pool = MySQLConnectionPool.getInstance();
-		PooledConnection pConn = null;
-		// get connection from the pull
-		pConn = pool.getConnection();
-		if (pConn == null) 
-			return table_number; //TODO: numbers of tables start from 1
-		try{
-			PreparedStatement stmt = pConn.getConnection().prepareStatement(sql);
-			stmt.setInt(1, number_of_guests);
-			ResultSet rs = stmt.executeQuery();
-			while (rs.next()) {
-				int tableNumber = rs.getInt("table_number");
-				int tableSize = rs.getInt("table_size");
-				if (tableSize < min){
-					table_number = tableNumber;
-				}
-					
-			}
-			
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
-		finally {
-			// Crucial: Return connection to the pool here!
-			pool.releaseConnection(pConn);
-		}
-		return table_number;
-	}
+	    String sql = "SELECT table_number, size, res_id FROM `tablestable`";
+	    List<Table> tables = new ArrayList<>();
 
-	/**
-	 * Updates the status for a table by table number.
-	 *
-	 * @param table_number table number to update
-	 * @param status new table status
-	 * @return number of rows affected (1 = success, 0 = not found)
-	 */
-	public int changeTableStatus(int table_number, TableStatus status) {
-		String sql = "UPDATE `tables` SET table_status = ? WHERE table_number = ?";
-		return executeWriteQuery(sql, status.name(), table_number);
+	    MySQLConnectionPool pool = MySQLConnectionPool.getInstance();
+	    PooledConnection pConn = pool.getConnection();
+	    if (pConn == null) return new ArrayList<>();
+
+	    try {
+	        PreparedStatement stmt = pConn.getConnection().prepareStatement(sql);
+	        ResultSet rs = stmt.executeQuery();
+
+	        while (rs.next()) {
+	            int tableNumber = rs.getInt("table_number");
+	            int tableSize = rs.getInt("size"); // maps to table_size in your Java class
+	            Integer resId = rs.getObject("res_id", Integer.class); // NULL-safe
+
+	            tables.add(new Table(tableNumber, tableSize, resId));
+	        }
+
+	    } catch (SQLException e) {
+	        e.printStackTrace();
+	    } finally {
+	        pool.releaseConnection(pConn);
+	    }
+
+	    return tables;
 	}
 	
 	/**
@@ -348,8 +256,8 @@ public class ConnectionToDB {
 	 * @return number of rows affected (1 = success, 0 = not found)
 	 */
 	public int changeTableSize(int table_number, int table_size) {
-		String sql = "UPDATE `tables` SET table_size = ? WHERE table_number = ?";
-		return executeWriteQuery(sql, table_number, table_size);
+	    String sql = "UPDATE `tablestable` SET size = ? WHERE table_number = ?";
+	    return executeWriteQuery(sql, String.valueOf(table_size), table_number);
 	}
 	
 	/**
@@ -360,13 +268,9 @@ public class ConnectionToDB {
 	 * @param status initial table status
 	 * @return number of rows affected (1 = success, 0 = failure)
 	 */
-	public int addTable(int tableNumber, int tableSize, TableStatus status) {
-	    String sql = """
-	        INSERT INTO tables (table_number, table_size, table_status)
-	        VALUES (?, ?, ?)
-	    """;
-
-	    return executeWriteQuery(sql, tableNumber, tableSize, status.name());
+	public int addTable(int tableSize) {
+	    String sql = "INSERT INTO tablestable (size) VALUES (?)";
+	    return executeWriteQuery(sql, String.valueOf(tableSize));
 	}
 	
 	/**
@@ -376,7 +280,7 @@ public class ConnectionToDB {
 	 * @return number of rows affected (1 = success, 0 = not found)
 	 */
 	public int deleteTable(int tableNumber) {
-	    String sql = "DELETE FROM tables WHERE table_number = ?";
+	    String sql = "DELETE FROM tablestable WHERE table_number = ?";
 	    return executeWriteQuery(sql, tableNumber);
 	}
 	
@@ -463,6 +367,92 @@ public class ConnectionToDB {
         }
 		return success;
 	}
+	
+	public Worker workerLogin(String username, String rawPassword) {
+	    String sql = """
+	        SELECT worker_id, username, worker_type, password_hash
+	        FROM workers
+	        WHERE username = ?
+	    """;
+
+	    MySQLConnectionPool pool = MySQLConnectionPool.getInstance();
+	    PooledConnection pConn = pool.getConnection();
+	    if (pConn == null) return null;
+
+	    try {
+	        PreparedStatement stmt = pConn.getConnection().prepareStatement(sql);
+	        stmt.setString(1, username);
+
+	        ResultSet rs = stmt.executeQuery();
+	        if (!rs.next()) return null;
+
+	        String storedHash = rs.getString("password_hash");
+
+	        // optional sanity prints while debugging:
+	        // System.out.println("stored len=" + (storedHash == null ? -1 : storedHash.length()));
+	        // System.out.println("check=" + BCrypt.checkpw(rawPassword, storedHash));
+
+	        if (!BCrypt.checkpw(rawPassword, storedHash)) return null;
+
+	        return new Worker(
+	            rs.getInt("worker_id"),
+	            rs.getString("username"),
+	            WorkerType.valueOf(rs.getString("worker_type").toUpperCase())
+	        );
+
+	    } catch (SQLException e) {
+	        System.out.println("SQLException: workerLogin failed.");
+	        e.printStackTrace();
+	        return null;
+	    } finally {
+	        pool.releaseConnection(pConn);
+	    }
+	}
+	
+	public List<CurrentDinerRow> loadCurrentDiners() {
+	    String sql = """
+	        SELECT
+	            t.table_number,
+	            r.phone,
+	            r.email,
+	            r.sub_id,
+	            r.num_diners,
+	            r.res_id
+	        FROM tablestable t
+	        LEFT JOIN reservations r
+	            ON t.res_id = r.res_id
+	            ORDER BY t.table_number ASC;
+	    """;
+
+	    List<CurrentDinerRow> rows = new ArrayList<>();
+
+	    MySQLConnectionPool pool = MySQLConnectionPool.getInstance();
+	    PooledConnection pConn = pool.getConnection();
+	    if (pConn == null) return rows;
+
+	    try {
+	        PreparedStatement stmt = pConn.getConnection().prepareStatement(sql);
+	        ResultSet rs = stmt.executeQuery();
+
+	        while (rs.next()) {
+	            rows.add(new CurrentDinerRow(
+	                rs.getInt("table_number"),
+	                rs.getString("phone"),
+	                rs.getString("email"),
+	                rs.getObject("sub_id", Integer.class),
+	                rs.getObject("num_diners", Integer.class),
+	                rs.getObject("res_id", Integer.class)
+	            ));
+	        }
+	    } catch (SQLException e) {
+	        e.printStackTrace();
+	    } finally {
+	        pool.releaseConnection(pConn);
+	    }
+
+	    return rows;
+	}
+
 
 	/**
 	 * Executes a write query with positional parameters.

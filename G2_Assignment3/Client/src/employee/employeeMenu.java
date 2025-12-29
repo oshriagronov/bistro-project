@@ -22,6 +22,9 @@ public class employeeMenu {
 	
     @FXML
     private Button subscriberBtn;
+    
+    @FXML
+    private Button dinersBtn;
 
 	@FXML
 	void backToLoginMenu(ActionEvent event) {
@@ -49,6 +52,15 @@ public class employeeMenu {
 			e.printStackTrace();
 		}
 	}
+	
+    @FXML
+    void watchDiners(ActionEvent event) {
+    	try {
+			Main.changeRoot(CurrentDinersScreen.fxmlPath, 1000, 800);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+    }
 	
     @FXML
     void addSubscriber(ActionEvent event) {

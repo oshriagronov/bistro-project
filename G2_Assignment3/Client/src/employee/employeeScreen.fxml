@@ -21,6 +21,11 @@
                   <Insets bottom="10.0" />
                </VBox.margin>
             </Button>
+            <Button fx:id="dinersBtn" mnemonicParsing="false" onAction="#watchDiners" prefHeight="40.0" prefWidth="170.0" text="Current diners">
+               <VBox.margin>
+                  <Insets bottom="10.0" />
+               </VBox.margin>
+            </Button>
             <Button fx:id="subscriberBtn" mnemonicParsing="false" onAction="#addSubscriber" prefHeight="40.0" prefWidth="170.0" text="Add a subscriber">
                <VBox.margin>
                   <Insets bottom="10.0" />

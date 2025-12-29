@@ -1,6 +1,5 @@
 package employee;
 
-import javafx.scene.control.TextField;
 import java.util.ArrayList;
 
 import communication.BistroCommand;
@@ -8,8 +7,8 @@ import communication.BistroRequest;
 import communication.BistroResponse;
 import communication.BistroResponseStatus;
 import communication.TableSizeUpdate;
-import communication.TableStatusUpdate;
 import gui.Main;
+import javafx.collections.FXCollections;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
@@ -19,243 +18,198 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
 import logic.Table;
-import logic.TableStatus;
 
 /**
- * Controller for the Tables Management screen.
+ * Controller class for the TableManagement.fxml view.
  * <p>
- * This screen allows employees to:
+ * This screen allows employees to manage restaurant tables by:
+ * </p>
  * <ul>
- *   <li>View all tables</li>
- *   <li>Add new tables</li>
- *   <li>Delete existing tables</li>
- *   <li>Change table size</li>
- *   <li>Change table status</li>
+ *   <li>Viewing all tables (loaded from the server on initialization)</li>
+ *   <li>Deleting an existing table</li>
+ *   <li>Updating the size (number of seats) of a selected table</li>
+ *   <li>Adding a new table (depending on server-side implementation of {@link BistroCommand#ADD_TABLE})</li>
  * </ul>
- * All changes are sent to the server and reflected back in the UI.
+ *
+ * <p>
+ * All operations are performed by sending {@link BistroRequest} messages to the server
+ * and processing the returned {@link BistroResponse}.
+ * </p>
  */
 public class TablesManagementScreen {
 
-	/**
-	 * FXML path for the tables management screen.
-	 */
-	public static final String fxmlPath = "/employee/TableManagement.fxml";
+    /** Path to the FXML file associated with this screen. */
+    public static final String fxmlPath = "/employee/TableManagement.fxml";
 
-	/**
-	 * Shared alert dialog used for user feedback.
-	 */
-	Alert alert = new Alert(Alert.AlertType.INFORMATION);
+    /** Shared alert dialog used for user feedback. */
+    private final Alert alert = new Alert(Alert.AlertType.INFORMATION);
 
-	@FXML
-	private Button addBtn;
+    /** Button used to add a new table. */
+    @FXML private Button addBtn;
 
-	@FXML
-	private Button deleteBtn;
+    /** Button used to delete the selected table. */
+    @FXML private Button deleteBtn;
 
-	@FXML
-	private TextField newTableNumber;
+    /** ComboBox for selecting the size of a new table to add. */
+    @FXML private ComboBox<Integer> newTableSize;
 
-	@FXML
-	private ComboBox<Integer> newTableSize;
+    /** Button used to apply a new size to the selected table. */
+    @FXML private Button applySizeBtn;
 
-	@FXML
-	private Button applySizeBtn;
+    /** Button used to navigate back to the employee menu. */
+    @FXML private Button menuBtn;
 
-	@FXML
-	private Button applyStatusBtn;
+    /** ComboBox for selecting a new size for the currently selected table. */
+    @FXML private ComboBox<Integer> sizeCombo;
 
-	@FXML
-	private Button menuBtn;
+    /** Table column showing the table number. */
+    @FXML private TableColumn<Table, Integer> tableNumberCol;
 
-	@FXML
-	private ComboBox<TableStatus> statusCombo;
+    /** Table column showing the table size (number of seats). */
+    @FXML private TableColumn<Table, Integer> tableSizeCol;
 
-	@FXML
-	private ComboBox<Integer> sizeCombo;
+    /** Table column showing reservation id or related reservation field (if applicable). */
+    @FXML private TableColumn<Table, Integer> reservationCol;
 
-	@FXML
-	private TableColumn<Table, Integer> tableNumberCol;
+    /** TableView that displays all tables returned from the server. */
+    @FXML private TableView<Table> tablesTable;
 
-	@FXML
-	private TableColumn<Table, Integer> tableSizeCol;
+    /**
+     * Loads (or reloads) the tables list from the server and updates the TableView.
+     */
+    private void reloadTables() {
+        Main.client.accept(new BistroRequest(BistroCommand.GET_TABLES, null));
+        Object data = Main.client.getResponse().getData();
 
-	@FXML
-	private TableColumn<Table, TableStatus> tableStatusCol;
+        @SuppressWarnings("unchecked")
+        ArrayList<Table> tables = (ArrayList<Table>) data;
 
-	@FXML
-	private TableView<Table> tablesTable;
+        tablesTable.setItems(FXCollections.observableArrayList(tables));
+    }
 
-	/**
-	 * Reloads the tables list from the server and updates the TableView.
-	 */
-	private void reloadTables() {
-		Main.client.accept(new BistroRequest(BistroCommand.GET_TABLES, null));
-		Object data = Main.client.getResponse().getData();
-		ArrayList<Table> tables = (ArrayList<Table>) data;
-		tablesTable.setItems(javafx.collections.FXCollections.observableArrayList(tables));
-	}
+    /**
+     * Displays an information alert to the user.
+     *
+     * @param title the title of the alert dialog
+     * @param body  the message shown in the alert dialog
+     */
+    public void showAlert(String title, String body) {
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(body);
+        alert.showAndWait();
+    }
 
-	/**
-	 * Displays an alert dialog with the given title and message.
-	 *
-	 * @param title alert window title
-	 * @param body  message to display
-	 */
-	public void showAlert(String title, String body) {
-		alert.setTitle(title);
-		alert.setHeaderText(null);
-		alert.setContentText(body);
-		alert.showAndWait();
-	}
+    /**
+     * Initializes the controller after the FXML has been loaded.
+     * <p>
+     * Sets up table columns, initializes ComboBox values, loads the current tables from the server,
+     * and enables/disables action buttons based on the current selection.
+     * </p>
+     */
+    @FXML
+    public void initialize() {
+        applySizeBtn.setDisable(true);
+        deleteBtn.setDisable(true);
 
-	/**
-	 * Initializes the screen after the FXML is loaded.
-	 * <p>
-	 * Sets up combo boxes, table columns, button states,
-	 * loads existing tables, and registers selection listeners.
-	 */
-	public void initialize() {
-		applySizeBtn.setDisable(true);
-		applyStatusBtn.setDisable(true);
-		deleteBtn.setDisable(true);
+        sizeCombo.setItems(FXCollections.observableArrayList(2, 4, 6, 8, 10));
+        newTableSize.setItems(FXCollections.observableArrayList(2, 4, 6, 8, 10));
+        newTableSize.getSelectionModel().selectFirst();
 
-		sizeCombo.getItems().addAll(java.util.stream.IntStream.rangeClosed(2, 10).boxed().toList());
-		statusCombo.getSelectionModel().selectFirst();
+        tableNumberCol.setCellValueFactory(new PropertyValueFactory<>("table_number"));
+        tableSizeCol.setCellValueFactory(new PropertyValueFactory<>("table_size"));
+        reservationCol.setCellValueFactory(new PropertyValueFactory<>("res_id"));
 
-		newTableSize.getItems().addAll(java.util.stream.IntStream.rangeClosed(2, 10).boxed().toList());
-		newTableSize.getSelectionModel().selectFirst();
+        reloadTables();
 
-		statusCombo.getItems().setAll(TableStatus.values());
-		statusCombo.getSelectionModel().selectFirst();
+        tablesTable.getSelectionModel().selectedItemProperty().addListener((obs, oldSel, newSel) -> {
+            boolean hasSelection = newSel != null;
+            applySizeBtn.setDisable(!hasSelection);
+            deleteBtn.setDisable(!hasSelection);
+        });
+    }
 
-		tableNumberCol.setCellValueFactory(new PropertyValueFactory<>("table_number"));
-		tableSizeCol.setCellValueFactory(new PropertyValueFactory<>("table_size"));
-		tableStatusCol.setCellValueFactory(new PropertyValueFactory<>("table_status"));
+    /**
+     * Applies the size selected in {@code sizeCombo} to the currently selected table.
+     * Sends a {@link BistroCommand#CHANGE_TABLE_SIZE} request to the server.
+     *
+     * @param event the action event triggered by clicking the apply size button
+     */
+    @FXML
+    void clickEditSize(ActionEvent event) {
+        Table selected = tablesTable.getSelectionModel().getSelectedItem();
+        selected.setTable_size(sizeCombo.getValue());
 
-		reloadTables();
+        Main.client.accept(new BistroRequest(
+                BistroCommand.CHANGE_TABLE_SIZE,
+                new TableSizeUpdate(selected.getTable_number(), sizeCombo.getValue())
+        ));
 
-		tablesTable.getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, newSelection) -> {
-			if (newSelection != null) {
-				applyStatusBtn.setDisable(false);
-				applySizeBtn.setDisable(false);
-				deleteBtn.setDisable(false);
-			} else {
-				applyStatusBtn.setDisable(true);
-				applySizeBtn.setDisable(true);
-				deleteBtn.setDisable(true);
-			}
-		});
-	}
+        BistroResponse resp = Main.client.getResponse();
+        if (resp != null && resp.getStatus() == BistroResponseStatus.SUCCESS) {
+            tablesTable.refresh();
+        } else {
+            showAlert("Error", "Failed to update table size");
+            tablesTable.refresh();
+        }
+    }
 
-	/**
-	 * Applies a new status to the selected table.
-	 *
-	 * @param event button click event
-	 */
-	@FXML
-	void clickApplyStatus(ActionEvent event) {
-		Table selected = tablesTable.getSelectionModel().getSelectedItem();
-		selected.setTable_status(statusCombo.getValue());
+    /**
+     * Sends a request to add a new table.
+     * <p>
+     * Note: This method assumes the server can handle {@link BistroCommand#ADD_TABLE}
+     * using the selected size as the request data. If your server expects a {@link Table}
+     * object (table number + size + status), adjust the request data accordingly.
+     * </p>
+     *
+     * @param event the action event triggered by clicking the add button
+     */
+    @FXML
+    void addNewTable(ActionEvent event) {
+        Main.client.accept(new BistroRequest(BistroCommand.ADD_TABLE, newTableSize.getValue()));
 
-		Main.client.accept(new BistroRequest(
-				BistroCommand.CHANGE_TABLE_STATUS,
-				new TableStatusUpdate(selected.getTable_number(), statusCombo.getValue())
-		));
+        BistroResponse response = Main.client.getResponse();
+        if (response != null && response.getStatus() == BistroResponseStatus.SUCCESS) {
+            showAlert("Success", "Table added successfully");
+            reloadTables();
+        } else {
+            showAlert("Error", "Failed to add table");
+        }
+    }
 
-		BistroResponse resp = Main.client.getResponse();
-		if (resp != null && resp.getStatus() == BistroResponseStatus.SUCCESS) {
-			tablesTable.refresh();
-		} else {
-			showAlert("Error", "Failed to update table status");
-			tablesTable.refresh();
-		}
-	}
+    /**
+     * Deletes the currently selected table.
+     * Sends a {@link BistroCommand#DELETE_TABLE} request to the server.
+     *
+     * @param event the action event triggered by clicking the delete button
+     */
+    @FXML
+    void deleteTable(ActionEvent event) {
+        Main.client.accept(new BistroRequest(
+                BistroCommand.DELETE_TABLE,
+                tablesTable.getSelectionModel().getSelectedItem().getTable_number()
+        ));
 
-	/**
-	 * Applies a new size to the selected table.
-	 *
-	 * @param event button click event
-	 */
-	@FXML
-	void clickEditSize(ActionEvent event) {
-		Table selected = tablesTable.getSelectionModel().getSelectedItem();
-		selected.setTable_size(sizeCombo.getValue());
+        BistroResponse response = Main.client.getResponse();
+        if (response != null && response.getStatus() == BistroResponseStatus.SUCCESS) {
+            showAlert("Success", "Table deleted successfully");
+            reloadTables();
+        } else {
+            showAlert("Error", "Failed to delete table");
+        }
+    }
 
-		Main.client.accept(new BistroRequest(
-				BistroCommand.CHANGE_TABLE_SIZE,
-				new TableSizeUpdate(selected.getTable_number(), sizeCombo.getValue())
-		));
-
-		BistroResponse resp = Main.client.getResponse();
-		if (resp != null && resp.getStatus() == BistroResponseStatus.SUCCESS) {
-			tablesTable.refresh();
-		} else {
-			showAlert("Error", "Failed to update table size");
-			tablesTable.refresh();
-		}
-	}
-
-	/**
-	 * Adds a new table using the entered table number and selected size.
-	 *
-	 * @param event button click event
-	 */
-	@FXML
-	void addNewTable(ActionEvent event) {
-		String tableNumber = newTableNumber.getText();
-
-		if (tableNumber == null || tableNumber.isBlank()) {
-			showAlert("Failed to add table", "Please enter a table number");
-		} else if (!tableNumber.matches("^[0-9]+$")) {
-			showAlert("Failed to add table", "Table number should only contain numbers");
-		} else {
-			Main.client.accept(new BistroRequest(
-					BistroCommand.ADD_TABLE,
-					new Table(Integer.parseInt(tableNumber), newTableSize.getValue())
-			));
-
-			BistroResponse response = Main.client.getResponse();
-			if (response != null && response.getStatus() == BistroResponseStatus.SUCCESS) {
-				showAlert("Success", "Table added successfuly");
-				reloadTables();
-			} else {
-				showAlert("Error", "Failed to add table");
-			}
-		}
-	}
-
-	/**
-	 * Deletes the currently selected table.
-	 *
-	 * @param event button click event
-	 */
-	@FXML
-	void deleteTable(ActionEvent event) {
-		Main.client.accept(new BistroRequest(
-				BistroCommand.DELETE_TABLE,
-				tablesTable.getSelectionModel().getSelectedItem().getTable_number()
-		));
-
-		BistroResponse response = Main.client.getResponse();
-		if (response != null && response.getStatus() == BistroResponseStatus.SUCCESS) {
-			showAlert("Success", "Table deleted successfuly");
-			reloadTables();
-		} else {
-			showAlert("Error", "Failed to deleted table");
-		}
-	}
-
-	/**
-	 * Navigates back to the employee menu screen.
-	 *
-	 * @param event button click event
-	 */
-	@FXML
-	void clickMenu(ActionEvent event) {
-		try {
-			Main.changeRoot(employeeMenu.fxmlPath, 600, 500);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
+    /**
+     * Navigates back to the employee menu screen.
+     *
+     * @param event the action event triggered by clicking the menu button
+     */
+    @FXML
+    void clickMenu(ActionEvent event) {
+        try {
+            Main.changeRoot(employeeMenu.fxmlPath, 600, 500);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 }

@@ -64,6 +64,8 @@ public class OrdersManagementScreen {
 
 	@FXML
 	public void initialize() {
+		applyStatusBTN.setDisable(true);
+		deleteBTN.setDisable(true);
 
 		statusCombo.getItems().setAll(Status.values());
 		statusCombo.setPromptText("Select status...");
@@ -123,7 +125,7 @@ public class OrdersManagementScreen {
 	@FXML
 	void clickMenu(ActionEvent event) {
 		try {
-			Main.changeRoot("employeeScreen.fxml", 600, 500);
+			Main.changeRoot(employeeMenu.fxmlPath, 600, 500);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

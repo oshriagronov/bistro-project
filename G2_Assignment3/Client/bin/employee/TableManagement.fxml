@@ -26,14 +26,14 @@
 
                 <Label style="-fx-font-size: 16px; -fx-font-weight: bold;" text="Tables" textFill="#141414" />
 
-                <TableView fx:id="tablesTable" prefHeight="430.0" prefWidth="550.0">
+                <TableView fx:id="tablesTable" prefHeight="475.0" prefWidth="547.0">
 
                     <columns>
                         <TableColumn fx:id="tableNumberCol" prefWidth="180.0" text="Table Number" />
 
                         <TableColumn fx:id="tableSizeCol" prefWidth="180.0" text="Table Size" />
 
-                        <TableColumn fx:id="tableStatusCol" prefWidth="180.0" text="Status" />
+                        <TableColumn fx:id="reservationCol" prefWidth="180.0" text="Current reservation" />
                     </columns>
                 </TableView>
             </VBox>
@@ -56,21 +56,23 @@
 
                 <Button fx:id="applySizeBtn" onAction="#clickEditSize" prefWidth="200.0" text="Apply Size" />
 
-                <Separator />
-
-                <!-- Status edit section -->
-                <Label style="-fx-font-size: 14px; -fx-font-weight: bold;" text="Edit Status" />
-
-                <HBox spacing="10.0">
-                    <Label prefWidth="80.0" text="New Status:" />
-                    <ComboBox fx:id="statusCombo" prefWidth="150.0" />
-                </HBox>
-
-                <Button fx:id="applyStatusBtn" onAction="#clickApplyStatus" prefWidth="200.0" text="Apply Status" />
+                <HBox spacing="10.0" />
             <Separator />
+            <Label style="-fx-font-size: 14px; -fx-font-weight: bold;" text="Add a new table" />
+            <HBox spacing="10.0" />
+            <HBox spacing="10.0">
+               <children>
+                  <Label prefWidth="80.0" text="Table size" />
+                  <ComboBox fx:id="newTableSize" prefWidth="150.0" />
+               </children>
+            </HBox>
+            <Button fx:id="addBtn" onAction="#addNewTable" prefWidth="200.0" text="Add" />
+            <HBox spacing="10.0" />
+            <Separator />
+            <Button fx:id="deleteBtn" onAction="#deleteTable" prefWidth="200.0" text="Delete selected" />
             <Button fx:id="menuBtn" mnemonicParsing="false" onAction="#clickMenu" text="Back to menu">
                <VBox.margin>
-                  <Insets />
+                  <Insets top="60.0" />
                </VBox.margin>
             </Button>
 

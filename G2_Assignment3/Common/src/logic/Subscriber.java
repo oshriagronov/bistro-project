@@ -4,6 +4,10 @@ import java.io.Serializable;
 
 public class Subscriber implements Serializable {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	private Integer subscriberId; // DB-generated
 	private String username;
 	private String firstName;
