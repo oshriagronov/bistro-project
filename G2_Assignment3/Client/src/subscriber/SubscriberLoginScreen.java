@@ -1,5 +1,4 @@
 package subscriber;
-
 import communication.BistroCommand;
 import communication.BistroRequest;
 import communication.BistroResponseStatus;
@@ -67,16 +66,13 @@ public class SubscriberLoginScreen {
 		if (code == null || code.isBlank()) {
 			ok = false;
 			errors.append("Please enter subscriber code\n");
-		} else if (!code.matches("\\d+")) {
-			ok = false;
-			errors.append("Subscriber code must contain only digits\n");
 		}
 		if(ok){
 			Main.client.accept(new BistroRequest(BistroCommand.SUBSCRIBER_LOGIN, new Subscriber(username, code)));
 			// TODO: on success pull the order history of the subscriber and pass it to the SubscriberScreen
 			if (Main.client.getResponse().getStatus() == BistroResponseStatus.SUCCESS) {
 				try {
-					Main.changeRoot("/subscriber/SubscriberScreen.fxml");
+					Main.changeRoot(SubscriberScreen.fxmlPath);
 				} catch (Exception e) {
 					e.printStackTrace();
 				}

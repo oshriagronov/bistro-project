@@ -28,7 +28,7 @@
                      </HBox.margin>
                   </Text>
                   <ComboBox prefHeight="25.0" prefWidth="47.0" />
-                  <TextField fx:id="phoneNum" alignment="CENTER" prefHeight="25.0" prefWidth="179.0">
+                  <TextField fx:id="prephoneNum" alignment="CENTER" prefHeight="25.0" prefWidth="179.0">
                      <HBox.margin>
                         <Insets right="20.0" />
                      </HBox.margin>
@@ -48,7 +48,7 @@
                         <Insets />
                      </HBox.margin>
                   </Text>
-                  <TextField fx:id="phoneNum1" prefHeight="25.0" prefWidth="223.0">
+                  <TextField fx:id="phoneNum" prefHeight="25.0" prefWidth="223.0">
                      <HBox.margin>
                         <Insets right="20.0" />
                      </HBox.margin>

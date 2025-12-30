@@ -129,7 +129,6 @@ public class Server extends AbstractServer {
 		case SUBSCRIBER_LOGIN:
 			if (data instanceof Subscriber) {
 				Subscriber s = (Subscriber) data;
-				// s.setPasswordHash(BCrypt.hashpw(s.getPasswordHash(), BCrypt.gensalt()));
 				if (db.subscriberLogin(s.getUsername(), s.getPasswordHash()))
 					// TODO: on success pull the order history of the subscriber
 					response = new BistroResponse(BistroResponseStatus.SUCCESS, null);

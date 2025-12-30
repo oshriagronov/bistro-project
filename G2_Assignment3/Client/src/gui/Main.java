@@ -16,9 +16,6 @@ package gui;
 import client.ClientController;
 import java.io.IOException;
 import java.util.List;
-
-import org.mindrot.jbcrypt.BCrypt;
-
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;

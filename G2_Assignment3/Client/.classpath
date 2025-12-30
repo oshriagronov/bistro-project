@@ -8,6 +8,6 @@
 	<classpathentry kind="src" path="src"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/OCSF"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/Common"/>
-	<classpathentry kind="lib" path="C:/Users/טל מצגר/Desktop/jbcrypt-0.4.jar"/>
+	<classpathentry kind="lib" path="C:/Users/oshri/Documents/bistro-project/G2_Assignment3/jbcrypt-0.4.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

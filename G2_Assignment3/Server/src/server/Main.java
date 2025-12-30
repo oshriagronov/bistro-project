@@ -18,6 +18,7 @@ public class Main extends Application {
 	 * stage. * @param primaryStage The primary stage for this application, onto
 	 * which the application scene can be set.
 	 */
+
 	public void start(@SuppressWarnings("exports") Stage primaryStage) {
 		Parent root;
 		try {
