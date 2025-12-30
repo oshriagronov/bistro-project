@@ -190,6 +190,53 @@ public class ConnectionToDB {
 	}
 	
 	/**
+	 * Retrieves a reservation based on the customer's phone number and the confirmation code provided.
+	 * 
+	 * @param phone_number      the customer's phone number
+	 * @param confirmation_code the confirmation code for the order
+	 * @return the Reservation object if found, null otherwise
+	 */
+	public Reservation getOrderByPhoneAndCode (String phone_number, int confirmation_code){
+		String sql = "SELECT order_number ,order_date, number_of_guests, confirmation_code, subscriber_id, date_of_placing_order, order_status "
+				+ "FROM `Order` WHERE phone_number = ? AND confirmation_code = ?";
+		Reservation reservation;
+		LocalDate orderDate;
+		LocalDate DateOfPlacingOrder;
+		int orderNumber;
+		int numberOfGuests;
+		int subscriberId;
+		Status status;
+		// the two line bellow are needed to use the pool connection
+		MySQLConnectionPool pool = MySQLConnectionPool.getInstance();
+        PooledConnection pConn = null;
+		// get connection from the pull
+		pConn = pool.getConnection();
+		if (pConn == null) return null;
+		try {
+			PreparedStatement stmt = pConn.getConnection().prepareStatement(sql);
+			stmt.setString(1, phone_number);
+			stmt.setInt(2, confirmation_code);
+			ResultSet rs = stmt.executeQuery();
+			orderNumber = rs.getInt("order_number");
+			orderDate = LocalDate.parse(rs.getString("order_date"));
+			numberOfGuests = rs.getInt("number_of_guests");
+			subscriberId = rs.getInt("subscriber_id");
+			status = Status.valueOf(rs.getString("order_status"));
+			DateOfPlacingOrder = LocalDate.parse(rs.getString("date_of_placing_order"));
+			reservation = new Reservation(orderDate, orderNumber, numberOfGuests, confirmation_code, subscriberId, DateOfPlacingOrder, phone_number, status);
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		finally {
+			// Crucial: Return connection to the pool here!
+            pool.releaseConnection(pConn);
+        }
+
+		return reservation;
+	}
+	
+	/**
 	 * Deletes an order from the DB by order number (primary key)
 	 * 
 	 * @param order_number order number to delete
@@ -248,6 +295,46 @@ public class ConnectionToDB {
 	    return tables;
 	}
 	
+	/**
+	 * Searches for an available table that can accommodate the specified number of guests.
+	 * 
+	 * @param number_of_guests the minimum number of seats required
+	 * @return the table number of a suitable table, or 0 if no such table is found
+	 */
+	public int searchAvailableTableBySize(int number_of_guests){
+		String sql = "SELECT table_number, table_size FROM `tablestable` WHERE res_id IS NULL AND table_size >= ?";
+		int min = 10;
+		int table_number = 0;
+		// the two line bellow are needed to use the pool connection
+		MySQLConnectionPool pool = MySQLConnectionPool.getInstance();
+		PooledConnection pConn = null;
+		// get connection from the pull
+		pConn = pool.getConnection();
+		if (pConn == null) 
+			return table_number; //TODO: numbers of tables start from 1
+		try{
+			PreparedStatement stmt = pConn.getConnection().prepareStatement(sql);
+			stmt.setInt(1, number_of_guests);
+			ResultSet rs = stmt.executeQuery();
+			while (rs.next()) {
+				int tableNumber = rs.getInt("table_number");
+				int tableSize = rs.getInt("table_size");
+				if (tableSize < min){
+					table_number = tableNumber;
+				}
+					
+			}
+			
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		finally {
+			// Crucial: Return connection to the pool here!
+			pool.releaseConnection(pConn);
+		}
+		return table_number;
+	}
+
 	/**
 	 * Updates the size for a table by table number.
 	 *

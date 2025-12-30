@@ -23,5 +23,6 @@ public enum BistroCommand {
     DELETE_TABLE,
     ADD_SUBSCRIBER,
     WORKER_LOGIN,
-    LOAD_DINERS
+    LOAD_DINERS, 
+    GET_TABLE_BY_PHONE_AND_CODE
 }
