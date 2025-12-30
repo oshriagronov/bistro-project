@@ -26,10 +26,10 @@ public class UpdateSubDetailsScreen {
     private Button menuBTN;
 
     @FXML
-    private TextField phoneNum;
+    private TextField prephoneNum;
 
     @FXML
-    private TextField phoneNum1;
+    private TextField phoneNum;
 
     @FXML
     private Button submitBTN;
@@ -46,33 +46,24 @@ public class UpdateSubDetailsScreen {
 
     @FXML
     void initialize() {
-        assert infoVbox != null : "fx:id=\"infoVbox\" was not injected: check your FXML file 'Update.fxml'.";
-        assert menuBTN != null : "fx:id=\"menuBTN\" was not injected: check your FXML file 'Update.fxml'.";
-        assert phoneNum != null : "fx:id=\"phoneNum\" was not injected: check your FXML file 'Update.fxml'.";
-        assert phoneNum1 != null : "fx:id=\"phoneNum1\" was not injected: check your FXML file 'Update.fxml'.";
-        assert submitBTN != null : "fx:id=\"submitBTN\" was not injected: check your FXML file 'Update.fxml'.";
+        
 
     }
-	//I need to show the currect details of the subscriber from DB,
-	//and let the user update the parameters he wants to update
 
 	@FXML
 	void loadSubscriberDetails(ActionEvent event) {
 
-		// Load subscriber details from the database
-		Reservation reservation = BistroClient.getSubscriberDetails(phoneNum.getText());
-		if (reservation != null) {
-			// Populate the fields with the subscriber details
-			phoneNum1.setText(reservation.getPhoneNumber());
-			// Add other fields as necessary
-		} else {
-			// Show an error message if subscriber not found
-			Alert alert = new Alert(Alert.AlertType.ERROR);
-			alert.setTitle("Error");
-			alert.setHeaderText(null);
-			alert.setContentText("Subscriber not found.");
-			alert.showAndWait();
-		}
+		// Load subscriber details from the database to the text fields
+        Reservation currentReservation = BistroClient.getCurrentReservation();
+        if (currentReservation != null) {
+            phoneNum.setText(currentReservation.getPhoneNumber());
+            phoneNum1.setText(currentReservation.getPhoneNumber());
+        } else {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Error");
+            alert.setHeaderText(null);
+            alert.setContentText("Failed to load subscriber details.");
+            alert.showAndWait();
+        }
 	}
-
 }
