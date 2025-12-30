@@ -1,5 +1,9 @@
 package subscriber;
 
+import java.lang.reflect.Array;
+import java.util.ArrayList;
+
+import logic.Reservation;
 import gui.Main;
 import gui.UpdateScreen;
 import gui.WaitingListScreen;
@@ -62,18 +66,33 @@ public class SubscriberScreen {
 	private Button newReservationBtn;
 
 	@FXML
-	/** Button to navigate to waitlist screen. */
-	private Button waitlistBtn;
-
-	@FXML
 	/**
 	 * Initializes the view with sample history data and hides the update form.
 	 */
 	void initialize() {
-		historyList.getItems().setAll(
-				"Order date: 2024-05-12 | Guests: 4 | Confirmation: 12345 | Subscriber: 54321 | Placed: 2024-05-01",
-				"Order date: 2024-06-03 | Guests: 2 | Confirmation: 67890 | Subscriber: 54321 | Placed: 2024-05-20",
-				"Order date: 2024-06-18 | Guests: 6 | Confirmation: 24680 | Subscriber: 54321 | Placed: 2024-06-05");
+		Object data = Main.client.getResponse().getData();
+		if (data instanceof ArrayList<?>) {
+			ArrayList<Reservation> reservations = new ArrayList<>();
+			// Safely cast and filter the list items
+			for (Object obj : (ArrayList<?>) data) {
+				if (obj instanceof Reservation) {
+					reservations.add((Reservation) obj);
+				}
+			}
+
+			if (reservations.isEmpty()) {
+				historyList.getItems().setAll("No previous reservations found.");
+			} else {
+				ArrayList<String> historyStrings = new ArrayList<>();
+				for (Reservation res : reservations) {
+					historyStrings.add(String.format(
+						"Order date: %s | Guests: %d | Confirmation: %d | Diners: %d | Placed: %s | Status: %s",
+						res.getOrderDate(), res.getNumberOfGuests(), res.getConfirmationCode(),
+						res.getSubscriberId(), res.getDateOfPlacingOrder(), res.getStatus()));
+				}
+				historyList.getItems().setAll(historyStrings);
+			}
+		}
 		updateForm.setVisible(false);
 	}
 
@@ -185,19 +204,6 @@ public class SubscriberScreen {
 	void goToNewReservation(ActionEvent event) {
 		try {
 			Main.changeRoot(OrderScreen.fxmlPath);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-
-	@FXML
-	/**
-	 * Navigates to the waitlist screen.
-	 * @param event JavaFX action event
-	 */
-	void goToWaitlist(ActionEvent event) {
-		try {
-			Main.changeRoot(WaitingListScreen.fxmlPath);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

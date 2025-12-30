@@ -424,35 +424,52 @@ public class ConnectionToDB {
 	 *
 	 * @param username subscriber username
 	 * @param passwordHash hashed password
-	 * @return true if credentials match, false otherwise
+	 * @return list of reservations if credentials match, null otherwise
 	 */
-	public boolean subscriberLogin(String username, String passwordHash){
-		String sql = "SELECT * FROM subscriber WHERE username = ? AND password_hash = ?";
-		boolean success = false;
-		// the two line bellow are needed to use the pool connection
+	public List<Reservation> subscriberLogin(String username, String passwordHash) {
+		String loginSql = "SELECT sub_id FROM subscriber WHERE username = ? AND password_hash = ?";
+		String ordersSql = "SELECT res_id, order_date, num_diners, confirmation_code, sub_id, date_of_placing_order, phone, order_status FROM reservations WHERE sub_id = ?";
+		List<Reservation> reservations = null;
+
 		MySQLConnectionPool pool = MySQLConnectionPool.getInstance();
-        PooledConnection pConn = null;
-		// get connection from the pull
-		pConn = pool.getConnection();
-		if (pConn == null) return false;
-		try{
-			PreparedStatement stmt = pConn.getConnection()
-			.prepareStatement(sql);
-			stmt.setString(1, username);
-			stmt.setString(2, passwordHash);
-			ResultSet rs = stmt.executeQuery();
-			// TODO: on success pull the order history of the subscriber and pass it
-			if (rs.next())
-				success = true;
-		}catch(SQLException e){
-			System.out.println("SQLException: " + "subscriberLogin failed.");
+		PooledConnection pConn = pool.getConnection();
+		if (pConn == null) return null;
+
+		try {
+			PreparedStatement loginStmt = pConn.getConnection().prepareStatement(loginSql);
+			loginStmt.setString(1, username);
+			loginStmt.setString(2, passwordHash);
+			ResultSet loginRs = loginStmt.executeQuery();
+
+			if (loginRs.next()) {
+				int subId = loginRs.getInt("sub_id");
+				reservations = new ArrayList<>();
+
+				PreparedStatement ordersStmt = pConn.getConnection().prepareStatement(ordersSql);
+				ordersStmt.setInt(1, subId);
+				ResultSet ordersRs = ordersStmt.executeQuery();
+
+				while (ordersRs.next()) {
+					reservations.add(new Reservation(
+						LocalDate.parse(ordersRs.getString("order_date")),
+						ordersRs.getInt("res_id"),
+						ordersRs.getInt("num_diners"),
+						ordersRs.getInt("confirmation_code"),
+						ordersRs.getInt("sub_id"),
+						LocalDate.parse(ordersRs.getString("date_of_placing_order")),
+						ordersRs.getString("phone"),
+						Status.valueOf(ordersRs.getString("order_status"))
+					));
+				}
+			}
+		} catch (SQLException e) {
+			System.out.println("SQLException: subscriberLogin failed.");
 			e.printStackTrace();
+			return null;
+		} finally {
+			pool.releaseConnection(pConn);
 		}
-		finally {
-			// Crucial: Return connection to the pool here!
-            pool.releaseConnection(pConn);
-        }
-		return success;
+		return reservations;
 	}
 	
 	public Worker workerLogin(String username, String rawPassword) {
