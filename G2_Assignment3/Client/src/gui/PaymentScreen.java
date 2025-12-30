@@ -20,7 +20,7 @@ import javafx.scene.text.Text;
  * by entering their phone number and confirmation code.
  */
 public class PaymentScreen {
-
+    public static final String fxmlPath = "/gui/Payment.fxml";
     /** Alert object used to display success or failure messages to the user. */
     Alert alert = new Alert(Alert.AlertType.INFORMATION);
 

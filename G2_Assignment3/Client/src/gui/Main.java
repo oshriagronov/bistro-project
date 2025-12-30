@@ -16,6 +16,9 @@ package gui;
 import client.ClientController;
 import java.io.IOException;
 import java.util.List;
+
+import org.mindrot.jbcrypt.BCrypt;
+
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -89,7 +92,13 @@ public class Main extends Application {
 	 * @throws IOException If the FXML file cannot be found or loaded.
 	 */
 	public static void changeRoot(String fxmlName) throws IOException {
-	    Parent newRoot = FXMLLoader.load(Main.class.getResource("/gui/" + fxmlName));
+	    Parent newRoot = FXMLLoader.load(Main.class.getResource(fxmlName));
 	    primaryStage.getScene().setRoot(newRoot);
 	}
+	public static void changeRoot(String fxmlName, int width, int height) throws IOException {
+        Parent newRoot = FXMLLoader.load(Main.class.getResource(fxmlName));
+        primaryStage.getScene().setRoot(newRoot);
+        primaryStage.setWidth(width);
+        primaryStage.setHeight(height);
+    }
 }

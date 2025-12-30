@@ -1,8 +1,6 @@
 package client;
 import java.io.*;
 import common.BistroController;
-import communication.BistroCommand;
-import communication.BistroRequest;
 import communication.BistroResponse;
 import communication.BistroResponseStatus;
 
@@ -60,18 +58,19 @@ public class ClientController implements BistroController{
    */
   public void accept(Object o) 
   {
-	  client.handleMessageFromClientUI(new BistroRequest(BistroCommand.GET_ACTIVE_RESERVATIONS_BY_PHONE, o));
+	  client.handleMessageFromClientUI(o);
   }
 
   public void serverResponse(BistroResponse response){
     BistroResponseStatus status = response.getStatus();
     switch (status) {
-      case SUCCESS:
-        this.response = response;
-        break;
+      // case SUCCESS:
+      //   this.response = response;
+      //   break;
 
       default:
-        this.response = null;
+        //this.response = null;
+        this.response = response;
         break;
     }
   }

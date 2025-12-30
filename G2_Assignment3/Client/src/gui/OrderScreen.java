@@ -23,7 +23,7 @@ import javafx.scene.layout.HBox;
 import logic.Reservation;
 
 public class OrderScreen {
-	
+	public static final String fxmlPath = "/gui/Order.fxml";
 	/** Utility for generating a random confirmation code. */
 	private Random random = new Random();
 	
@@ -37,7 +37,7 @@ public class OrderScreen {
 	private Button orderBtn;
 
 	@FXML
-	private Button menuBtn;
+	private Button backBtn;
 
 	@FXML
 	private DatePicker orderDate;
@@ -228,7 +228,7 @@ public class OrderScreen {
 			str.append("Please enter a valid 7-digit phone number\n");
 			check = false;
 		}
-		
+		//TODO: fix the proccess according to the tables of the db
 		// Final Check: Display errors or process reservation
 		if (!check) {
 			showAlert("Reservation Failure", str.toString());
@@ -239,25 +239,24 @@ public class OrderScreen {
 			int confirmation_code = random.nextInt(90000) + 10000;
 			
 			// Create Reservation object: date, amount, code, subscriber ID, today's date (for tracking)
-			Reservation r = new Reservation(date, amount, confirmation_code, Integer.parseInt(ID), today);
+			//Reservation r = new Reservation(date, amount, confirmation_code, Integer.parseInt(ID), today);
 			
 			// Send the reservation object to the client controller for server communication
-			Main.client.accept(r);
+			//Main.client.accept(r);
 		}
 	}
 
 	/**
-	 * Handles the action when the "Back to Menu" button is clicked.
+	 * Handles the action when the "Back to MainMenu" button is clicked.
 	 * Navigates the application back to the main menu screen.
 	 * * @param event The ActionEvent triggered by the Back button.
 	 */
 	@FXML
-	void backToMenu(ActionEvent event) {
+	void back(ActionEvent event) {
 		try {
 			// Use the static method in Main to switch the scene root
-			Main.changeRoot("MainMenu.fxml");
+			Main.changeRoot(MainMenuScreen.fxmlPath);
 		} catch (Exception e) {
-			// Log error if navigation fails
 			e.printStackTrace();
 		}
 	}

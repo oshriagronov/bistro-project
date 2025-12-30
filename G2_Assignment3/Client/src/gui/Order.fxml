@@ -111,7 +111,7 @@
             <Button fx:id="orderBtn" layoutX="-247.0" layoutY="61.0" mnemonicParsing="false" onAction="#clickOrder" text="Order" />
          </children>
       </HBox>
-      <Button fx:id="menuBTN" layoutX="518.0" layoutY="362.0" mnemonicParsing="false" onAction="#backToMenu" text="Main menu" />
+      <Button fx:id="backBtn" layoutX="518.0" layoutY="362.0" mnemonicParsing="false" onAction="#back" text="Back" />
       <Text fill="#1673f6" layoutX="239.0" layoutY="34.0" strokeType="OUTSIDE" strokeWidth="0.0" text="New reservation">
          <font>
             <Font name="Calibri Bold" size="18.0" />
