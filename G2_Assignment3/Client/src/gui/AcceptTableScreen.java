@@ -72,6 +72,7 @@ public class AcceptTableScreen {
      * and displays the assigned table number if successful.
      * @param event The ActionEvent triggered by the submit button.
      */
+    
     @FXML
     void handleSubmit(ActionEvent event){
         StringBuilder str = new StringBuilder();

@@ -81,6 +81,7 @@ public class PaymentScreen {
      * and displays the total bill amount if found.
      * @param event The ActionEvent triggered by the submit button.
      */
+    
     @FXML
     void handleSubmit(ActionEvent event) {
         StringBuilder str = new StringBuilder();

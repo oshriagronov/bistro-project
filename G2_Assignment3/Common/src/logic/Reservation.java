@@ -51,6 +51,7 @@ public class Reservation implements Serializable{
 	public LocalDate getOrderDate() {
 		return order_date;
 	}
+	
 	public LocalDate getDateOfPlacingOrder() {
 		return date_of_placing_order;
 	}
