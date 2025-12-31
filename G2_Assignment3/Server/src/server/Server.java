@@ -133,8 +133,8 @@ public class Server extends AbstractServer {
 				if (order_number > 0) {
 					Reservation res = db.searchOrderByOrderNumber(order_number);
 					if (res != null) {
-						dbReturnedValue = res.getNumberOfGuests();
-						response = new BistroResponse(BistroResponseStatus.SUCCESS, dbReturnedValue);
+						db.changeTableResId(tableNumber);
+						response = new BistroResponse(BistroResponseStatus.SUCCESS, res);
 					} else {
 						response = new BistroResponse(BistroResponseStatus.FAILURE, "Order not found.");
 					}

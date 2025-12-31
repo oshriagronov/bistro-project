@@ -2,6 +2,8 @@ package gui;
 
 import java.util.ArrayList;
 
+import communication.BistroCommand;
+import communication.BistroRequest;
 import communication.BistroResponse;
 import communication.BistroResponseStatus;
 import javafx.event.ActionEvent;
@@ -13,6 +15,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
+import logic.Reservation;
 
 /**
  * Controller class for the Payment.fxml view.
@@ -20,6 +23,7 @@ import javafx.scene.text.Text;
  * by entering their phone number and confirmation code.
  */
 public class PaymentScreen {
+	public static final int PAYMENT_PER_DINER=100;
     public static final String fxmlPath = "/gui/Payment.fxml";
     /** Alert object used to display success or failure messages to the user. */
     Alert alert = new Alert(Alert.AlertType.INFORMATION);
@@ -110,15 +114,21 @@ public class PaymentScreen {
         String phoneNum = pre + rest;
         search.add(phoneNum);
         search.add(code);
-
-        Main.client.accept(search);
-
+        BistroRequest request = new BistroRequest(BistroCommand.GET_BILL, search);
+        Main.client.accept(request);
+        
         BistroResponse response = Main.client.getResponse();
         if (response != null && response.getStatus() == BistroResponseStatus.SUCCESS) {
             Object data = response.getData();
             if (data != null) {
+            	Reservation res=(Reservation)data;
+            	int num_guests=res.getNumberOfGuests();
+            	int sub_id=res.getSubscriberId();
+            	double pay=PAYMENT_PER_DINER*num_guests;            	
+            	if(sub_id>0)
+            		pay=pay*0.9;
                 infoVbox.setVisible(false);
-                total.setText("Total to pay: " + data.toString() + "₪");
+                total.setText("Total to pay: " + pay + "₪");
                 total.setVisible(true);
             }
         } else {

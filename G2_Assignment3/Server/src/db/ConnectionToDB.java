@@ -381,6 +381,18 @@ public class ConnectionToDB {
 	}
 	
 	/**
+	 * Updates the reservation ID (res_id) of a table to 0, effectively clearing
+	 * any active reservation for that table.
+	 *
+	 * @param table_number the table number whose reservation ID should be reset
+	 * @return number of rows affected (1 = success, 0 = table not found)
+	 */
+	public int changeTableResId(int table_number) {
+	    String sql = "UPDATE `tablestable` SET res_id=? WHERE table_number = ?";
+	    return executeWriteQuery(sql, String.valueOf(0), table_number);
+	}
+
+	/**
 	 * Adds a new table to the tables table.
 	 *
 	 * @param tableNumber the table number (primary key)

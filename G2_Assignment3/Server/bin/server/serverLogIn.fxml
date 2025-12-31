@@ -23,8 +23,8 @@
                   </Text>
                   <PasswordField fx:id="pwText" />
                </children>
-            </HBox>
-            <Button fx:id="enterBTN" mnemonicParsing="false" text="Enter" onAction="#clickEnter" />
+            </HBox> 
+<Button fx:id="enterBTN" defaultButton="true" onAction="#clickEnter" style="-fx-background-color: #f0f0f0; -fx-text-fill: black; -fx-background-radius: 5; -fx-effect: dropshadow(gaussian, #66aaff, 10, 0.3, 0, 0);" text="Enter" />
          </children>
       </VBox>
       <Text fill="#284cff" layoutX="241.0" layoutY="42.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Server UI">
