@@ -5,13 +5,13 @@
  * the reservation date and the number of diners.
  */
 package gui;
-import java.lang.reflect.Array;
 import java.time.LocalDate;
 import java.util.ArrayList;
 
-import client.BistroClient;
 import communication.BistroCommand;
 import communication.BistroRequest;
+import communication.BistroResponse;
+import communication.BistroResponseStatus;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.Scene;
@@ -134,30 +134,70 @@ public class UpdateScreen {
 	 */
 	@FXML
 	void search(ActionEvent event) {
-		Reservation reservation;
-		String phone_number, number_of_guests;
-		ArrayList<Reservation> reservations= new ArrayList<>();
-		// Prepare search command for the server
-		phone_number = phoneNum.getText();
-		Main.client.accept(phone_number); 
-		// Retrieve the ordered data returned from the client (assumes static variable usage)
-		// example on how to get the data after the client asked the server
-		reservations = (ArrayList<Reservation>)Main.client.getResponse().getData(); // need to return array list of all the orders found
-		// This section bellow throw null pointer errors from orderNumber, don't know why.
-		// if (reservations != null) { //need to call the start method to show all the reservations found
-		// 	CreateTable(reservations);
-		// 	// Success: Display fields and populate with returned data
-		// 	ordersVBox.setVisible(true); // initially ordersnumber from the arraylist
-		// 	orderNumber.getItems().clear();
-		// 	for(Reservation r : reservations) {
-		// 		orderNumber.getItems().add(String.valueOf(r.getOrderNumber()));
-		// 	}
-		// } else {
-		// 	// Failure: Hide fields and show error
-		// 	infoVbox.setVisible(false);
-		// 	showAlert("Search Failure", "Please enter a valid phone number.");
-		// }
+
+	    String phone = phoneNum.getText().trim();
+
+	    if (phone.isEmpty()) {
+	        showAlert("Search Failure", "Please enter a phone number.");
+	        return;
+	    }
+
+	    // Send request to server
+	    Main.client.accept(
+	        new BistroRequest(BistroCommand.GET_ACTIVE_RESERVATIONS_BY_PHONE, phone)
+	    );
+
+	    BistroResponse response = Main.client.getResponse();
+
+	    if (response.getStatus() != BistroResponseStatus.SUCCESS) {
+	        showAlert("Search Failure", "No reservations found for this phone number.");
+	        return;
+	    }
+
+	    ArrayList<Reservation> reservations = (ArrayList<Reservation>) response.getData();
+
+	    if (reservations == null || reservations.isEmpty()) {
+	        showAlert("Search Failure", "No reservations found.");
+	        return;
+	    }
+
+	    // Show the order number dropdown
+	    ordersVBox.setVisible(true);
+	    orderNumber.getItems().clear();
+
+	    for (Reservation r : reservations) {
+	        orderNumber.getItems().add(String.valueOf(r.getOrderNumber()));
+	    }
 	}
+
+
+	@FXML
+	void cancelReservation(ActionEvent event) {
+
+	    String selected = orderNumber.getValue();
+
+	    if (selected == null) {
+	        showAlert("Cancellation Failed", "Please choose an order number first.");
+	        return;
+	    }
+
+	    int orderNum = Integer.parseInt(selected);
+
+	    // Send cancel request to server
+	    Main.client.accept(
+	        new BistroRequest(BistroCommand.CANCEL_RESERVATION, orderNum)
+	    );
+
+	    BistroResponse res = Main.client.getResponse();
+
+	    if (res.getStatus() == BistroResponseStatus.SUCCESS) {
+	        showAlert("Reservation Canceled", "Reservation #" + orderNum + " has been canceled successfully.");
+	    } else {
+	        showAlert("Cancellation Failed", "Unable to cancel reservation.");
+	    }
+	}
+
+
 
 	public void CreateTable(ArrayList<Reservation> reservations) { 
 		TableView<Reservation> table = new TableView<>();

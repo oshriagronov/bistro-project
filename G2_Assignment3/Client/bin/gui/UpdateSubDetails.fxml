@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+<?import javafx.scene.text.Text?>
+
+<Pane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="gui.UpdateScreen">
+   <children>
+      <Text fill="#7c73f5" layoutX="201.0" layoutY="44.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Update subscrber info" wrappingWidth="182.13670349121094">
+         <font>
+            <Font name="Calibri Bold" size="18.0" />
+         </font>
+      </Text>
+      <Button fx:id="menuBTN" layoutX="509.0" layoutY="352.0" mnemonicParsing="false" onAction="#backToMenu" text="Main menu" />
+      <VBox layoutX="163.0" layoutY="80.0" prefHeight="182.0" prefWidth="322.0">
+         <children>
+            <HBox prefHeight="50.0" prefWidth="309.0">
+               <children>
+                  <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Phone number:" wrappingWidth="91.99479675292969">
+                     <HBox.margin>
+                        <Insets />
+                     </HBox.margin>
+                  </Text>
+                  <ComboBox prefHeight="25.0" prefWidth="47.0" />
+                  <TextField fx:id="prephoneNum" alignment="CENTER" prefHeight="25.0" prefWidth="179.0">
+                     <HBox.margin>
+                        <Insets right="20.0" />
+                     </HBox.margin>
+                  </TextField>
+               </children>
+            </HBox>
+            <HBox prefHeight="52.0" prefWidth="322.0">
+               <children>
+                  <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Email address:" wrappingWidth="82.92578125" />
+                  <TextField prefHeight="25.0" prefWidth="220.0" />
+               </children>
+            </HBox>
+            <HBox prefHeight="50.0" prefWidth="309.0">
+               <children>
+                  <Text strokeType="OUTSIDE" strokeWidth="0.0" text="password:" wrappingWidth="91.99479675292969">
+                     <HBox.margin>
+                        <Insets />
+                     </HBox.margin>
+                  </Text>
+                  <TextField fx:id="phoneNum" prefHeight="25.0" prefWidth="223.0">
+                     <HBox.margin>
+                        <Insets right="20.0" />
+                     </HBox.margin>
+                  </TextField>
+               </children>
+            </HBox>
+         </children>
+      </VBox>
+      <VBox fx:id="infoVbox" layoutX="254.0" layoutY="262.0" prefHeight="25.0" prefWidth="92.0">
+         <children>
+            <HBox prefHeight="8.0" prefWidth="194.0">
+               <children>
+                  <Button fx:id="submitBTN" mnemonicParsing="false" onAction="#submit" prefHeight="25.0" prefWidth="93.0" text="Update" />
+               </children>
+            </HBox>
+         </children>
+      </VBox>
+   </children>
+</Pane>

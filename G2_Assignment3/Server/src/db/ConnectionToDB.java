@@ -53,7 +53,7 @@ public class ConnectionToDB {
 	 * @return number of rows affected (1 = success, 0 = not found)
 	 */
 	public int updateOrder(int order_number, LocalDate order_date, int number_of_guests) {
-		String sql = "UPDATE `Order` SET order_date = ?, number_of_guests = ? WHERE order_number = ?";
+		String sql = "UPDATE `reservations` SET order_date = ?, num_of_diners = ? WHERE res_id = ?";
 		return executeWriteQuery(sql, order_date, number_of_guests, order_number);
 	}
 	/**
@@ -63,7 +63,10 @@ public class ConnectionToDB {
 	 * @return Reservation containing the values returned from the DB, or null if not found
 	 */
 	public Reservation searchOrderByPhoneNumber(String phone_number) {
-		String sql = "SELECT order_date, number_of_guests, confirmation_code, subscriber_id, date_of_placing_order FROM `Order` WHERE phone_number = ?";
+		String sql = "SELECT res_id, confirmation_code, phone, email, sub_id, start_time, finish_time, "
+	               + "order_date, order_status, num_of_diners, date_of_placing_order, order_number "
+	               + "FROM reservations WHERE phone = ?";
+
 		LocalDate orderDate;
 		LocalDate DateOfPlacingOrder;
 		int numberOfGuests;
@@ -106,8 +109,10 @@ public class ConnectionToDB {
 	 * @return list of reservations returned from the DB (empty if none found)
 	 */
 	public List<Reservation> searchOrdersByPhoneNumberList(String phone_number) {
-		String sql = "SELECT order_number ,order_date, number_of_guests, confirmation_code, subscriber_id, date_of_placing_order, order_status "
-				+ "FROM `Order` WHERE phone_number = ?";
+		String sql = "SELECT res_id, confirmation_code, phone, email, sub_id, start_time, finish_time, "
+	               + "order_date, order_status, num_of_diners, date_of_placing_order, order_number "
+	               + "FROM reservations WHERE phone = ? ";
+
 		List<Reservation> reservations = new ArrayList<>();
 		LocalDate orderDate;
 		LocalDate DateOfPlacingOrder;
@@ -156,7 +161,9 @@ public class ConnectionToDB {
 	 * @return Reservation containing the values returned from the DB, or null if not found
 	 */
 	public Reservation searchOrderByOrderNumber(int order_number) {
-		String sql = "SELECT order_date, number_of_guests,confirmation_code, subscriber_id, date_of_placing_order FROM `Order` WHERE order_number = ?;";
+		String sql = "SELECT res_id, confirmation_code, phone, email, sub_id, start_time, finish_time, "
+	               + "order_date, order_status, num_of_diners, date_of_placing_order, order_number "
+	               + "FROM reservations WHERE order_number = ?;";
 		LocalDate orderDate;
 		LocalDate DateOfPlacingOrder;
 		int numberOfGuests;
@@ -190,52 +197,47 @@ public class ConnectionToDB {
 	}
 	
 	/**
-	 * Retrieves a reservation based on the customer's phone number and the confirmation code provided.
-	 * 
-	 * @param phone_number      the customer's phone number
-	 * @param confirmation_code the confirmation code for the order
-	 * @return the Reservation object if found, null otherwise
+	 * Retrieves a reservation from the database using phone number and confirmation code.
+	 *
+	 * @param phone the phone number associated with the reservation
+	 * @param confirmationCode the confirmation code of the reservation
+	 * @return a Reservation object if found, otherwise null
 	 */
-	public Reservation getOrderByPhoneAndCode (String phone_number, int confirmation_code){
-		String sql = "SELECT order_number ,order_date, number_of_guests, confirmation_code, subscriber_id, date_of_placing_order, order_status "
-				+ "FROM `Order` WHERE phone_number = ? AND confirmation_code = ?";
-		Reservation reservation = null;
-		LocalDate orderDate;
-		LocalDate DateOfPlacingOrder;
-		int orderNumber;
-		int numberOfGuests;
-		int subscriberId;
-		Status status;
-		// the two line bellow are needed to use the pool connection
-		MySQLConnectionPool pool = MySQLConnectionPool.getInstance();
-        PooledConnection pConn = null;
-		// get connection from the pull
-		pConn = pool.getConnection();
-		if (pConn == null) return null;
-		try {
-			PreparedStatement stmt = pConn.getConnection().prepareStatement(sql);
-			stmt.setString(1, phone_number);
-			stmt.setInt(2, confirmation_code);
-			ResultSet rs = stmt.executeQuery();
-			if (rs.next()) {
-				orderNumber = rs.getInt("order_number");
-				orderDate = LocalDate.parse(rs.getString("order_date"));
-				numberOfGuests = rs.getInt("number_of_guests");
-				subscriberId = rs.getInt("subscriber_id");
-				status = Status.valueOf(rs.getString("order_status"));
-				DateOfPlacingOrder = LocalDate.parse(rs.getString("date_of_placing_order"));
-				reservation = new Reservation(orderDate, orderNumber, numberOfGuests, confirmation_code, subscriberId, DateOfPlacingOrder, phone_number, status);
-			}
+	public Reservation getOrderByPhoneAndCode(String phone, int confirmationCode) {
+	    String sql = "SELECT res_id, confirmation_code, phone, email, sub_id, start_time, finish_time, "
+	               + "order_date, order_status, num_of_diners, date_of_placing_order, order_number "
+	               + "FROM reservations WHERE phone = ? AND confirmation_code = ?";
 
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
-		finally {
-			// Crucial: Return connection to the pool here!
-            pool.releaseConnection(pConn);
-        }
+	    Reservation reservation = null;
+	    MySQLConnectionPool pool = MySQLConnectionPool.getInstance();
+	    PooledConnection pConn = pool.getConnection();
+	    if (pConn == null) return null;
 
-		return reservation;
+	    try {
+	        PreparedStatement stmt = pConn.getConnection().prepareStatement(sql);
+	        stmt.setString(1, phone);
+	        stmt.setInt(2, confirmationCode);
+	        ResultSet rs = stmt.executeQuery();
+
+	        if (rs.next()) {
+	            int orderNumber = rs.getInt("order_number");
+	            LocalDate orderDate = LocalDate.parse(rs.getString("order_date"));
+	            int numberOfGuests = rs.getInt("num_of_diners");
+	            int subscriberId = rs.getInt("sub_id");
+	            Status status = Status.valueOf(rs.getString("order_status"));
+	            LocalDate placingDate = LocalDate.parse(rs.getString("date_of_placing_order"));
+
+	            reservation = new Reservation(orderDate, orderNumber, numberOfGuests, confirmationCode,
+	                                          subscriberId, placingDate, phone, status);
+	        }
+
+	    } catch (SQLException e) {
+	        e.printStackTrace();
+	    } finally {
+	        pool.releaseConnection(pConn);
+	    }
+
+	    return reservation;
 	}
 
 	/**
@@ -276,7 +278,7 @@ public class ConnectionToDB {
 	 * @return number of rows affected (1 = success, 0 = not found)
 	 */
 	public int deleteOrderByOrderNumber(int order_number) {
-		String sql = "DELETE FROM `Order` WHERE order_number = ?";
+		String sql = "DELETE FROM `reservations` WHERE res_id = ?";
 		return executeWriteQuery(sql, order_number);
 	}
 
@@ -288,7 +290,7 @@ public class ConnectionToDB {
 	 * @return number of rows affected (1 = success, 0 = not found)
 	 */
 	public int changeOrderStatus(int order_number, Status status) {
-		String sql = "UPDATE `order` SET order_status = ? WHERE order_number = ?";
+		String sql = "UPDATE `reservations` SET order_status = ? WHERE res_id = ?";
 		return executeWriteQuery(sql, status.name(), order_number);
 	}
 	
@@ -519,7 +521,7 @@ public class ConnectionToDB {
 	
 	public Worker workerLogin(String username, String rawPassword) {
 	    String sql = """
-	        SELECT worker_id, username, worker_type, password_hash
+	        SELECT worker_id, username, password_hash, worker_type 
 	        FROM workers
 	        WHERE username = ?
 	    """;

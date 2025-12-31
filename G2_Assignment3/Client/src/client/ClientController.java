@@ -1,6 +1,7 @@
 package client;
 import java.io.*;
 import common.BistroController;
+import communication.BistroRequest;
 import communication.BistroResponse;
 import communication.BistroResponseStatus;
 
@@ -64,9 +65,9 @@ public class ClientController implements BistroController{
   public void serverResponse(BistroResponse response){
     BistroResponseStatus status = response.getStatus();
     switch (status) {
-      // case SUCCESS:
-      //   this.response = response;
-      //   break;
+       case SUCCESS:
+         this.response = response;
+         break;
 
       default:
         //this.response = null;
@@ -85,5 +86,6 @@ public class ClientController implements BistroController{
 	  client.quit();
     clientController = null;
   }
+
   
 }

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.VBox?>
+
+<AnchorPane prefHeight="285.0" prefWidth="390.0" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/23.0.1" fx:controller="gui.CancelReservationScreen">
+    <children>
+        <VBox alignment="CENTER" layoutX="50" layoutY="18.0" prefHeight="212.0" prefWidth="284.0" spacing="15">
+            <children>
+
+                <Label style="-fx-font-size: 22px; -fx-font-weight: bold;" text="Cancel Reservation" textAlignment="CENTER" textFill="#0e4c99" />
+
+                <TextField fx:id="phoneField" maxWidth="250" prefHeight="26.0" prefWidth="142.0" promptText="phone number" />
+
+                <TextField fx:id="codeField" maxWidth="250" promptText="confirmation code" />
+
+                <Button maxWidth="200" onAction="#cancelReservation" text="cancel reservation" />
+
+                <Label fx:id="messageLabel" style="-fx-text-fill: red; -fx-font-size: 14px;" text="" />
+
+            </children>
+        </VBox>
+    </children>
+</AnchorPane>
