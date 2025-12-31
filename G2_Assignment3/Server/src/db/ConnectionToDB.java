@@ -199,7 +199,7 @@ public class ConnectionToDB {
 	public Reservation getOrderByPhoneAndCode (String phone_number, int confirmation_code){
 		String sql = "SELECT order_number ,order_date, number_of_guests, confirmation_code, subscriber_id, date_of_placing_order, order_status "
 				+ "FROM `Order` WHERE phone_number = ? AND confirmation_code = ?";
-		Reservation reservation;
+		Reservation reservation = null;
 		LocalDate orderDate;
 		LocalDate DateOfPlacingOrder;
 		int orderNumber;
@@ -217,13 +217,15 @@ public class ConnectionToDB {
 			stmt.setString(1, phone_number);
 			stmt.setInt(2, confirmation_code);
 			ResultSet rs = stmt.executeQuery();
-			orderNumber = rs.getInt("order_number");
-			orderDate = LocalDate.parse(rs.getString("order_date"));
-			numberOfGuests = rs.getInt("number_of_guests");
-			subscriberId = rs.getInt("subscriber_id");
-			status = Status.valueOf(rs.getString("order_status"));
-			DateOfPlacingOrder = LocalDate.parse(rs.getString("date_of_placing_order"));
-			reservation = new Reservation(orderDate, orderNumber, numberOfGuests, confirmation_code, subscriberId, DateOfPlacingOrder, phone_number, status);
+			if (rs.next()) {
+				orderNumber = rs.getInt("order_number");
+				orderDate = LocalDate.parse(rs.getString("order_date"));
+				numberOfGuests = rs.getInt("number_of_guests");
+				subscriberId = rs.getInt("subscriber_id");
+				status = Status.valueOf(rs.getString("order_status"));
+				DateOfPlacingOrder = LocalDate.parse(rs.getString("date_of_placing_order"));
+				reservation = new Reservation(orderDate, orderNumber, numberOfGuests, confirmation_code, subscriberId, DateOfPlacingOrder, phone_number, status);
+			}
 
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -234,6 +236,37 @@ public class ConnectionToDB {
         }
 
 		return reservation;
+	}
+
+	/**
+	 * Retrieves the active order number (reservation ID) associated with a given table number.
+	 * 
+	 * @param tableNumber the table number to check
+	 * @return the order number (reservation ID) currently assigned to the table, or 0 if not found/empty
+	 */
+	public int getOrderNumberByTableNumber (int tableNumber){
+		String sql = "SELECT res_id FROM `tablestable` WHERE table_number = ?";
+		int orderNumber = 0;
+		// the two line bellow are needed to use the pool connection
+		MySQLConnectionPool pool = MySQLConnectionPool.getInstance();
+        PooledConnection pConn = null;
+		// get connection from the pull
+		pConn = pool.getConnection();
+		if (pConn == null) return orderNumber;
+		try {
+			PreparedStatement stmt = pConn.getConnection().prepareStatement(sql);
+			stmt.setInt(1, tableNumber);
+			ResultSet rs = stmt.executeQuery();
+			if (rs.next())
+				orderNumber = rs.getInt("res_id");
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		finally {
+			// Crucial: Return connection to the pool here!
+            pool.releaseConnection(pConn);
+        }
+		return orderNumber;
 	}
 	
 	/**

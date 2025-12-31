@@ -126,6 +126,24 @@ public class Server extends AbstractServer {
 			} else
 				response = new BistroResponse(BistroResponseStatus.FAILURE, "update failed.");
 			break;
+		case GET_BILL:
+			if (data instanceof Integer){
+				int tableNumber = (int) data;
+				int order_number = db.getOrderNumberByTableNumber(tableNumber);
+				if (order_number > 0) {
+					Reservation res = db.searchOrderByOrderNumber(order_number);
+					if (res != null) {
+						dbReturnedValue = res.getNumberOfGuests();
+						response = new BistroResponse(BistroResponseStatus.SUCCESS, dbReturnedValue);
+					} else {
+						response = new BistroResponse(BistroResponseStatus.FAILURE, "Order not found.");
+					}
+				} else {
+					response = new BistroResponse(BistroResponseStatus.FAILURE, "No active order for this table.");
+				}
+			} else
+				response = new BistroResponse(BistroResponseStatus.INVALID_REQUEST, null);
+			break;
 		case SUBSCRIBER_LOGIN:
 			if (data instanceof Subscriber) {
 				Subscriber s = (Subscriber) data;
