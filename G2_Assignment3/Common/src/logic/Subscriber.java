@@ -16,8 +16,8 @@ public class Subscriber implements Serializable {
 	private String phone;
 	private String passwordHash;
 
-	public Subscriber(String username, String passwordHash) {
-		this.username = username;
+	public Subscriber(int subscriberId, String passwordHash) {
+		this.subscriberId = subscriberId;
 		this.passwordHash = passwordHash;
 	}
 	public Subscriber(String username, String firstName, String lastName, String email, String phone) {

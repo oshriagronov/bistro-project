@@ -22,17 +22,17 @@
          <children>
             <HBox prefHeight="35.0" prefWidth="260.0">
                <children>
-                  <Label prefWidth="110.0" text="Username">
+                  <Label prefWidth="110.0" text="Subscriber ID">
                      <HBox.margin>
                         <Insets right="10.0" />
                      </HBox.margin>
                   </Label>
-                  <TextField fx:id="usernameField" prefWidth="160.0" />
+                  <TextField fx:id="subscriberCodeField" prefWidth="160.0" />
                </children>
             </HBox>
             <HBox prefHeight="35.0" prefWidth="260.0">
                <children>
-                  <Label prefWidth="110.0" text="Subscriber code">
+                  <Label prefWidth="110.0" text="Password">
                      <HBox.margin>
                         <Insets right="10.0" />
                      </HBox.margin>

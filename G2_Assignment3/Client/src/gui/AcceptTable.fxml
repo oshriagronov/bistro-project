@@ -34,10 +34,16 @@
                </children>
             </HBox>
 
-            <HBox prefHeight="52.0" prefWidth="178.0" spacing="10.0">
+            <HBox fx:id="confirmationBox" prefHeight="52.0" prefWidth="178.0" spacing="10.0">
                <children>
                   <Text text="confirmation code" />
                   <TextField fx:id="confirmationCode" prefWidth="68.0" />
+               </children>
+            </HBox>
+
+            <HBox prefHeight="28.0" prefWidth="168.0">
+               <children>
+                  <Button fx:id="forgotConfirmationBtn" mnemonicParsing="false" onAction="#handleForgotConfirmation" text="Forgot confirmation?" />
                </children>
             </HBox>
 

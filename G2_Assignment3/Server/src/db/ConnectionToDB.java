@@ -22,6 +22,9 @@ import logic.WorkerType;
 
 import java.sql.Statement;
 
+/**
+ * Provides database access helpers for reservations, tables, subscribers, and workers.
+ */
 public class ConnectionToDB {
 
 	/**
@@ -443,9 +446,7 @@ public class ConnectionToDB {
 	/**
 	 * Adds a new table to the tables table.
 	 *
-	 * @param tableNumber the table number (primary key)
-	 * @param tableSize   number of seats
-	 * @param status      initial table status
+	 * @param tableSize number of seats
 	 * @return number of rows affected (1 = success, 0 = failure)
 	 */
 	public int addTable(int tableSize) {
@@ -516,37 +517,32 @@ public class ConnectionToDB {
 	/**
 	 * Checks subscriber credentials against the DB.
 	 *
-	 * @param username     subscriber username
-	 * @param passwordHash hashed password
+	 * @param subscriberId subscriber ID
+	 * @param rawPassword  subscriber raw password
 	 * @return list of reservations if credentials match, null otherwise
 	 */
-	public List<Reservation> subscriberLogin(String username, String passwordHash) {
-		String loginSql = "SELECT sub_id FROM subscriber WHERE username = ? AND password_hash = ?";
+	public List<Reservation> subscriberLogin(int subscriberId, String rawPassword) {
+		String loginSql = "SELECT password_hash FROM subscriber WHERE sub_id = ?";
 		String ordersSql = "SELECT res_id, order_date, num_diners, confirmation_code, sub_id, "
 				+ "       date_of_placing_order, phone, order_status, start_time, finish_time "
 				+ "FROM reservations WHERE sub_id = ?";
-
 		List<Reservation> reservations = null;
-
 		MySQLConnectionPool pool = MySQLConnectionPool.getInstance();
 		PooledConnection pConn = pool.getConnection();
 		if (pConn == null)
 			return null;
 
 		try (PreparedStatement loginStmt = pConn.getConnection().prepareStatement(loginSql)) {
-			loginStmt.setString(1, username);
-			loginStmt.setString(2, passwordHash);
-
-			try (ResultSet loginRs = loginStmt.executeQuery()) {
-				if (!loginRs.next())
+			loginStmt.setInt(1, subscriberId);
+			try (ResultSet rs = loginStmt.executeQuery()) {
+				if (!rs.next())
 					return null;
 
-				int subId = loginRs.getInt("sub_id");
+				if(!BCrypt.checkpw(rawPassword, rs.getString("password_hash")))
+					return null;
 				reservations = new ArrayList<>();
-
 				try (PreparedStatement ordersStmt = pConn.getConnection().prepareStatement(ordersSql)) {
-					ordersStmt.setInt(1, subId);
-
+					ordersStmt.setInt(1, subscriberId);
 					try (ResultSet ordersRs = ordersStmt.executeQuery()) {
 						while (ordersRs.next()) {
 							LocalDate orderDate = ordersRs.getObject("order_date", LocalDate.class);
@@ -577,6 +573,13 @@ public class ConnectionToDB {
 		return reservations;
 	}
 
+	/**
+	 * Authenticates a worker by username and password.
+	 *
+	 * @param username    worker username
+	 * @param rawPassword worker raw password
+	 * @return a Worker on success, or null if authentication fails
+	 */
 	public Worker workerLogin(String username, String rawPassword) {
 		String sql = """
 				    SELECT worker_id, username, password_hash, worker_type
@@ -619,6 +622,11 @@ public class ConnectionToDB {
 		}
 	}
 
+	/**
+	 * Loads the current diners per table, including reservation details when present.
+	 *
+	 * @return list of current diner rows (empty if none found)
+	 */
 	public List<CurrentDinerRow> loadCurrentDiners() {
 		String sql = """
 				    SELECT
@@ -658,7 +666,35 @@ public class ConnectionToDB {
 
 		return rows;
 	}
-
+	// TODO: doens't work still need to fix the sql query
+	public String getForgotConfirmationCode(String phone) {
+		String sql = "SELECT confirmation_code FROM reservations "
+				+ "WHERE phone = ? AND order_date = CURDATE() "
+				+ "AND CURTIME() BETWEEN start_time AND ADDTIME(start_time, '00:15:00') "
+				+ "ORDER BY start_time DESC LIMIT 1";
+		String result = null;
+		MySQLConnectionPool pool = MySQLConnectionPool.getInstance();
+		PooledConnection pConn = null;
+		// get connection from the pull
+		pConn = pool.getConnection();
+		if (pConn == null)
+			return result;
+		try {
+			PreparedStatement stmt = pConn.getConnection().prepareStatement(sql);
+			stmt.setString(1, phone);
+			ResultSet rs = stmt.executeQuery();
+			if (rs.next()) {
+					result = String.valueOf(rs.getInt("confirmation_code"));
+			}
+		} catch (SQLException e) {
+			System.out.println("SQLException: " + "executeWriteQuery failed.");
+			e.printStackTrace();
+		} finally {
+			// Crucial: Return connection to the pool here!
+			pool.releaseConnection(pConn);
+		}
+		return result;
+	}
 	/**
 	 * Executes a write query with positional parameters.
 	 *

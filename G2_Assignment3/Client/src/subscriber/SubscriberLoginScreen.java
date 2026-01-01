@@ -21,8 +21,8 @@ public class SubscriberLoginScreen {
 	private final Alert alert = new Alert(Alert.AlertType.INFORMATION);
 
 	@FXML
-	/** Text field for the subscriber username. */
-	private TextField usernameField;
+	/** Text field for the subscriber code. */
+	private TextField subscriberCodeField;
 
 	@FXML
 	/** Text field for the subscriber code. */
@@ -54,21 +54,21 @@ public class SubscriberLoginScreen {
 	 * @param event JavaFX action event
 	 */
 	void handleLogin(ActionEvent event) {
-		String username = usernameField.getText();
-		String code = codeField.getText();
+		String subscriberCode = subscriberCodeField.getText();
+		String password = codeField.getText();
 		StringBuilder errors = new StringBuilder();
 		boolean ok = true;
 
-		if (username == null || username.isBlank()) {
+		if (subscriberCode == null || subscriberCode.isBlank()) {
 			ok = false;
-			errors.append("Please enter username\n");
+			errors.append("Please enter subscriber ID\n");
 		}
-		if (code == null || code.isBlank()) {
+		if (password == null || password.isBlank()) {
 			ok = false;
-			errors.append("Please enter subscriber code\n");
+			errors.append("Please enter password\n");
 		}
 		if(ok){
-			Main.client.accept(new BistroRequest(BistroCommand.SUBSCRIBER_LOGIN, new Subscriber(username, code)));
+			Main.client.accept(new BistroRequest(BistroCommand.SUBSCRIBER_LOGIN, new Subscriber(Integer.parseInt(subscriberCode), password)));
 			// TODO: on success pull the order history of the subscriber and pass it to the SubscriberScreen
 			if (Main.client.getResponse().getStatus() == BistroResponseStatus.SUCCESS) {
 				try {
@@ -78,7 +78,7 @@ public class SubscriberLoginScreen {
 				}
 			}
 			else{
-				errors.append("Username or password are wrong.");
+				errors.append("Subscriber ID or password are wrong.");
 				ok = false;
 			}
 		}

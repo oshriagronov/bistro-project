@@ -12,6 +12,7 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.TextField;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 
@@ -33,6 +34,12 @@ public class AcceptTableScreen {
     private TextField confirmationCode;
 
     @FXML
+    private HBox confirmationBox;
+
+    @FXML
+    private Button forgotConfirmationBtn;
+
+    @FXML
     private VBox infoVbox;
 
     @FXML
@@ -46,6 +53,17 @@ public class AcceptTableScreen {
 
     @FXML
     private Text tableResultText;
+
+    private boolean usePhoneAsConfirmation = false;
+
+    private void resetToDefaultView() {
+        infoVbox.setVisible(true);
+        tableResultText.setVisible(false);
+        confirmationBox.setVisible(true);
+        confirmationBox.setManaged(true);
+        forgotConfirmationBtn.setDisable(false);
+        usePhoneAsConfirmation = false;
+    }
 
     /**
      * Initializes the controller.
@@ -85,13 +103,28 @@ public class AcceptTableScreen {
         boolean check = true;
         ArrayList <String> search = new ArrayList<>();
         String pre_phone = prePhone.getValue();
-        String rest_phone= restPhone.getText();
+        String rest_phone = restPhone.getText();
+        boolean phoneValid = true;
+
+        if (pre_phone == null || pre_phone.isBlank()) {
+            str.append("Please select a phone prefix\n");
+            check = false;
+            phoneValid = false;
+        }
 
 		if (rest_phone == null || rest_phone.length() != 7 || !rest_phone.matches("\\d+")) {
 			str.append("Please enter a valid phone number\n");
 			check = false;
+            phoneValid = false;
 		}
-        String code = confirmationCode.getText();
+        String code = usePhoneAsConfirmation ? (phoneValid ? rest_phone : "") : confirmationCode.getText();
+
+        if (!usePhoneAsConfirmation) {
+            if (code == null || code.isBlank() || !code.matches("\\d+")) {
+                str.append("Please enter a valid confirmation code\n");
+                check = false;
+            }
+        }
 
         if (!check) {
             showAlert("Input Error", str.toString());
@@ -112,12 +145,54 @@ public class AcceptTableScreen {
                 infoVbox.setVisible(false);
                 tableResultText.setText("Your table is: " + data.toString());
                 tableResultText.setVisible(true);
+                return;
             }
-        } else {
-            showAlert("Error", "Could not find a matching order.");
         }
+
+        resetToDefaultView();
+        showAlert("Error", "Could not find a matching order.");
     }
 
+    @FXML
+    void handleForgotConfirmation(ActionEvent event) {
+        StringBuilder str = new StringBuilder();
+        boolean check = true;
+        String pre_phone = prePhone.getValue();
+        String rest_phone = restPhone.getText();
+
+        if (pre_phone == null || pre_phone.isBlank()) {
+            str.append("Please select a phone prefix\n");
+            check = false;
+        }
+
+        if (rest_phone == null || rest_phone.length() != 7 || !rest_phone.matches("\\d+")) {
+            str.append("Please enter a valid phone number\n");
+            check = false;
+        }
+
+        if (!check) {
+            showAlert("Input Error", str.toString());
+            return;
+        }
+        usePhoneAsConfirmation = true;
+        confirmationCode.clear();
+        confirmationBox.setVisible(false);
+        confirmationBox.setManaged(false);
+        forgotConfirmationBtn.setDisable(true);
+        str.append(pre_phone);
+        str.append(rest_phone);
+        BistroRequest request = new BistroRequest(BistroCommand.FORGOT_CONFIRMATION_CODE, str.toString());
+        Main.client.accept(request);
+        BistroResponse response = Main.client.getResponse();
+        if (response != null && response.getStatus() == BistroResponseStatus.SUCCESS) {
+            Object data = response.getData();
+            if (data != null && data instanceof Integer)
+                showAlert("Confirmation Code", "Your confirmation code is: " + data.toString());
+        } else {
+            showAlert("Error", "Could not find a matching order.");
+            resetToDefaultView();
+        }
+    }
 
 	/**
 	 * Handles the action when the "Back to MainMenu" button is clicked.
