@@ -11,6 +11,7 @@ import java.util.List;
 
 import org.mindrot.jbcrypt.BCrypt;
 
+import communication.StatusCounts;
 import logic.CurrentDinerRow;
 import logic.Reservation;
 import logic.Status;
@@ -734,6 +735,39 @@ public class ConnectionToDB {
 			pool.releaseConnection(pConn);
 		}
 		return 0;
+	}
+	
+	
+	public StatusCounts getReservationStatusCountsForBarChart() {
+	    String sql =
+	        "SELECT " +
+	        "  SUM(CASE WHEN order_status = 'CONFIRMED' THEN 1 ELSE 0 END) AS confirmed, " +
+	        "  SUM(CASE WHEN order_status = 'PENDING' THEN 1 ELSE 0 END) AS pending, " +
+	        "  SUM(CASE WHEN order_status = 'CANCELLED' THEN 1 ELSE 0 END) AS cancelled " +
+	        "FROM reservations";
+
+	    MySQLConnectionPool pool = MySQLConnectionPool.getInstance();
+	    PooledConnection pConn = pool.getConnection();
+	    if (pConn == null) return null;
+
+	    try (PreparedStatement stmt = pConn.getConnection().prepareStatement(sql);
+	         ResultSet rs = stmt.executeQuery()) {
+
+	        if (!rs.next()) return new StatusCounts(0, 0, 0);
+
+	        int confirmed = rs.getInt("confirmed");
+	        int pending = rs.getInt("pending");
+	        int cancelled = rs.getInt("cancelled");
+
+	        return new StatusCounts(confirmed, pending, cancelled);
+
+	    } catch (SQLException e) {
+	        System.out.println("SQLException: getReservationStatusCountsForBarChart failed.");
+	        e.printStackTrace();
+	        return null;
+	    } finally {
+	        pool.releaseConnection(pConn);
+	    }
 	}
 
 }

@@ -123,9 +123,9 @@ public class Reservation implements Serializable {
 	public void setFinish_time(LocalTime finish_time) {
 		this.finish_time = finish_time;
 	}
-	
+
 	public void setOrderNumber(int orderNumber) {
-		this.orderNumber=orderNumber;
+		this.orderNumber = orderNumber;
 	}
 
 }

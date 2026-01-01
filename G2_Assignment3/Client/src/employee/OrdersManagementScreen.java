@@ -1,5 +1,6 @@
 package employee;
 
+import java.time.LocalTime;
 import java.util.ArrayList;
 
 import communication.BistroCommand;
@@ -25,6 +26,12 @@ public class OrdersManagementScreen {
 
 	@FXML
 	private Button clearBTN;
+	
+    @FXML
+    private TableColumn<Reservation, String> phoneCol;
+	
+    @FXML
+    private TableColumn<Reservation, String> emailCol;
 
 	@FXML
 	private TableColumn<Reservation, String> dateCol;
@@ -60,7 +67,10 @@ public class OrdersManagementScreen {
 	private Label statusLabel;
 
 	@FXML
-	private TableColumn<Reservation, String> timeCol;
+	private TableColumn<Reservation, LocalTime> startTimeCol;
+	
+    @FXML
+    private TableColumn<Reservation, LocalTime> finishTimeCol;
 
 	@FXML
 	public void initialize() {
@@ -77,6 +87,14 @@ public class OrdersManagementScreen {
 		dateCol.setCellValueFactory(new PropertyValueFactory<>("orderDate"));
 
 		dinersCol.setCellValueFactory(new PropertyValueFactory<>("numberOfGuests"));
+		
+		//emailCol.setCellValueFactory(new PropertyValueFactory<>("email"));
+
+		startTimeCol.setCellValueFactory(new PropertyValueFactory<>("start_time"));
+
+		finishTimeCol.setCellValueFactory(new PropertyValueFactory<>("finish_time"));
+
+		phoneCol.setCellValueFactory(new PropertyValueFactory<>("phone_number"));
 
 		ordersTable.getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, newSelection) -> {
 

@@ -38,13 +38,16 @@
     <!-- CENTER: Table -->
     <center>
         <VBox spacing="10" style="-fx-padding: 15;">
-            <TableView fx:id="ordersTable" prefHeight="450" VBox.vgrow="ALWAYS" maxWidth="Infinity">
+            <TableView fx:id="ordersTable" maxWidth="Infinity" prefHeight="450" VBox.vgrow="ALWAYS">
                 <columns>
                     <TableColumn fx:id="orderIdCol" prefWidth="100" text="Order ID" />
-                    <TableColumn fx:id="dateCol" prefWidth="120" text="Date" />
-                    <TableColumn fx:id="timeCol" prefWidth="100" text="Time" />
-                    <TableColumn fx:id="dinersCol" prefWidth="80" text="Diners" />
-                    <TableColumn fx:id="statusCol" prefWidth="140" text="Status" />
+               <TableColumn fx:id="phoneCol" prefWidth="75.0" text="Phone" />
+               <TableColumn fx:id="emailCol" prefWidth="86.0" text="Email" />
+                    <TableColumn fx:id="dateCol" prefWidth="102.00003814697266" text="Date" />
+                    <TableColumn fx:id="startTimeCol" prefWidth="117.99998474121094" text="Start Time" />
+               <TableColumn fx:id="finishTimeCol" prefWidth="102.00006103515625" text="Finish time" />
+                    <TableColumn fx:id="dinersCol" prefWidth="85.33328247070312" text="Diners" />
+                    <TableColumn fx:id="statusCol" prefWidth="100.00009155273438" text="Status" />
                 </columns>
             </TableView>
 
@@ -54,7 +57,7 @@
 
     <!-- RIGHT: Status change panel (Option 2) -->
     <right>
-        <VBox prefWidth="200" maxWidth="200" spacing="10" style="-fx-padding: 15;">
+        <VBox maxWidth="200" prefHeight="493.0" prefWidth="199.0" spacing="10" style="-fx-padding: 15;">
             <Label style="-fx-font-weight: bold; -fx-font-size: 14px;" text="Selected Order" />
 
             <Label text="New Status:" />
@@ -64,6 +67,7 @@
              <Button fx:id="deleteBTN" onAction="#clickDeleteSelected" text="Delete Selected" />
 
             <Separator />
+         <VBox prefHeight="210.0" prefWidth="169.0" />
          <Button fx:id="menuBTN" alignment="CENTER" mnemonicParsing="false" onAction="#clickMenu" text="Back to menu">
             <VBox.margin>
                <Insets top="250.0" />

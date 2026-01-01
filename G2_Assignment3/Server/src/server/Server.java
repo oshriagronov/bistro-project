@@ -229,6 +229,11 @@ public class Server extends AbstractServer {
 			dbReturnedValue = db.loadCurrentDiners();
 			response = new BistroResponse(BistroResponseStatus.SUCCESS, dbReturnedValue);
 			break;
+		case GET_TIMINGS:
+			dbReturnedValue = db.getReservationStatusCountsForBarChart();
+			response = new BistroResponse(BistroResponseStatus.SUCCESS, dbReturnedValue);
+			break;
+			
 		default:
 			// Expect unknown/unsupported command; return INVALID_REQUEST.
 			response = new BistroResponse(BistroResponseStatus.INVALID_REQUEST, null);
