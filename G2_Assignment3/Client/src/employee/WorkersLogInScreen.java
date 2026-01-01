@@ -14,6 +14,9 @@ import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.scene.text.Text;
+import logic.LoggedUser;
+import logic.UserType;
+import logic.Worker;
 
 /**
  * Controller class for the WorkersLogInScreen.fxml view. This class handles the
@@ -98,6 +101,8 @@ public class WorkersLogInScreen {
 			BistroResponse response = Main.client.getResponse();
 			if ((response != null && response.getStatus() == BistroResponseStatus.SUCCESS)) {
 				showAlert("Success", "Login Successful");
+				Worker w=(Worker)response.getData();
+				new LoggedUser(w.getWorkerId(),UserType.valueOf(w.getWorkerType().name()));
 				try {
 					Main.changeRoot(employeeMenu.fxmlPath);
 				} catch (Exception e) {

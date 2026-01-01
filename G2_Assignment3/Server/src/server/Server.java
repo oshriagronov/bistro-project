@@ -192,7 +192,7 @@ public class Server extends AbstractServer {
 				WorkerLoginRequest w = (WorkerLoginRequest) data;
 				Worker res = db.workerLogin(w.getUsername(), w.getPassword());
 				if (res != null)
-					response = new BistroResponse(BistroResponseStatus.SUCCESS, res.getWorkerType());
+					response = new BistroResponse(BistroResponseStatus.SUCCESS, res);
 				else
 					response = new BistroResponse(BistroResponseStatus.FAILURE, "Wrong username or password.");
 			} else
