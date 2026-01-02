@@ -26,7 +26,7 @@ DROP TABLE IF EXISTS `reservations`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `reservations` (
   `res_id` int NOT NULL AUTO_INCREMENT,
-  `confirmation_code` int NOT NULL,
+  `confirmation_code` VARCHAR(6) DEFAULT NULL,
   `phone` varchar(10) NOT NULL,
   `email` varchar(100) NOT NULL,
   `sub_id` int NOT NULL,
@@ -40,6 +40,21 @@ CREATE TABLE `reservations` (
   KEY `sub_id` (`sub_id`),
   CONSTRAINT `reservations_ibfk_1` FOREIGN KEY (`sub_id`) REFERENCES `subscriber` (`sub_id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+DELIMITER //
+CREATE TRIGGER before_insert_reservations
+BEFORE INSERT ON reservations
+FOR EACH ROW
+BEGIN
+    DECLARE current_max_id INT;
+    SELECT MAX(res_id) INTO current_max_id FROM reservations;
+    IF current_max_id IS NULL THEN
+        SET NEW.confirmation_code = LPAD(5 % 1000000, 6, '0');
+    ELSE
+        SET NEW.confirmation_code = LPAD((current_max_id + 1) % 1000000, 6, '0');
+    END IF;
+END;
+//
+DELIMITER ;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -48,7 +63,13 @@ CREATE TABLE `reservations` (
 
 LOCK TABLES `reservations` WRITE;
 /*!40000 ALTER TABLE `reservations` DISABLE KEYS */;
-INSERT INTO `reservations` VALUES (1,345678,'0501234567','tal@mail.com',1,'12:30:00','14:30:00','2025-01-05','CONFIRMED',2,'2024-12-30'),(2,456789,'0529876543','noam@mail.com',2,'18:00:00','20:00:00','2025-01-06','PENDING',4,'2024-12-31'),(3,567890,'0541112233','dana@mail.com',3,'20:15:00','22:15:00','2025-01-07','CONFIRMED',3,'2025-01-01'),(4,678901,'0532223344','amir@mail.com',4,'10:00:00','12:00:00','2025-01-08','CANCELLED',5,'2025-01-02');
+INSERT INTO `reservations` 
+(`phone`, `email`, `sub_id`, `start_time`, `finish_time`, `order_date`, `order_status`, `num_diners`, `date_of_placing_order`) 
+VALUES 
+('0501234567', 'tal@mail.com', 1, '12:30:00', '14:30:00', '2025-01-05', 'CONFIRMED', 2, '2024-12-30'),
+('0549705492', 'ofir@mail.com', 10, '14:30:00', '16:30:00', '2025-01-05', 'CONFIRMED', 4, '2024-12-30'),
+('0540540545', 'oshri@mail.com', 0, '10:30:00', '12:30:00', '2025-01-05', 'CONFIRMED', 4, '2024-12-30'),
+('0529876543', 'noam@mail.com', 2, '18:00:00', '20:00:00', '2025-01-06', 'CONFIRMED', 2, '2024-12-31');
 /*!40000 ALTER TABLE `reservations` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -138,9 +159,78 @@ INSERT INTO `workers` VALUES ('12345', 'test', '$2a$10$zGVDSeVGYOhcShbBB9ZwF.73f
 /*!40000 ALTER TABLE `workers` ENABLE KEYS */;
 UNLOCK TABLES;
 
+
+--
+-- Table structure for table `regulartimes`
+--
+
+DROP TABLE IF EXISTS `regulartimes`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `regulartimes` (
+  `day` ENUM ('Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday') NOT NULL,
+  `opening_time` TIME DEFAULT NULL,
+  `closing_time` TIME DEFAULT NULL,
+  PRIMARY KEY (`day`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `regulartimes`
+--
+
+LOCK TABLES `regulartimes` WRITE;
+/*!40000 ALTER TABLE `regulartimes` DISABLE KEYS */;
+INSERT INTO `regulartimes` 
+(`day`, `opening_time`, `closing_time`)
+VALUES ('Sunday', '10:00:00', '22:00:00'), 
+('Monday', '10:00:00', '22:00:00'), 
+('Tuesday', '10:00:00', '22:00:00'), 
+('Wednesday', '10:00:00', '22:00:00'), 
+('Thursday', '10:00:00', '22:00:00'), 
+('Friday', '10:00:00', '15:00:00'),
+('Saturday', '20:00:00', '23:00:00');
+/*!40000 ALTER TABLE `regulartimes` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `specialdates`
+--
+
+DROP TABLE IF EXISTS `specialdates`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `specialdates` (
+  `date` DATE NOT NULL,
+  `opening_time` TIME DEFAULT NULL,
+  `closing_time` TIME DEFAULT NULL,
+  PRIMARY KEY (`date`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `regulartimes`
+--
+
+LOCK TABLES `specialdates` WRITE;
+/*!40000 ALTER TABLE `specialdates` DISABLE KEYS */;
+INSERT INTO `specialdates` 
+(`date`, `opening_time`, `closing_time`)
+VALUES 
+('2026-04-01', '09:00:00', '13:00:00'), 
+('2026-04-02', NULL, NULL),             
+('2026-04-08', NULL, NULL),
+('2026-07-22', '10:00:00', '19:00:00'), 
+('2026-07-23', NULL, NULL);
+/*!40000 ALTER TABLE `specialdates` ENABLE KEYS */;
+UNLOCK TABLES;
+
+
 --
 -- Dumping routines for database 'bistro'
 --
+
+
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
