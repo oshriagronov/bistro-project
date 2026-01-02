@@ -166,12 +166,24 @@ public class Server extends AbstractServer {
 			break;
 		case SUBSCRIBER_LOGIN:
 			// Expect Subscriber with id+raw password; verify and return reservations list.
-			if (!(data instanceof Subscriber)) {
+			if (data instanceof Subscriber) {
+				subscriber = (Subscriber) data;
+				response = new BistroResponse(
+					db.subscriberLogin(subscriber.getSubscriberId(), subscriber.getPasswordHash()) ? BistroResponseStatus.SUCCESS : BistroResponseStatus.FAILURE,
+					null
+				);
+			}
+			else
+				response = new BistroResponse(BistroResponseStatus.FAILURE, null);
+			break;
+		case GET_SUBSCRIBER_HISTORY:
+			// Expect Subscriber with id+raw password; verify and return reservations list.
+			if (!(data instanceof Integer)) {
 				response = new BistroResponse(BistroResponseStatus.FAILURE, null);
 				break;
 			}
-			subscriber = (Subscriber) data;
-			dbReturnedValue = db.subscriberLogin(subscriber.getSubscriberId(), subscriber.getPasswordHash());
+			int sub_id = (Integer) data;
+			dbReturnedValue = db.getSubscriberHistory(sub_id);
 			response = new BistroResponse(
 				dbReturnedValue != null ? BistroResponseStatus.SUCCESS : BistroResponseStatus.FAILURE,
 				dbReturnedValue

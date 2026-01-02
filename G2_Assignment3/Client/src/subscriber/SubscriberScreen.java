@@ -1,9 +1,5 @@
 package subscriber;
 
-import java.lang.reflect.Array;
-import java.util.ArrayList;
-
-import logic.Reservation;
 import gui.Main;
 import gui.UpdateScreen;
 import gui.WaitingListScreen;
@@ -12,22 +8,17 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
-import javafx.scene.control.ListView;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.VBox;
 
 /**
  * Controller for the subscriber account screen.
- * Shows visit history and allows editing basic personal info.
+ * Provides navigation and basic personal info updates.
  */
 public class SubscriberScreen {
 	public static final String fxmlPath = "/subscriber/SubscriberScreen.fxml";
 	/** Alert used to show validation messages to the user. */
 	private final Alert alert = new Alert(Alert.AlertType.INFORMATION);
-
-	@FXML
-	/** List of visit history entries (placeholder data for now). */
-	private ListView<String> historyList;
 
 	@FXML
 	/** Input for updated phone number. */
@@ -62,37 +53,18 @@ public class SubscriberScreen {
 	private Button waitingListBtn;
 
 	@FXML
+	/** Button to navigate to reservation history screen. */
+	private Button historyBtn;
+
+	@FXML
 	/** Button to navigate to new reservation screen. */
 	private Button newReservationBtn;
 
 	@FXML
 	/**
-	 * Initializes the view with sample history data and hides the update form.
+	 * Initializes the view and hides the update form.
 	 */
 	void initialize() {
-		Object data = Main.client.getResponse().getData();
-		if (data instanceof ArrayList<?>) {
-			ArrayList<Reservation> reservations = new ArrayList<>();
-			// Safely cast and filter the list items
-			for (Object obj : (ArrayList<?>) data) {
-				if (obj instanceof Reservation) {
-					reservations.add((Reservation) obj);
-				}
-			}
-
-			if (reservations.isEmpty()) {
-				historyList.getItems().setAll("No previous reservations found.");
-			} else {
-				ArrayList<String> historyStrings = new ArrayList<>();
-				for (Reservation res : reservations) {
-					historyStrings.add(String.format(
-						"Order date: %s | Guests: %d | Confirmation: %d | Diners: %d | Placed: %s | Status: %s",
-						res.getOrderDate(), res.getNumberOfGuests(), res.getConfirmationCode(),
-						res.getSubscriberId(), res.getDateOfPlacingOrder(), res.getStatus()));
-				}
-				historyList.getItems().setAll(historyStrings);
-			}
-		}
 		updateForm.setVisible(false);
 	}
 
@@ -204,6 +176,19 @@ public class SubscriberScreen {
 	void goToNewReservation(ActionEvent event) {
 		try {
 			Main.changeRoot(OrderScreen.fxmlPath);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	@FXML
+	/**
+	 * Navigates to the reservation history screen.
+	 * @param event JavaFX action event
+	 */
+	void goToReservationHistory(ActionEvent event) {
+		try {
+			Main.changeRoot(SubscriberHistoryScreen.fxmlPath);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

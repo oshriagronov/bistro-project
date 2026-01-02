@@ -69,7 +69,6 @@ public class SubscriberLoginScreen {
 		}
 		if(ok){
 			Main.client.accept(new BistroRequest(BistroCommand.SUBSCRIBER_LOGIN, new Subscriber(Integer.parseInt(subscriberCode), password)));
-			// TODO: on success pull the order history of the subscriber and pass it to the SubscriberScreen
 			if (Main.client.getResponse().getStatus() == BistroResponseStatus.SUCCESS) {
 				try {
 					Main.changeRoot(SubscriberScreen.fxmlPath);

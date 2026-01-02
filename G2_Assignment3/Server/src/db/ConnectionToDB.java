@@ -489,58 +489,52 @@ public class ConnectionToDB {
 	 * @param rawPassword  subscriber raw password
 	 * @return list of reservations if credentials match, null otherwise
 	 */
-	public List<Reservation> subscriberLogin(int subscriberId, String rawPassword) {
-		String loginSql = "SELECT password_hash FROM subscriber WHERE sub_id = ?";
-		String ordersSql = "SELECT res_id, order_date, num_diners, confirmation_code, sub_id, "
-				+ "       date_of_placing_order, phone, order_status, start_time, finish_time "
-				+ "FROM reservations WHERE sub_id = ?";
+	public boolean subscriberLogin(int subscriberId, String rawPassword) {
+		String sql = "SELECT password_hash FROM subscriber WHERE sub_id = ?";
 		List<Reservation> reservations = null;
 		MySQLConnectionPool pool = MySQLConnectionPool.getInstance();
 		PooledConnection pConn = pool.getConnection();
 		if (pConn == null)
-			return null;
+			return false;
 
-		try (PreparedStatement loginStmt = pConn.getConnection().prepareStatement(loginSql)) {
+		try (PreparedStatement loginStmt = pConn.getConnection().prepareStatement(sql)) {
 			loginStmt.setInt(1, subscriberId);
 			try (ResultSet rs = loginStmt.executeQuery()) {
 				if (!rs.next())
-					return null;
+					return false;
 
 				if(!BCrypt.checkpw(rawPassword, rs.getString("password_hash")))
-					return null;
-				reservations = new ArrayList<>();
-				try (PreparedStatement ordersStmt = pConn.getConnection().prepareStatement(ordersSql)) {
-					ordersStmt.setInt(1, subscriberId);
-					try (ResultSet ordersRs = ordersStmt.executeQuery()) {
-						while (ordersRs.next()) {
-							LocalDate orderDate = ordersRs.getObject("order_date", LocalDate.class);
-							LocalDate placingDate = ordersRs.getObject("date_of_placing_order", LocalDate.class);
-							LocalTime startTime = ordersRs.getObject("start_time", LocalTime.class);
-							LocalTime finishTime = ordersRs.getObject("finish_time", LocalTime.class);
-
-							Status status = Status.valueOf(ordersRs.getString("order_status"));
-
-							Reservation r = new Reservation(orderDate, ordersRs.getInt("num_diners"),
-									ordersRs.getInt("confirmation_code"), ordersRs.getInt("sub_id"), placingDate,
-									startTime, finishTime, ordersRs.getString("phone"), status);
-
-							r.setOrderNumber(ordersRs.getInt("res_id")); // add setter
-							reservations.add(r);
-						}
-					}
-				}
+					return false;
 			}
 		} catch (SQLException e) {
 			System.out.println("SQLException: subscriberLogin failed.");
 			e.printStackTrace();
-			return null;
 		} finally {
 			pool.releaseConnection(pConn);
 		}
 
-		return reservations;
+		return true;
 	}
-
+	public List<Reservation> getSubscriberHistory(int subscriberId){
+		String sql = "SELECT confirmation_code, phone_number, start_time, finish_time, order_date,  order_status, num_diners, date_of_placing_order FROM reservations WHERE sub_id = ?";
+		List<List<Object>> rows = executeReadQuery(sql, subscriberId);
+		if (rows.isEmpty())
+			return null;
+		List<Reservation> reservations = new ArrayList<>();
+		for(Object obj: rows){
+			List<Object> row = (List<Object>) obj;
+			Integer confirmationCode = (Integer) row.get(0);
+			String phoneNumber = (String) row.get(1);
+			LocalTime startTime = (LocalTime) row.get(2);
+			LocalTime finishTime = (LocalTime) row.get(3);
+			LocalDate orderDate = (LocalDate) row.get(4);
+			Status status = Status.valueOf((String) row.get(5));
+			Integer numDiners = (Integer) row.get(6);
+			LocalDate placingDate = (LocalDate) row.get(7);
+			reservations.add(new Reservation(orderDate, numDiners, confirmationCode, subscriberId, placingDate, startTime, finishTime , phoneNumber, status));
+		}
+		return reservations;
+	} 
 	/**
 	 * Authenticates a worker by username and password.
 	 *
