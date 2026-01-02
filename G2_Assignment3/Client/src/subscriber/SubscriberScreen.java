@@ -1,5 +1,7 @@
 package subscriber;
 
+import communication.BistroCommand;
+import communication.BistroRequest;
 import gui.Main;
 import gui.UpdateScreen;
 import gui.WaitingListScreen;
@@ -10,6 +12,7 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.VBox;
+import logic.Subscriber;
 
 /**
  * Controller for the subscriber account screen.
@@ -17,6 +20,7 @@ import javafx.scene.layout.VBox;
  */
 public class SubscriberScreen {
 	public static final String fxmlPath = "/subscriber/SubscriberScreen.fxml";
+	public static int subscriberCode = 0;
 	/** Alert used to show validation messages to the user. */
 	private final Alert alert = new Alert(Alert.AlertType.INFORMATION);
 
@@ -188,6 +192,7 @@ public class SubscriberScreen {
 	 */
 	void goToReservationHistory(ActionEvent event) {
 		try {
+			Main.client.accept(new BistroRequest(BistroCommand.GET_SUBSCRIBER_HISTORY, subscriberCode));
 			Main.changeRoot(SubscriberHistoryScreen.fxmlPath);
 		} catch (Exception e) {
 			e.printStackTrace();

@@ -55,7 +55,7 @@ public class SubscriberHistoryScreen {
 	void initialize() {
 		setColumnFactories();
 		Object data = Main.client.getResponse().getData();
-		if (data instanceof ArrayList<?>) {
+		if (data != null && data instanceof ArrayList<?>) {
 			ArrayList<Reservation> reservations = new ArrayList<>();
 			// Safely cast and filter the list items
 			for (Object obj : (ArrayList<?>) data) {

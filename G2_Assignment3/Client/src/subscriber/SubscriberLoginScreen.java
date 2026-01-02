@@ -71,6 +71,7 @@ public class SubscriberLoginScreen {
 			Main.client.accept(new BistroRequest(BistroCommand.SUBSCRIBER_LOGIN, new Subscriber(Integer.parseInt(subscriberCode), password)));
 			if (Main.client.getResponse().getStatus() == BistroResponseStatus.SUCCESS) {
 				try {
+					SubscriberScreen.subscriberCode = Integer.parseInt(subscriberCode);
 					Main.changeRoot(SubscriberScreen.fxmlPath);
 				} catch (Exception e) {
 					e.printStackTrace();
