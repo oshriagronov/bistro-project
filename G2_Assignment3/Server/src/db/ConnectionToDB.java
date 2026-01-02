@@ -491,29 +491,16 @@ public class ConnectionToDB {
 	 */
 	public boolean subscriberLogin(int subscriberId, String rawPassword) {
 		String sql = "SELECT password_hash FROM subscriber WHERE sub_id = ?";
-		List<Reservation> reservations = null;
-		MySQLConnectionPool pool = MySQLConnectionPool.getInstance();
-		PooledConnection pConn = pool.getConnection();
-		if (pConn == null)
+		List<List<Object>> rows = executeReadQuery(sql, subscriberId);
+		if (rows.isEmpty())
 			return false;
-
-		try (PreparedStatement loginStmt = pConn.getConnection().prepareStatement(sql)) {
-			loginStmt.setInt(1, subscriberId);
-			try (ResultSet rs = loginStmt.executeQuery()) {
-				if (!rs.next())
-					return false;
-
-				if(!BCrypt.checkpw(rawPassword, rs.getString("password_hash")))
-					return false;
-			}
-		} catch (SQLException e) {
-			System.out.println("SQLException: subscriberLogin failed.");
-			e.printStackTrace();
-		} finally {
-			pool.releaseConnection(pConn);
-		}
-
-		return true;
+		List<Object> row = rows.get(0);
+		if (row.isEmpty())
+			return false;
+		Object hashObj = row.get(0);
+		if (!(hashObj instanceof String))
+			return false;
+		return BCrypt.checkpw(rawPassword, (String) hashObj);
 	}
 	public List<Reservation> getSubscriberHistory(int subscriberId){
 		String sql = "SELECT confirmation_code, phone, start_time, finish_time, order_date,  order_status, num_diners, date_of_placing_order FROM reservations WHERE sub_id = ?";
@@ -522,7 +509,6 @@ public class ConnectionToDB {
 			return null;
 		List<Reservation> reservations = new ArrayList<>();
 		for(Object obj: rows){
-			System.out.println("getSubscriberHistory");
 			if (!(obj instanceof List))
 				continue;
 			List<Object> row = (List<Object>) obj;
@@ -533,55 +519,32 @@ public class ConnectionToDB {
 			Object confirmationObj = row.get(0);
 			if (confirmationObj instanceof Integer)
 				confirmationCode = (Integer) confirmationObj;
-			else if (confirmationObj instanceof Number)
-				confirmationCode = ((Number) confirmationObj).intValue();
-			else if (confirmationObj instanceof String) {
-				try {
-					confirmationCode = Integer.valueOf((String) confirmationObj);
-				} catch (NumberFormatException e) {
-					confirmationCode = null;
-				}
-			}
 
 			String phoneNumber = null;
 			Object phoneObj = row.get(1);
 			if (phoneObj instanceof String)
 				phoneNumber = (String) phoneObj;
-			else if (phoneObj != null)
-				phoneNumber = phoneObj.toString();
+
 
 			LocalTime startTime = null;
 			Object startObj = row.get(2);
-			if (startObj instanceof LocalTime)
-				startTime = (LocalTime) startObj;
-			else if (startObj instanceof java.sql.Time)
+			if (startObj instanceof java.sql.Time)
 				startTime = ((java.sql.Time) startObj).toLocalTime();
-			else if (startObj instanceof java.sql.Timestamp)
-				startTime = ((java.sql.Timestamp) startObj).toLocalDateTime().toLocalTime();
+
 
 			LocalTime finishTime = null;
 			Object finishObj = row.get(3);
-			if (finishObj instanceof LocalTime)
-				finishTime = (LocalTime) finishObj;
-			else if (finishObj instanceof java.sql.Time)
+			if (finishObj instanceof java.sql.Time)
 				finishTime = ((java.sql.Time) finishObj).toLocalTime();
-			else if (finishObj instanceof java.sql.Timestamp)
-				finishTime = ((java.sql.Timestamp) finishObj).toLocalDateTime().toLocalTime();
 
 			LocalDate orderDate = null;
 			Object orderDateObj = row.get(4);
-			if (orderDateObj instanceof LocalDate)
-				orderDate = (LocalDate) orderDateObj;
-			else if (orderDateObj instanceof java.sql.Date)
+			if (orderDateObj instanceof java.sql.Date)
 				orderDate = ((java.sql.Date) orderDateObj).toLocalDate();
-			else if (orderDateObj instanceof java.sql.Timestamp)
-				orderDate = ((java.sql.Timestamp) orderDateObj).toLocalDateTime().toLocalDate();
 
 			Status status = null;
 			Object statusObj = row.get(5);
-			if (statusObj instanceof Status)
-				status = (Status) statusObj;
-			else if (statusObj instanceof String) {
+			if (statusObj instanceof String) {
 				String text = ((String) statusObj).trim();
 				if (!text.isEmpty()) {
 					try {
@@ -596,24 +559,11 @@ public class ConnectionToDB {
 			Object numDinersObj = row.get(6);
 			if (numDinersObj instanceof Integer)
 				numDiners = (Integer) numDinersObj;
-			else if (numDinersObj instanceof Number)
-				numDiners = ((Number) numDinersObj).intValue();
-			else if (numDinersObj instanceof String) {
-				try {
-					numDiners = Integer.valueOf((String) numDinersObj);
-				} catch (NumberFormatException e) {
-					numDiners = null;
-				}
-			}
 
 			LocalDate placingDate = null;
 			Object placingDateObj = row.get(7);
-			if (placingDateObj instanceof LocalDate)
-				placingDate = (LocalDate) placingDateObj;
-			else if (placingDateObj instanceof java.sql.Date)
+			if (placingDateObj instanceof java.sql.Date)
 				placingDate = ((java.sql.Date) placingDateObj).toLocalDate();
-			else if (placingDateObj instanceof java.sql.Timestamp)
-				placingDate = ((java.sql.Timestamp) placingDateObj).toLocalDateTime().toLocalDate();
 
 			if (confirmationCode == null || phoneNumber == null || startTime == null || finishTime == null
 					|| orderDate == null || status == null || numDiners == null || placingDate == null)

@@ -1,7 +1,6 @@
 package client;
 import java.io.*;
 import common.BistroController;
-import communication.BistroRequest;
 import communication.BistroResponse;
 import communication.BistroResponseStatus;
 
