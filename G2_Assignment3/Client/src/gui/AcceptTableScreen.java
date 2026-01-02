@@ -159,7 +159,7 @@ public class AcceptTableScreen {
         boolean check = true;
         String pre_phone = prePhone.getValue();
         String rest_phone = restPhone.getText();
-
+        ArrayList<String> result;
         if (pre_phone == null || pre_phone.isBlank()) {
             str.append("Please select a phone prefix\n");
             check = false;
@@ -176,22 +176,28 @@ public class AcceptTableScreen {
         }
         usePhoneAsConfirmation = true;
         confirmationCode.clear();
-        confirmationBox.setVisible(false);
-        confirmationBox.setManaged(false);
-        forgotConfirmationBtn.setDisable(true);
         str.append(pre_phone);
         str.append(rest_phone);
         BistroRequest request = new BistroRequest(BistroCommand.FORGOT_CONFIRMATION_CODE, str.toString());
         Main.client.accept(request);
         BistroResponse response = Main.client.getResponse();
+        str.setLength(0);
         if (response != null && response.getStatus() == BistroResponseStatus.SUCCESS) {
             Object data = response.getData();
-            if (data != null && data instanceof Integer)
-                showAlert("Confirmation Code", "Your confirmation code is: " + data.toString());
+            if (data != null && data instanceof ArrayList<?>){
+                result = new ArrayList<>();
+                // Safely cast and filter the list items
+                for (Object obj : (ArrayList<?>) data) {
+                    if (obj instanceof String) {
+                        result.add((String) obj);
+                    }
+                }
+                str.append("Your confirmation code is: " + result.get(0) + "\nStart time is: " + result.get(1));
+            }
         } else {
-            showAlert("Error", "Could not find a matching order.");
-            resetToDefaultView();
+            str.append("Could not find a matching order.");
         }
+        showAlert("Message", str.toString());
     }
 
 	/**

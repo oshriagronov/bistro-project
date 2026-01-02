@@ -1,6 +1,5 @@
 package db;
 
-import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -8,9 +7,7 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
-
 import org.mindrot.jbcrypt.BCrypt;
-
 import communication.StatusCounts;
 import logic.CurrentDinerRow;
 import logic.Reservation;
@@ -482,37 +479,7 @@ public class ConnectionToDB {
 				(username, first_name, last_name, email, phone, password_hash)
 				VALUES (?, ?, ?, ?, ?, ?)
 				""";
-
-		MySQLConnectionPool pool = MySQLConnectionPool.getInstance();
-		PooledConnection pConn = null;
-
-		try {
-			pConn = pool.getConnection();
-			if (pConn == null)
-				throw new SQLException("No connection available from pool");
-
-			try (PreparedStatement ps = pConn.getConnection().prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-
-				ps.setString(1, subscriber.getUsername());
-				ps.setString(2, subscriber.getFirstName());
-				ps.setString(3, subscriber.getLastName());
-				ps.setString(4, subscriber.getEmail());
-				ps.setString(5, subscriber.getPhone());
-				ps.setString(6, subscriber.getPasswordHash());
-
-				ps.executeUpdate();
-
-				// set generated sub_id back into object
-				try (ResultSet rs = ps.getGeneratedKeys()) {
-					if (rs.next()) {
-						subscriber.setSubscriberId(rs.getInt(1));
-					}
-				}
-			}
-
-		} finally {
-			pool.releaseConnection(pConn);
-		}
+		executeWriteQuery(sql,subscriber.getUsername(), subscriber.getFirstName(), subscriber.getLastName(), subscriber.getEmail(), subscriber.getPhone(), subscriber.getPasswordHash());
 	}
 
 	/**
@@ -667,13 +634,16 @@ public class ConnectionToDB {
 
 		return rows;
 	}
-	// TODO: doens't work still need to fix the sql query
-	public String getForgotConfirmationCode(String phone) {
-		String sql = "SELECT confirmation_code FROM reservations "
-				+ "WHERE phone = ? AND order_date = CURDATE() "
-				+ "AND CURTIME() BETWEEN start_time AND ADDTIME(start_time, '00:15:00') "
-				+ "ORDER BY start_time DESC LIMIT 1";
-		String result = null;
+	/**
+	 * Fetches the most recent confirmation code and its start time for today's
+	 * confirmed reservation tied to the given phone, within the last 15 minutes.
+	 *
+	 * @param phone phone number to search by.
+	 * @return list with confirmation code and start time, or null if none found.
+	 */
+	public ArrayList<String> getForgotConfirmationCode(String phone) {
+		String sql = "SELECT confirmation_code, start_time FROM reservations WHERE phone = ? AND order_date = CURDATE() AND order_status = 'CONFIRMED' AND start_time >= DATE_SUB(CURTIME(), INTERVAL 15 MINUTE) ORDER BY start_time ASC LIMIT 1";
+		ArrayList<String> result = null;
 		MySQLConnectionPool pool = MySQLConnectionPool.getInstance();
 		PooledConnection pConn = null;
 		// get connection from the pull
@@ -685,7 +655,9 @@ public class ConnectionToDB {
 			stmt.setString(1, phone);
 			ResultSet rs = stmt.executeQuery();
 			if (rs.next()) {
-					result = String.valueOf(rs.getInt("confirmation_code"));
+					result = new ArrayList<>();
+					result.add(String.valueOf(rs.getInt("confirmation_code")));
+					result.add(rs.getString("start_time"));
 			}
 		} catch (SQLException e) {
 			System.out.println("SQLException: " + "executeWriteQuery failed.");
@@ -711,9 +683,8 @@ public class ConnectionToDB {
 		if (pConn == null)
 			return 0;
 		// get the actual connection from the class
-		Connection conn = pConn.getConnection();
 		try {
-			PreparedStatement stmt = conn.prepareStatement(sql);
+			PreparedStatement stmt = pConn.getConnection().prepareStatement(sql);
 			for (int i = 0; i < params.length; i++) {
 				Object p = params[i];
 				int idx = i + 1;
@@ -736,7 +707,67 @@ public class ConnectionToDB {
 		}
 		return 0;
 	}
-	
+
+	/**
+	 * Executes a read-only SQL query and returns the results as a list of rows.
+	 * Each row is represented as a List<Object> in column.
+	 * rs.getObject(c) is used for all columns, so callers are responsible
+	 * for casting each value to the expected type.
+	 * Supported parameter types: Integer, String, LocalDate.
+	 * Example usage:
+	 * String sql = "SELECT res_id, phone FROM reservations WHERE phone = ?";
+	 * List<List<Object>> rows = executeReadQuery(sql, "0521234567");
+	 * for (List<Object> row : rows) {
+	 *     int resId = (Integer) row.get(0);
+	 *     String phone = (String) row.get(1);
+	 * }
+	 * Note: add safety checks when you casting!
+	 * @param sql    SQL query with positional {@code ?} parameters
+	 * @param params parameters to bind in order
+	 * @return list of rows; empty list when no results or on failure
+	 */
+	public List<List<Object>> executeReadQuery(String sql, Object... params) {
+	MySQLConnectionPool pool = MySQLConnectionPool.getInstance();
+	PooledConnection pConn = pool.getConnection();
+	if (pConn == null)
+		return new ArrayList<>();
+
+	try (PreparedStatement stmt = pConn.getConnection().prepareStatement(sql)) {
+		for (int i = 0; i < params.length; i++) {
+			Object p = params[i];
+			int idx = i + 1;
+			if (p instanceof Integer)
+				stmt.setInt(idx, (Integer) p);
+			else if (p instanceof String)
+				stmt.setString(idx, (String) p);
+			else if (p instanceof LocalDate)
+				stmt.setDate(idx, java.sql.Date.valueOf((LocalDate) p));
+			else
+				throw new SQLException("Unsupported param type: " + p.getClass());
+		}
+
+		ResultSet rs = stmt.executeQuery();
+		List<List<Object>> rows = new ArrayList<>();
+		int colCount = rs.getMetaData().getColumnCount();
+
+		while (rs.next()) {
+			List<Object> row = new ArrayList<>(colCount);
+			for (int c = 1; c <= colCount; c++) {
+				row.add(rs.getObject(c));
+			}
+			rows.add(row);
+		}
+		return rows;
+	} catch (SQLException e) {
+		System.out.println("SQLException: executeReadQuery failed.");
+		e.printStackTrace();
+		return new ArrayList<>();
+	} finally {
+		pool.releaseConnection(pConn);
+	}
+}
+
+
 	
 	public StatusCounts getReservationStatusCountsForBarChart() {
 	    String sql =
