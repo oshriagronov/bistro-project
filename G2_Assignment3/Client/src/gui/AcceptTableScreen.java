@@ -26,7 +26,7 @@ public class AcceptTableScreen {
     /** Alert object used to display success or failure messages to the user. */
     Alert alert = new Alert(Alert.AlertType.INFORMATION);
 
-    /** Text field for entering the confirmation code. */
+    /** Button that navigates back to the main menu. */
     @FXML
     private Button backBtn;
 
@@ -56,6 +56,9 @@ public class AcceptTableScreen {
 
     private boolean usePhoneAsConfirmation = false;
 
+    /**
+     * Restores the view to its default state after an error or reset.
+     */
     private void resetToDefaultView() {
         infoVbox.setVisible(true);
         tableResultText.setVisible(false);
@@ -66,12 +69,58 @@ public class AcceptTableScreen {
     }
 
     /**
+     * Validates the phone prefix and number input fields.
+     *
+     * @param errors collects validation messages when inputs are invalid
+     * @return true when both prefix and number are valid
+     */
+    private boolean validatePhoneInputs(StringBuilder errors) {
+        String prefix = prePhone.getValue();
+        String rest = restPhone.getText();
+        boolean valid = true;
+
+        if (prefix == null || prefix.isBlank()) {
+            errors.append("Please select a phone prefix\n");
+            valid = false;
+        }
+
+        if (rest == null || rest.length() != 7 || !rest.matches("\\d+")) {
+            errors.append("Please enter a valid phone number\n");
+            valid = false;
+        }
+
+        return valid;
+    }
+
+    /**
+     * Builds the full phone number from the prefix and rest of the input.
+     *
+     * @return concatenated phone number string
+     */
+    private String buildPhoneNumber() {
+        return prePhone.getValue() + restPhone.getText();
+    }
+
+    /**
+     * Sends a request to the server and returns the response.
+     *
+     * @param command server command to execute
+     * @param data request payload
+     * @return response received from the server
+     */
+    private BistroResponse sendRequest(BistroCommand command, Object data) {
+        BistroRequest request = new BistroRequest(command, data);
+        Main.client.accept(request);
+        return Main.client.getResponse();
+    }
+
+    /**
      * Initializes the controller.
      * This method is automatically called after the FXML file has been loaded.
      */
     @FXML
     void initialize() {
-        // Initialize phone prefix options
+        // Initialize phone prefix options.
 		prePhone.getItems().clear();
 		prePhone.getItems().addAll("050", "052", "053", "054", "055", "058");
 
@@ -92,53 +141,32 @@ public class AcceptTableScreen {
 
     /**
      * Handles the submit button action.
-     * Validates the phone number, sends the phone number and confirmation code to the server,
-     * and displays the assigned table number if successful.
+     * Validates inputs, sends the phone and confirmation code to the server,
+     * and displays the assigned table number when found.
      * @param event The ActionEvent triggered by the submit button.
      */
     
     @FXML
     void handleSubmit(ActionEvent event){
-        StringBuilder str = new StringBuilder();
-        boolean check = true;
-        ArrayList <String> search = new ArrayList<>();
-        String pre_phone = prePhone.getValue();
-        String rest_phone = restPhone.getText();
-        boolean phoneValid = true;
-
-        if (pre_phone == null || pre_phone.isBlank()) {
-            str.append("Please select a phone prefix\n");
-            check = false;
-            phoneValid = false;
-        }
-
-		if (rest_phone == null || rest_phone.length() != 7 || !rest_phone.matches("\\d+")) {
-			str.append("Please enter a valid phone number\n");
-			check = false;
-            phoneValid = false;
-		}
-        String code = usePhoneAsConfirmation ? (phoneValid ? rest_phone : "") : confirmationCode.getText();
+        StringBuilder errors = new StringBuilder();
+        boolean phoneValid = validatePhoneInputs(errors);
+        String code = usePhoneAsConfirmation ? (phoneValid ? restPhone.getText() : "") : confirmationCode.getText();
 
         if (!usePhoneAsConfirmation) {
             if (code == null || code.isBlank() || !code.matches("\\d+")) {
-                str.append("Please enter a valid confirmation code\n");
-                check = false;
+                errors.append("Please enter a valid confirmation code\n");
             }
         }
 
-        if (!check) {
-            showAlert("Input Error", str.toString());
+        if (errors.length() > 0) {
+            showAlert("Input Error", errors.toString());
             return;
         }
 
-        str.append(pre_phone);
-        str.append(rest_phone);
-        search.add(str.toString());
+        ArrayList <String> search = new ArrayList<>();
+        search.add(buildPhoneNumber());
         search.add(code);
-        BistroRequest request = new BistroRequest(BistroCommand.GET_TABLE_BY_PHONE_AND_CODE, search);
-        Main.client.accept(request);
-        
-        BistroResponse response = Main.client.getResponse();
+        BistroResponse response = sendRequest(BistroCommand.GET_TABLE_BY_PHONE_AND_CODE, search);
         if (response != null && response.getStatus() == BistroResponseStatus.SUCCESS) {
             Object data = response.getData();
             if (data != null) { //TODO: returns the table number so maybe int/Integer
@@ -153,35 +181,25 @@ public class AcceptTableScreen {
         showAlert("Error", "Could not find a matching order.");
     }
 
+    /**
+     * Handles the "Forgot Confirmation" action.
+     * Retrieves the confirmation code and start time for the given phone number.
+     *
+     * @param event The ActionEvent triggered by the forgot confirmation button.
+     */
     @FXML
     void handleForgotConfirmation(ActionEvent event) {
-        StringBuilder str = new StringBuilder();
-        boolean check = true;
-        String pre_phone = prePhone.getValue();
-        String rest_phone = restPhone.getText();
+        StringBuilder errors = new StringBuilder();
         ArrayList<String> result;
-        if (pre_phone == null || pre_phone.isBlank()) {
-            str.append("Please select a phone prefix\n");
-            check = false;
-        }
 
-        if (rest_phone == null || rest_phone.length() != 7 || !rest_phone.matches("\\d+")) {
-            str.append("Please enter a valid phone number\n");
-            check = false;
-        }
-
-        if (!check) {
-            showAlert("Input Error", str.toString());
+        if (!validatePhoneInputs(errors)) {
+            showAlert("Input Error", errors.toString());
             return;
         }
-        usePhoneAsConfirmation = true;
         confirmationCode.clear();
-        str.append(pre_phone);
-        str.append(rest_phone);
-        BistroRequest request = new BistroRequest(BistroCommand.FORGOT_CONFIRMATION_CODE, str.toString());
-        Main.client.accept(request);
-        BistroResponse response = Main.client.getResponse();
-        str.setLength(0);
+        String phoneNumber = buildPhoneNumber();
+        BistroResponse response = sendRequest(BistroCommand.FORGOT_CONFIRMATION_CODE, phoneNumber);
+        StringBuilder message = new StringBuilder();
         if (response != null && response.getStatus() == BistroResponseStatus.SUCCESS) {
             Object data = response.getData();
             if (data != null && data instanceof ArrayList<?>){
@@ -192,19 +210,19 @@ public class AcceptTableScreen {
                         result.add((String) obj);
                     }
                 }
-                str.append("Your confirmation code is: " + result.get(0) + "\nStart time is: " + result.get(1));
+                message.append("Your confirmation code is: " + result.get(0) + "\nStart time is: " + result.get(1));
             }
         } else {
-            str.append("Could not find a matching order.");
+            message.append("Could not find a matching order.");
         }
-        showAlert("Message", str.toString());
+        showAlert("Message", message.toString());
     }
 
-	/**
-	 * Handles the action when the "Back to MainMenu" button is clicked.
-	 * Navigates the application back to the main menu screen.
-	 * * @param event The ActionEvent triggered by the Back button.
-	 */
+    /**
+     * Handles the action when the "Back to MainMenu" button is clicked.
+     * Navigates the application back to the main menu screen.
+     * @param event The ActionEvent triggered by the Back button.
+     */
 	@FXML
 	void back(ActionEvent event) {
 		try {

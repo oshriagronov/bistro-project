@@ -43,7 +43,7 @@
 
             <HBox prefHeight="28.0" prefWidth="168.0">
                <children>
-                  <Button fx:id="forgotConfirmationBtn" mnemonicParsing="false" onAction="#handleForgotConfirmation" text="Forgot confirmation?" />
+                  <Button fx:id="forgotConfirmationBtn" mnemonicParsing="false" onAction="#handleForgotConfirmation" text="Forgot Confirmation Code" />
                </children>
             </HBox>
 

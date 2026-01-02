@@ -643,29 +643,24 @@ public class ConnectionToDB {
 	 */
 	public ArrayList<String> getForgotConfirmationCode(String phone) {
 		String sql = "SELECT confirmation_code, start_time FROM reservations WHERE phone = ? AND order_date = CURDATE() AND order_status = 'CONFIRMED' AND start_time >= DATE_SUB(CURTIME(), INTERVAL 15 MINUTE) ORDER BY start_time ASC LIMIT 1";
-		ArrayList<String> result = null;
-		MySQLConnectionPool pool = MySQLConnectionPool.getInstance();
-		PooledConnection pConn = null;
-		// get connection from the pull
-		pConn = pool.getConnection();
-		if (pConn == null)
-			return result;
-		try {
-			PreparedStatement stmt = pConn.getConnection().prepareStatement(sql);
-			stmt.setString(1, phone);
-			ResultSet rs = stmt.executeQuery();
-			if (rs.next()) {
-					result = new ArrayList<>();
-					result.add(String.valueOf(rs.getInt("confirmation_code")));
-					result.add(rs.getString("start_time"));
-			}
-		} catch (SQLException e) {
-			System.out.println("SQLException: " + "executeWriteQuery failed.");
-			e.printStackTrace();
-		} finally {
-			// Crucial: Return connection to the pool here!
-			pool.releaseConnection(pConn);
-		}
+		List<List<Object>> rows = executeReadQuery(sql, phone);
+		if (rows.isEmpty())
+			return null;
+		List<Object> row = rows.get(0);
+		Integer code = row.get(0) instanceof Integer ? (Integer) row.get(0) : null;
+		String startTime = null;
+		Object timeObj = row.get(1);
+		if (timeObj instanceof java.sql.Time)
+			startTime = ((java.sql.Time) timeObj).toLocalTime().toString();
+		else if (timeObj instanceof java.time.LocalTime)
+			startTime = ((java.time.LocalTime) timeObj).toString();
+		else if (timeObj instanceof String)
+			startTime = (String) timeObj;
+		if (code == null || startTime == null)
+			return null;
+		ArrayList<String> result = new ArrayList<>(2);
+		result.add(String.valueOf(code));
+		result.add(startTime);
 		return result;
 	}
 	/**
@@ -731,7 +726,7 @@ public class ConnectionToDB {
 	PooledConnection pConn = pool.getConnection();
 	if (pConn == null)
 		return new ArrayList<>();
-
+	List<List<Object>> rows = new ArrayList<>();
 	try (PreparedStatement stmt = pConn.getConnection().prepareStatement(sql)) {
 		for (int i = 0; i < params.length; i++) {
 			Object p = params[i];
@@ -747,7 +742,6 @@ public class ConnectionToDB {
 		}
 
 		ResultSet rs = stmt.executeQuery();
-		List<List<Object>> rows = new ArrayList<>();
 		int colCount = rs.getMetaData().getColumnCount();
 
 		while (rs.next()) {
@@ -757,7 +751,6 @@ public class ConnectionToDB {
 			}
 			rows.add(row);
 		}
-		return rows;
 	} catch (SQLException e) {
 		System.out.println("SQLException: executeReadQuery failed.");
 		e.printStackTrace();
@@ -765,6 +758,7 @@ public class ConnectionToDB {
 	} finally {
 		pool.releaseConnection(pConn);
 	}
+	return rows;
 }
 
 
