@@ -32,10 +32,13 @@ public class ConnectionToDB {
 	 * @return a LocalDate if conversion is possible, otherwise null
 	 */
 	private static LocalDate toLocalDate(Object o) {
-	    if (o == null) return null;
-	    if (o instanceof LocalDate) return (LocalDate) o;
-	    if (o instanceof java.sql.Date) return ((java.sql.Date) o).toLocalDate();
-	    return null;
+		if (o == null)
+			return null;
+		if (o instanceof LocalDate)
+			return (LocalDate) o;
+		if (o instanceof java.sql.Date)
+			return ((java.sql.Date) o).toLocalDate();
+		return null;
 	}
 
 	/**
@@ -46,10 +49,13 @@ public class ConnectionToDB {
 	 * @return a LocalTime if conversion is possible, otherwise null
 	 */
 	private static LocalTime toLocalTime(Object o) {
-	    if (o == null) return null;
-	    if (o instanceof LocalTime) return (LocalTime) o;
-	    if (o instanceof java.sql.Time) return ((java.sql.Time) o).toLocalTime();
-	    return null;
+		if (o == null)
+			return null;
+		if (o instanceof LocalTime)
+			return (LocalTime) o;
+		if (o instanceof java.sql.Time)
+			return ((java.sql.Time) o).toLocalTime();
+		return null;
 	}
 
 	/**
@@ -94,54 +100,37 @@ public class ConnectionToDB {
 	 *         not found
 	 */
 	public Reservation searchOrderByPhoneNumber(String phoneNumber) {
-	    String sql = "SELECT * FROM reservations WHERE phone = ?";
+		String sql = "SELECT res_id, confirmation_code, phone, email, sub_id, start_time, finish_time, "
+				+ "       order_date, order_status, num_diners, date_of_placing_order "
+				+ "FROM reservations WHERE phone = ? ORDER BY order_date DESC LIMIT 1";
 
-	    List<List<Object>> rows = executeReadQuery(sql, phoneNumber);
+		List<List<Object>> rows = executeReadQuery(sql, phoneNumber);
+		if (rows.isEmpty())
+			return null;
 
-	    if (rows.isEmpty()) {
-	        return null;
-	    }
+		List<Object> row = rows.get(0);
 
-	    List<Object> row = rows.get(0);
-	    if (row.isEmpty()) {
-	        return null;
-	    }
+		Integer resId = (Integer) row.get(0);
+		Integer confirmationCode = (Integer) row.get(1);
+		String phone = (String) row.get(2);
+		String email = (String) row.get(3);
+		Integer subId = (Integer) row.get(4);
 
-	    Integer resId = (Integer) row.get(0);
-	    Integer confirmationCode = (Integer) row.get(1);
-	    String phone = (String) row.get(2);
-	    Integer subId = (Integer) row.get(3);
+		LocalTime startTime = toLocalTime(row.get(5));
+		LocalTime finishTime = toLocalTime(row.get(6));
+		LocalDate orderDate = toLocalDate(row.get(7));
+		Status status = Status.valueOf(((String) row.get(8)).trim());
 
-	    LocalTime startTime = toLocalTime(row.get(4));
-	    LocalTime finishTime = toLocalTime(row.get(5));
-	    LocalDate orderDate = toLocalDate(row.get(6));
+		Integer diners = (Integer) row.get(9);
+		LocalDate placingDate = toLocalDate(row.get(10));
 
-	    Status status = Status.valueOf((String) row.get(7));
+		Reservation r = new Reservation(orderDate, diners != null ? diners : 0,
+				confirmationCode != null ? confirmationCode : 0, subId != null ? subId : 0, placingDate, startTime,
+				finishTime, phone, status, email);
 
-	    Integer diners = (Integer) row.get(8);
-	    LocalDate placingDate = toLocalDate(row.get(9));
-
-	    String email = (String) row.get(10);
-
-	    Reservation r = new Reservation(
-	            orderDate,
-	            diners != null ? diners : 0,
-	            confirmationCode != null ? confirmationCode : 0,
-	            subId != null ? subId : 0,
-	            placingDate,
-	            startTime,
-	            finishTime,
-	            phone,
-	            status,
-	            email
-	    );
-
-	    // res_id → orderNumber
-	    if (resId != null) {
-	        r.setOrderNumber(resId);
-	    }
-
-	    return r;
+		if (resId != null)
+			r.setOrderNumber(resId);
+		return r;
 	}
 
 	/**
@@ -151,61 +140,40 @@ public class ConnectionToDB {
 	 * @return list of reservations returned from the DB (empty if none found)
 	 */
 	public List<Reservation> searchOrdersByPhoneNumberList(String phone) {
-		String sql = "SELECT * FROM reservations WHERE phone = ?";
+		String sql = "SELECT res_id, confirmation_code, phone, email, sub_id, start_time, finish_time, "
+				+ "       order_date, order_status, num_diners, date_of_placing_order "
+				+ "FROM reservations WHERE phone = ? ORDER BY order_date DESC";
 
-	    List<List<Object>> rows = executeReadQuery(sql, phone);
-	    List<Reservation> list = new ArrayList<>();
+		List<List<Object>> rows = executeReadQuery(sql, phone);
+		List<Reservation> list = new ArrayList<>();
 
-	    if (rows.isEmpty()) {
-	        return list;
-	    }
+		for (List<Object> row : rows) {
+			Integer resId = (Integer) row.get(0);
+			Integer confirmationCode = (Integer) row.get(1);
+			String phoneNumber = (String) row.get(2);
+			String email = (String) row.get(3);
+			Integer subId = (Integer) row.get(4);
 
-	    for (List<Object> row : rows) {
-	        if (row == null || row.isEmpty()) {
-	            continue;
-	        }
+			LocalTime startTime = toLocalTime(row.get(5));
+			LocalTime finishTime = toLocalTime(row.get(6));
+			LocalDate orderDate = toLocalDate(row.get(7));
 
-	        Integer resId = (Integer) row.get(0);
-	        Integer confirmationCode = (Integer) row.get(1);
-	        String phoneNumber = (String) row.get(2);
-	        Integer subId = (Integer) row.get(3);
+			Status status = Status.valueOf(((String) row.get(8)).trim());
 
-	        LocalTime startTime = toLocalTime(row.get(4));
-	        LocalTime finishTime = toLocalTime(row.get(5));
-	        LocalDate orderDate = toLocalDate(row.get(6));
+			Integer diners = (Integer) row.get(9);
+			LocalDate placingDate = toLocalDate(row.get(10));
 
-	        Status status = Status.valueOf(((String) row.get(7)).trim());
+			Reservation res = new Reservation(orderDate, diners != null ? diners : 0,
+					confirmationCode != null ? confirmationCode : 0, subId != null ? subId : 0, placingDate, startTime,
+					finishTime, phoneNumber, status, email);
 
-	        Integer diners = (Integer) row.get(8);
-	        LocalDate placingDate = toLocalDate(row.get(9));
+			if (resId != null)
+				res.setOrderNumber(resId);
+			list.add(res);
+		}
 
-	        String email = (String) row.get(10);
-
-	        Reservation res = new Reservation(
-	                orderDate,
-	                diners != null ? diners : 0,
-	                confirmationCode != null ? confirmationCode : 0,
-	                subId != null ? subId : 0,
-	                placingDate,
-	                startTime,
-	                finishTime,
-	                phoneNumber,
-	                status,
-	                email
-	        );
-
-	        if (resId != null) {
-	            res.setOrderNumber(resId);
-	        }
-
-	        list.add(res);
-	    }
-
-	    return list;
+		return list;
 	}
-
-
-	
 
 	/**
 	 * Searches for an order by order number (primary key) and returns the order
@@ -216,8 +184,7 @@ public class ConnectionToDB {
 	 *         not found
 	 */
 	public Reservation searchOrderByOrderNumber(int order_number) {
-		// order_number == res_id in your DB
-		String sql = "SELECT res_id, confirmation_code, phone, sub_id, start_time, finish_time, "
+		String sql = "SELECT res_id, confirmation_code, phone, email, sub_id, start_time, finish_time, "
 				+ "       order_date, order_status, num_diners, date_of_placing_order "
 				+ "FROM reservations WHERE res_id = ?";
 
@@ -243,16 +210,12 @@ public class ConnectionToDB {
 
 					Status status = Status.valueOf(rs.getString("order_status"));
 					String phone = rs.getString("phone");
+					String email = rs.getString("email");
 
 					Reservation r = new Reservation(orderDate, diners, confirmationCode, subId, placingDate, startTime,
-							phone);
+							finishTime, phone, status, email);
 
-					r.setFinish_time(finishTime);
-					r.setStatus(status);
-
-					// store res_id inside the object (add setter if missing)
 					r.setOrderNumber(rs.getInt("res_id"));
-
 					return r;
 				}
 			}
@@ -274,7 +237,7 @@ public class ConnectionToDB {
 	 * @return a Reservation object if found, otherwise null
 	 */
 	public Reservation getOrderByPhoneAndCode(String phone, int confirmationCode) {
-		String sql = "SELECT res_id, confirmation_code, phone, sub_id, start_time, finish_time, "
+		String sql = "SELECT res_id, confirmation_code, phone, email, sub_id, start_time, finish_time, "
 				+ "       order_date, order_status, num_diners, date_of_placing_order "
 				+ "FROM reservations WHERE phone = ? AND confirmation_code = ?";
 
@@ -299,16 +262,12 @@ public class ConnectionToDB {
 					int subId = rs.getInt("sub_id");
 
 					Status status = Status.valueOf(rs.getString("order_status"));
+					String email = rs.getString("email");
 
 					Reservation r = new Reservation(orderDate, diners, confirmationCode, subId, placingDate, startTime,
-							rs.getString("phone"));
+							finishTime, phone, status, email);
 
-					r.setFinish_time(finishTime);
-					r.setStatus(status);
-
-					// store res_id into your object
-					r.setOrderNumber(rs.getInt("res_id")); // add setter if missing
-
+					r.setOrderNumber(rs.getInt("res_id"));
 					return r;
 				}
 			}
@@ -541,7 +500,8 @@ public class ConnectionToDB {
 	}
 
 	public List<Reservation> getSubscriberHistory(int subscriberId) {
-		String sql = "SELECT confirmation_code, phone, start_time, finish_time, order_date,  order_status, num_diners, date_of_placing_order FROM reservations WHERE sub_id = ?";
+		String sql = "SELECT confirmation_code, phone, start_time, finish_time, order_date, order_status, "
+				+ "num_diners, date_of_placing_order, email " + "FROM reservations WHERE sub_id = ?";
 		List<List<Object>> rows = executeReadQuery(sql, subscriberId);
 		if (rows.isEmpty())
 			return null;
@@ -598,6 +558,10 @@ public class ConnectionToDB {
 
 			LocalDate placingDate = null;
 			Object placingDateObj = row.get(7);
+
+			Object emailObj = row.get(8);
+			String email = (emailObj instanceof String) ? (String) emailObj : null;
+
 			if (placingDateObj instanceof java.sql.Date)
 				placingDate = ((java.sql.Date) placingDateObj).toLocalDate();
 
@@ -606,7 +570,7 @@ public class ConnectionToDB {
 				continue;
 
 			reservations.add(new Reservation(orderDate, numDiners, confirmationCode, subscriberId, placingDate,
-					startTime, finishTime, phoneNumber, status));
+					startTime, finishTime, phoneNumber, status, email));
 		}
 		return reservations;
 	}
