@@ -10,7 +10,9 @@
 <?import javafx.scene.control.Separator?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.chart.LineChart?>
 
 <VBox prefHeight="650" prefWidth="980" spacing="14"
 	style="-fx-background-color: #F6F7FB;"
@@ -41,6 +43,12 @@
 			<ComboBox fx:id="yearComboBox" prefWidth="140"
 				style="-fx-background-radius: 10; -fx-font-size: 13px;" />
 
+			<Label style="-fx-font-size: 13px; -fx-text-fill: #374151;"
+				text="Report:" />
+
+			<ComboBox fx:id="reportTypeComboBox" prefWidth="180"
+				style="-fx-background-radius: 10; -fx-font-size: 13px;" />
+
 			<Region HBox.hgrow="ALWAYS" />
 
 			<Button fx:id="refreshBtn" onAction="#onRefresh"
@@ -61,17 +69,36 @@
 				text="Jan → Dec" />
 		</HBox>
 
-		<BarChart fx:id="statusBarChart" animated="false"
-			legendVisible="true" prefHeight="460"
-			style="-fx-background-color: transparent;" VBox.vgrow="ALWAYS">
-			<xAxis>
-				<CategoryAxis label="Month" />
-			</xAxis>
-			<yAxis>
-				<NumberAxis fx:id="yAxis" label="Reservations"
-					tickUnit="1" minorTickVisible="false" forceZeroInRange="true" />
-			</yAxis>
-		</BarChart>
+		<!-- Chart switch area (keeps layout stable) -->
+		<StackPane VBox.vgrow="ALWAYS" prefHeight="460">
+
+			<!-- Existing chart (arrival / current) -->
+			<BarChart fx:id="statusBarChart" animated="false"
+				legendVisible="true" prefHeight="460"
+				style="-fx-background-color: transparent;">
+				<xAxis>
+					<CategoryAxis label="Month" />
+				</xAxis>
+				<yAxis>
+					<NumberAxis fx:id="yAxis" label="Reservations"
+						tickUnit="1" minorTickVisible="false" forceZeroInRange="true" />
+				</yAxis>
+			</BarChart>
+
+			<LineChart fx:id="departureLineChart" animated="false"
+				legendVisible="true" prefHeight="460"
+				style="-fx-background-color: transparent;" visible="false"
+				managed="false">
+				<xAxis>
+					<CategoryAxis label="Month" />
+				</xAxis>
+				<yAxis>
+					<NumberAxis fx:id="departureYAxis" label="Minutes"
+						minorTickVisible="false" forceZeroInRange="true" />
+				</yAxis>
+			</LineChart>
+
+		</StackPane>
 	</VBox>
 
 </VBox>

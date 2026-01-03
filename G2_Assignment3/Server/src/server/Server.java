@@ -89,33 +89,34 @@ public class Server extends AbstractServer {
 			response = new BistroResponse(BistroResponseStatus.SUCCESS, dbReturnedValue);
 			break;
 		case GET_TABLE_BY_PHONE_AND_CODE:
-			// Expect ArrayList [phone, confirmationCode]; fetch reservation then find an available table.
-				if (data instanceof ArrayList) {
-					ArrayList<?> params = (ArrayList<?>) data;
-					String phone = (String) params.get(0);
-					int code = Integer.parseInt((String) params.get(1));
-					
-					Reservation res = db.getOrderByPhoneAndCode(phone, code);
-					if (res != null) {
-						int tableNum = db.searchAvailableTableBySize(res.getNumberOfGuests());
-						if (tableNum > 0) {
-							response = new BistroResponse(BistroResponseStatus.SUCCESS, tableNum);
-						} else {
-							response = new BistroResponse(BistroResponseStatus.NO_AVAILABLE_TABLE, null);
-						}
+			// Expect ArrayList [phone, confirmationCode]; fetch reservation then find an
+			// available table.
+			if (data instanceof ArrayList) {
+				ArrayList<?> params = (ArrayList<?>) data;
+				String phone = (String) params.get(0);
+				int code = Integer.parseInt((String) params.get(1));
+
+				Reservation res = db.getOrderByPhoneAndCode(phone, code);
+				if (res != null) {
+					int tableNum = db.searchAvailableTableBySize(res.getNumberOfGuests());
+					if (tableNum > 0) {
+						response = new BistroResponse(BistroResponseStatus.SUCCESS, tableNum);
 					} else {
-						response = new BistroResponse(BistroResponseStatus.NOT_FOUND, null);
+						response = new BistroResponse(BistroResponseStatus.NO_AVAILABLE_TABLE, null);
 					}
 				} else {
-					response = new BistroResponse(BistroResponseStatus.INVALID_REQUEST, null);
+					response = new BistroResponse(BistroResponseStatus.NOT_FOUND, null);
 				}
-				break;
+			} else {
+				response = new BistroResponse(BistroResponseStatus.INVALID_REQUEST, null);
+			}
+			break;
 		case FORGOT_CONFIRMATION_CODE:
-			if(data instanceof String)
+			if (data instanceof String)
 				dbReturnedValue = db.getForgotConfirmationCode((String) data);
 			response = new BistroResponse(
-				dbReturnedValue != null ? BistroResponseStatus.SUCCESS : BistroResponseStatus.FAILURE,
-				dbReturnedValue);
+					dbReturnedValue != null ? BistroResponseStatus.SUCCESS : BistroResponseStatus.FAILURE,
+					dbReturnedValue);
 			break;
 		case CANCEL_RESERVATION:
 			// Expect Integer order number; delete reservation and return rows affected.
@@ -126,7 +127,7 @@ public class Server extends AbstractServer {
 			// Expect StatusUpdate; update reservation status and return rows affected.
 			if (data instanceof StatusUpdate) {
 				StatusUpdate statusUpdate = (StatusUpdate) data;
-				dbReturnedValue = db.changeOrderStatus(statusUpdate.getPhoneNumber() ,statusUpdate.getOrderNumber(),
+				dbReturnedValue = db.changeOrderStatus(statusUpdate.getPhoneNumber(), statusUpdate.getOrderNumber(),
 						statusUpdate.getStatus());
 				response = new BistroResponse(BistroResponseStatus.SUCCESS, dbReturnedValue);
 			} else
@@ -147,8 +148,9 @@ public class Server extends AbstractServer {
 				response = new BistroResponse(BistroResponseStatus.FAILURE, "update failed.");
 			break;
 		case GET_BILL:
-			// Expect Integer table number; resolve active reservation, clear table, return reservation.
-			if (data instanceof Integer){
+			// Expect Integer table number; resolve active reservation, clear table, return
+			// reservation.
+			if (data instanceof Integer) {
 				int tableNumber = (int) data;
 				int order_number = db.getOrderNumberByTableNumber(tableNumber);
 				if (order_number > 0) {
@@ -170,11 +172,11 @@ public class Server extends AbstractServer {
 			if (data instanceof Subscriber) {
 				subscriber = (Subscriber) data;
 				response = new BistroResponse(
-					db.subscriberLogin(subscriber.getSubscriberId(), subscriber.getPasswordHash()) ? BistroResponseStatus.SUCCESS : BistroResponseStatus.FAILURE,
-					null
-				);
-			}
-			else
+						db.subscriberLogin(subscriber.getSubscriberId(), subscriber.getPasswordHash())
+								? BistroResponseStatus.SUCCESS
+								: BistroResponseStatus.FAILURE,
+						null);
+			} else
 				response = new BistroResponse(BistroResponseStatus.FAILURE, null);
 			break;
 		case GET_SUBSCRIBER_HISTORY:
@@ -186,15 +188,14 @@ public class Server extends AbstractServer {
 			int sub_id = (Integer) data;
 			dbReturnedValue = db.getSubscriberHistory(sub_id);
 			response = new BistroResponse(
-				dbReturnedValue != null ? BistroResponseStatus.SUCCESS : BistroResponseStatus.FAILURE,
-				dbReturnedValue
-			);
+					dbReturnedValue != null ? BistroResponseStatus.SUCCESS : BistroResponseStatus.FAILURE,
+					dbReturnedValue);
 			break;
 		case ADD_TABLE:
 			// Expect Integer table size; insert table and return success.
 			if (data instanceof Integer) {
-				
-				dbReturnedValue = db.addTable((int)data);
+
+				dbReturnedValue = db.addTable((int) data);
 				response = new BistroResponse(BistroResponseStatus.SUCCESS, null);
 			} else
 				response = new BistroResponse(BistroResponseStatus.FAILURE, null);
@@ -243,11 +244,16 @@ public class Server extends AbstractServer {
 			response = new BistroResponse(BistroResponseStatus.SUCCESS, dbReturnedValue);
 			break;
 		case GET_TIMINGS:
-			if(data instanceof Integer)
-			dbReturnedValue = db.getMonthlySlotStats((int)data);
+			if (data instanceof Integer)
+				dbReturnedValue = db.getMonthlySlotStats((int) data);
 			response = new BistroResponse(BistroResponseStatus.SUCCESS, dbReturnedValue);
 			break;
-			
+		case GET_STAYING_TIMES:
+			if (data instanceof Integer)
+				dbReturnedValue = db.getMonthlyAverageStay((int) data);
+			response = new BistroResponse(BistroResponseStatus.SUCCESS, dbReturnedValue);
+			break;
+
 		default:
 			// Expect unknown/unsupported command; return INVALID_REQUEST.
 			response = new BistroResponse(BistroResponseStatus.INVALID_REQUEST, null);

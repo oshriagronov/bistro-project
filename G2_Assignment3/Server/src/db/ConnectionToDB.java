@@ -10,6 +10,7 @@ import java.util.List;
 
 import org.mindrot.jbcrypt.BCrypt;
 
+import communication.AvgStayCounts;
 import communication.StatusCounts;
 import logic.CurrentDinerRow;
 import logic.Reservation;
@@ -732,7 +733,7 @@ public class ConnectionToDB {
 			return stmt.executeUpdate();
 		} catch (SQLException e) {
 			System.out.println("SQLException: " + "executeWriteQuery failed.");
-			//e.printStackTrace();
+			// e.printStackTrace();
 		} finally {
 			// Crucial: Return connection to the pool here!
 			pool.releaseConnection(pConn);
@@ -822,6 +823,37 @@ public class ConnectionToDB {
 				}
 			}
 
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} finally {
+			pool.releaseConnection(pConn);
+		}
+
+		return out;
+	}
+
+	public List<AvgStayCounts> getMonthlyAverageStay(int year) {
+		String sql = "SELECT " + "  MONTH(order_date) AS mon,   AVG(TIMESTAMPDIFF( " + "    MINUTE, "
+				+ "    TIMESTAMP(order_date, start_time), TIMESTAMP(order_date, finish_time) "
+				+ "  )) AS avg_stay_minutes FROM reservations WHERE YEAR(order_date) = ? "
+				+ "  AND order_status = 'COMPLETED' AND start_time IS NOT NULL "
+				+ "  AND finish_time IS NOT NULL GROUP BY MONTH(order_date) " + "ORDER BY MONTH(order_date)";
+
+		List<AvgStayCounts> out = new ArrayList<>();
+
+		MySQLConnectionPool pool = MySQLConnectionPool.getInstance();
+		PooledConnection pConn = pool.getConnection();
+		if (pConn == null)
+			return out;
+
+		try (PreparedStatement stmt = pConn.getConnection().prepareStatement(sql)) {
+			stmt.setInt(1, year);
+
+			try (ResultSet rs = stmt.executeQuery()) {
+				while (rs.next()) {
+					out.add(new AvgStayCounts(year, rs.getInt("mon"), rs.getDouble("avg_stay_minutes")));
+				}
+			}
 		} catch (SQLException e) {
 			e.printStackTrace();
 		} finally {

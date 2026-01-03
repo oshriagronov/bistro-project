@@ -88,7 +88,7 @@ public class OrdersManagementScreen {
 
 		dinersCol.setCellValueFactory(new PropertyValueFactory<>("numberOfGuests"));
 		
-		//emailCol.setCellValueFactory(new PropertyValueFactory<>("email"));
+		emailCol.setCellValueFactory(new PropertyValueFactory<>("email"));
 
 		startTimeCol.setCellValueFactory(new PropertyValueFactory<>("start_time"));
 
@@ -113,7 +113,7 @@ public class OrdersManagementScreen {
 		Reservation selected = ordersTable.getSelectionModel().getSelectedItem();
 		selected.setStatus(statusCombo.getValue());
 		Main.client.accept(new BistroRequest(BistroCommand.CHANGE_STATUS,
-				new StatusUpdate(selected.getOrderNumber(), statusCombo.getValue())));
+				new StatusUpdate(selected.getPhone_number(),selected.getOrderNumber(), statusCombo.getValue())));
 		ordersTable.refresh();
 
 	}
