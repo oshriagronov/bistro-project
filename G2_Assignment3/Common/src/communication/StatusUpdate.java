@@ -11,16 +11,14 @@ public class StatusUpdate implements Serializable{
 	private static final long serialVersionUID = 1L;
 	private int orderNumber;
     private Status status;
+    private String phoneNumber;
 
-    public StatusUpdate(int orderNumber, Status status) {
+    public StatusUpdate(String phoneNumber ,int orderNumber, Status status) {
         this.orderNumber = orderNumber;
         this.status = status;
+        this.phoneNumber = phoneNumber;
     }
-
+    public String getPhoneNumber() { return phoneNumber; }
     public int getOrderNumber() { return orderNumber; }
-
-	public Status getStatus() {
-		return status;
-	}
-
+	public Status getStatus() {return status;}
 }

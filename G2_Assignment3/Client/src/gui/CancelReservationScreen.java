@@ -1,6 +1,5 @@
 package gui;
 
-import client.ClientController;
 import communication.BistroCommand;
 import communication.BistroRequest;
 import communication.BistroResponse;
@@ -20,10 +19,13 @@ import logic.Status;
  */
 public class CancelReservationScreen {
 
-    public static String fxmlPath = "/gui/CancelReservation.fxml";
+    public static final String fxmlPath = "/gui/CancelReservation.fxml";
 
     @FXML
-    private TextField codeField;
+    private TextField ReservationIdField;
+
+    @FXML
+    private TextField phoneField;
 
     @FXML
     private Label messageLabel;
@@ -34,9 +36,16 @@ public class CancelReservationScreen {
      */
     @FXML
     private void cancelReservation(ActionEvent event) {
-        String text = codeField.getText().trim();
+        String reservationId = ReservationIdField.getText().trim();
+        String phone = phoneField.getText().trim();
 
-        if (text.isEmpty()) {
+        if (reservationId.isEmpty() || phone.isEmpty()) {
+            messageLabel.setText("Please fill in all fields.");
+            messageLabel.setStyle("-fx-text-fill: red;");
+            return;
+        }
+
+        if (reservationId.isEmpty()) {
             messageLabel.setText("Please enter reservation number.");
             messageLabel.setStyle("-fx-text-fill: red;");
             return;
@@ -44,16 +53,15 @@ public class CancelReservationScreen {
 
         int orderNumber;
         try {
-            orderNumber = Integer.parseInt(text);
+            orderNumber = Integer.parseInt(reservationId);
         } catch (NumberFormatException e) {
             messageLabel.setText("Reservation number must be numeric.");
             messageLabel.setStyle("-fx-text-fill: red;");
             return;
         }
-
-        ClientController.getInstance(null, 0).accept(
-                new BistroRequest(BistroCommand.CHANGE_STATUS,
-                        new StatusUpdate(orderNumber, Status.CANCELLED)));
+        Main.client.accept(new BistroRequest(BistroCommand.CHANGE_STATUS, new StatusUpdate(phone ,orderNumber, Status.CANCELLED)));
+        BistroResponse response = Main.client.getResponse();
+        handleCancelResponse(response);
     }
 
     /**
@@ -73,5 +81,16 @@ public class CancelReservationScreen {
         }
 
         alert.showAndWait();
+    }
+        /**
+     * Navigates the application back to the main menu screen.
+     */
+    @FXML
+    void back(ActionEvent event) {
+        try {
+            Main.changeRoot(MainMenuScreen.fxmlPath);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }

@@ -331,9 +331,9 @@ public class ConnectionToDB {
 	 * @param status       new order status
 	 * @return number of rows affected (1 = success, 0 = not found)
 	 */
-	public int changeOrderStatus(int order_number, Status status) {
-		String sql = "UPDATE `reservations` SET order_status = ? WHERE res_id = ?";
-		return executeWriteQuery(sql, status.name(), order_number);
+	public int changeOrderStatus(String phone, int order_number, Status status) {
+		String sql = "UPDATE `reservations` SET order_status = ? WHERE phone = ? AND res_id = ?";
+		return executeWriteQuery(sql, status.name(), phone, order_number);
 	}
 
 	// ** Tables related methods **
@@ -732,7 +732,7 @@ public class ConnectionToDB {
 			return stmt.executeUpdate();
 		} catch (SQLException e) {
 			System.out.println("SQLException: " + "executeWriteQuery failed.");
-			e.printStackTrace();
+			//e.printStackTrace();
 		} finally {
 			// Crucial: Return connection to the pool here!
 			pool.releaseConnection(pConn);

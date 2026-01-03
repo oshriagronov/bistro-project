@@ -125,8 +125,9 @@ public class Server extends AbstractServer {
 		case CHANGE_STATUS:
 			// Expect StatusUpdate; update reservation status and return rows affected.
 			if (data instanceof StatusUpdate) {
-				dbReturnedValue = db.changeOrderStatus(((StatusUpdate) data).getOrderNumber(),
-						((StatusUpdate) data).getStatus());
+				StatusUpdate statusUpdate = (StatusUpdate) data;
+				dbReturnedValue = db.changeOrderStatus(statusUpdate.getPhoneNumber() ,statusUpdate.getOrderNumber(),
+						statusUpdate.getStatus());
 				response = new BistroResponse(BistroResponseStatus.SUCCESS, dbReturnedValue);
 			} else
 				response = new BistroResponse(BistroResponseStatus.FAILURE, "update failed.");
