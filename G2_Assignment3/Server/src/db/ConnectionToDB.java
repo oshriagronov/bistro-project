@@ -20,7 +20,8 @@ import logic.Worker;
 import logic.WorkerType;
 
 /**
- * Provides database access helpers for reservations, tables, subscribers, and workers.
+ * Provides database access helpers for reservations, tables, subscribers, and
+ * workers.
  */
 public class ConnectionToDB {
 	/**
@@ -514,7 +515,8 @@ public class ConnectionToDB {
 				(username, first_name, last_name, email, phone, password_hash)
 				VALUES (?, ?, ?, ?, ?, ?)
 				""";
-		executeWriteQuery(sql,subscriber.getUsername(), subscriber.getFirstName(), subscriber.getLastName(), subscriber.getEmail(), subscriber.getPhone(), subscriber.getPasswordHash());
+		executeWriteQuery(sql, subscriber.getUsername(), subscriber.getFirstName(), subscriber.getLastName(),
+				subscriber.getEmail(), subscriber.getPhone(), subscriber.getPasswordHash());
 	}
 
 	/**
@@ -537,13 +539,14 @@ public class ConnectionToDB {
 			return false;
 		return BCrypt.checkpw(rawPassword, (String) hashObj);
 	}
-	public List<Reservation> getSubscriberHistory(int subscriberId){
+
+	public List<Reservation> getSubscriberHistory(int subscriberId) {
 		String sql = "SELECT confirmation_code, phone, start_time, finish_time, order_date,  order_status, num_diners, date_of_placing_order FROM reservations WHERE sub_id = ?";
 		List<List<Object>> rows = executeReadQuery(sql, subscriberId);
 		if (rows.isEmpty())
 			return null;
 		List<Reservation> reservations = new ArrayList<>();
-		for(Object obj: rows){
+		for (Object obj : rows) {
 			if (!(obj instanceof List))
 				continue;
 			List<Object> row = (List<Object>) obj;
@@ -560,12 +563,10 @@ public class ConnectionToDB {
 			if (phoneObj instanceof String)
 				phoneNumber = (String) phoneObj;
 
-
 			LocalTime startTime = null;
 			Object startObj = row.get(2);
 			if (startObj instanceof java.sql.Time)
 				startTime = ((java.sql.Time) startObj).toLocalTime();
-
 
 			LocalTime finishTime = null;
 			Object finishObj = row.get(3);
@@ -605,10 +606,11 @@ public class ConnectionToDB {
 				continue;
 
 			reservations.add(new Reservation(orderDate, numDiners, confirmationCode, subscriberId, placingDate,
-					startTime, finishTime , phoneNumber, status));
+					startTime, finishTime, phoneNumber, status));
 		}
 		return reservations;
-	} 
+	}
+
 	/**
 	 * Authenticates a worker by username and password.
 	 *
@@ -659,7 +661,8 @@ public class ConnectionToDB {
 	}
 
 	/**
-	 * Loads the current diners per table, including reservation details when present.
+	 * Loads the current diners per table, including reservation details when
+	 * present.
 	 *
 	 * @return list of current diner rows (empty if none found)
 	 */
@@ -702,6 +705,7 @@ public class ConnectionToDB {
 
 		return rows;
 	}
+
 	/**
 	 * Fetches the most recent confirmation code and its start time for today's
 	 * confirmed reservation tied to the given phone, within the last 15 minutes.
@@ -731,6 +735,7 @@ public class ConnectionToDB {
 		result.add(startTime);
 		return result;
 	}
+
 	/**
 	 * Executes a write query with positional parameters.
 	 *
@@ -773,94 +778,93 @@ public class ConnectionToDB {
 
 	/**
 	 * Executes a read-only SQL query and returns the results as a list of rows.
-	 * Each row is represented as a List<Object> in column.
-	 * rs.getObject(c) is used for all columns, so callers are responsible
-	 * for casting each value to the expected type.
-	 * Supported parameter types: Integer, String, LocalDate.
-	 * Example usage:
-	 * String sql = "SELECT res_id, phone FROM reservations WHERE phone = ?";
-	 * List<List<Object>> rows = executeReadQuery(sql, "0521234567");
-	 * for (List<Object> row : rows) {
-	 *     int resId = (Integer) row.get(0);
-	 *     String phone = (String) row.get(1);
-	 * }
-	 * Note: add safety checks when you casting!
+	 * Each row is represented as a List<Object> in column. rs.getObject(c) is used
+	 * for all columns, so callers are responsible for casting each value to the
+	 * expected type. Supported parameter types: Integer, String, LocalDate. Example
+	 * usage: String sql = "SELECT res_id, phone FROM reservations WHERE phone = ?";
+	 * List<List<Object>> rows = executeReadQuery(sql, "0521234567"); for
+	 * (List<Object> row : rows) { int resId = (Integer) row.get(0); String phone =
+	 * (String) row.get(1); } Note: add safety checks when you casting!
+	 * 
 	 * @param sql    SQL query with positional {@code ?} parameters
 	 * @param params parameters to bind in order
 	 * @return list of rows; empty list when no results or on failure
 	 */
 	public List<List<Object>> executeReadQuery(String sql, Object... params) {
-	MySQLConnectionPool pool = MySQLConnectionPool.getInstance();
-	PooledConnection pConn = pool.getConnection();
-	if (pConn == null)
-		return new ArrayList<>();
-	List<List<Object>> rows = new ArrayList<>();
-	try (PreparedStatement stmt = pConn.getConnection().prepareStatement(sql)) {
-		for (int i = 0; i < params.length; i++) {
-			Object p = params[i];
-			int idx = i + 1;
-			if (p instanceof Integer)
-				stmt.setInt(idx, (Integer) p);
-			else if (p instanceof String)
-				stmt.setString(idx, (String) p);
-			else if (p instanceof LocalDate)
-				stmt.setDate(idx, java.sql.Date.valueOf((LocalDate) p));
-			else
-				throw new SQLException("Unsupported param type: " + p.getClass());
-		}
-
-		ResultSet rs = stmt.executeQuery();
-		int colCount = rs.getMetaData().getColumnCount();
-
-		while (rs.next()) {
-			List<Object> row = new ArrayList<>(colCount);
-			for (int c = 1; c <= colCount; c++) {
-				row.add(rs.getObject(c));
+		MySQLConnectionPool pool = MySQLConnectionPool.getInstance();
+		PooledConnection pConn = pool.getConnection();
+		if (pConn == null)
+			return new ArrayList<>();
+		List<List<Object>> rows = new ArrayList<>();
+		try (PreparedStatement stmt = pConn.getConnection().prepareStatement(sql)) {
+			for (int i = 0; i < params.length; i++) {
+				Object p = params[i];
+				int idx = i + 1;
+				if (p instanceof Integer)
+					stmt.setInt(idx, (Integer) p);
+				else if (p instanceof String)
+					stmt.setString(idx, (String) p);
+				else if (p instanceof LocalDate)
+					stmt.setDate(idx, java.sql.Date.valueOf((LocalDate) p));
+				else
+					throw new SQLException("Unsupported param type: " + p.getClass());
 			}
-			rows.add(row);
+
+			ResultSet rs = stmt.executeQuery();
+			int colCount = rs.getMetaData().getColumnCount();
+
+			while (rs.next()) {
+				List<Object> row = new ArrayList<>(colCount);
+				for (int c = 1; c <= colCount; c++) {
+					row.add(rs.getObject(c));
+				}
+				rows.add(row);
+			}
+		} catch (SQLException e) {
+			System.out.println("SQLException: executeReadQuery failed.");
+			e.printStackTrace();
+			return new ArrayList<>();
+		} finally {
+			pool.releaseConnection(pConn);
 		}
-	} catch (SQLException e) {
-		System.out.println("SQLException: executeReadQuery failed.");
-		e.printStackTrace();
-		return new ArrayList<>();
-	} finally {
-		pool.releaseConnection(pConn);
+		return rows;
 	}
-	return rows;
-}
 
+	public List<StatusCounts> getMonthlySlotStats(int year) {
+		String sql = "SELECT " + "  MONTH(order_date) AS mon, "
+				+ "  SUM(CASE WHEN order_status IN ('CONFIRMED','COMPLETED') "
+				+ "           AND MOD(MINUTE(start_time), 30) = 0 THEN 1 ELSE 0 END) AS on_time, "
+				+ "  SUM(CASE WHEN order_status IN ('CONFIRMED','COMPLETED') "
+				+ "           AND MOD(MINUTE(start_time), 30) <> 0 THEN 1 ELSE 0 END) AS late, "
+				+ "  SUM(CASE WHEN order_status = 'CANCELLED' "
+				+ "           AND MOD(MINUTE(start_time), 30) > 15 THEN 1 ELSE 0 END) AS cancelled "
+				+ "FROM reservations " + "WHERE YEAR(order_date) = ? " + "GROUP BY MONTH(order_date) "
+				+ "ORDER BY MONTH(order_date)";
 
-	
-	public StatusCounts getReservationStatusCountsForBarChart() {
-	    String sql =
-	        "SELECT " +
-	        "  SUM(CASE WHEN order_status = 'CONFIRMED' THEN 1 ELSE 0 END) AS confirmed, " +
-	        "  SUM(CASE WHEN order_status = 'PENDING' THEN 1 ELSE 0 END) AS pending, " +
-	        "  SUM(CASE WHEN order_status = 'CANCELLED' THEN 1 ELSE 0 END) AS cancelled " +
-	        "FROM reservations";
+		List<StatusCounts> out = new ArrayList<>();
 
-	    MySQLConnectionPool pool = MySQLConnectionPool.getInstance();
-	    PooledConnection pConn = pool.getConnection();
-	    if (pConn == null) return null;
+		MySQLConnectionPool pool = MySQLConnectionPool.getInstance();
+		PooledConnection pConn = pool.getConnection();
+		if (pConn == null)
+			return out;
 
-	    try (PreparedStatement stmt = pConn.getConnection().prepareStatement(sql);
-	         ResultSet rs = stmt.executeQuery()) {
+		try (PreparedStatement stmt = pConn.getConnection().prepareStatement(sql)) {
+			stmt.setInt(1, year);
 
-	        if (!rs.next()) return new StatusCounts(0, 0, 0);
+			try (ResultSet rs = stmt.executeQuery()) {
+				while (rs.next()) {
+					out.add(new StatusCounts(year, rs.getInt("mon"), rs.getInt("on_time"), rs.getInt("late"),
+							rs.getInt("cancelled")));
+				}
+			}
 
-	        int confirmed = rs.getInt("confirmed");
-	        int pending = rs.getInt("pending");
-	        int cancelled = rs.getInt("cancelled");
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} finally {
+			pool.releaseConnection(pConn);
+		}
 
-	        return new StatusCounts(confirmed, pending, cancelled);
-
-	    } catch (SQLException e) {
-	        System.out.println("SQLException: getReservationStatusCountsForBarChart failed.");
-	        e.printStackTrace();
-	        return null;
-	    } finally {
-	        pool.releaseConnection(pConn);
-	    }
+		return out;
 	}
 
 }

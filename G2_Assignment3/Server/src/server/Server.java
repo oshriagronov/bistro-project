@@ -242,7 +242,8 @@ public class Server extends AbstractServer {
 			response = new BistroResponse(BistroResponseStatus.SUCCESS, dbReturnedValue);
 			break;
 		case GET_TIMINGS:
-			dbReturnedValue = db.getReservationStatusCountsForBarChart();
+			if(data instanceof Integer)
+			dbReturnedValue = db.getMonthlySlotStats((int)data);
 			response = new BistroResponse(BistroResponseStatus.SUCCESS, dbReturnedValue);
 			break;
 			
