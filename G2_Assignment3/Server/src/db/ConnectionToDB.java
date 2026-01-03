@@ -7,23 +7,49 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
+
 import org.mindrot.jbcrypt.BCrypt;
+
 import communication.StatusCounts;
 import logic.CurrentDinerRow;
 import logic.Reservation;
 import logic.Status;
 import logic.Subscriber;
 import logic.Table;
-import logic.TableStatus;
 import logic.Worker;
 import logic.WorkerType;
-
-import java.sql.Statement;
 
 /**
  * Provides database access helpers for reservations, tables, subscribers, and workers.
  */
 public class ConnectionToDB {
+	/**
+	 * Safely converts an object into a {@link LocalDate}, supporting both
+	 * {@link LocalDate} and {@link java.sql.Date} types.
+	 *
+	 * @param o the object to convert (may be null)
+	 * @return a LocalDate if conversion is possible, otherwise null
+	 */
+	private static LocalDate toLocalDate(Object o) {
+	    if (o == null) return null;
+	    if (o instanceof LocalDate) return (LocalDate) o;
+	    if (o instanceof java.sql.Date) return ((java.sql.Date) o).toLocalDate();
+	    return null;
+	}
+
+	/**
+	 * Safely converts an object into a {@link LocalTime}, supporting both
+	 * {@link LocalTime} and {@link java.sql.Time} types.
+	 *
+	 * @param o the object to convert (may be null)
+	 * @return a LocalTime if conversion is possible, otherwise null
+	 */
+	private static LocalTime toLocalTime(Object o) {
+	    if (o == null) return null;
+	    if (o instanceof LocalTime) return (LocalTime) o;
+	    if (o instanceof java.sql.Time) return ((java.sql.Time) o).toLocalTime();
+	    return null;
+	}
 
 	/**
 	 * Returns the database password currently stored in the connection pool.
@@ -66,50 +92,55 @@ public class ConnectionToDB {
 	 * @return Reservation containing the values returned from the DB, or null if
 	 *         not found
 	 */
-	public Reservation searchOrderByPhoneNumber(String phone_number) {
-		String sql = "SELECT res_id, confirmation_code, phone, sub_id, start_time, finish_time, "
-				+ "       order_date, order_status, num_diners, date_of_placing_order "
-				+ "FROM reservations WHERE phone = ?";
+	public Reservation searchOrderByPhoneNumber(String phoneNumber) {
+	    String sql = "SELECT * FROM reservations WHERE phone = ?";
 
-		MySQLConnectionPool pool = MySQLConnectionPool.getInstance();
-		PooledConnection pConn = pool.getConnection();
-		if (pConn == null)
-			return null;
+	    List<List<Object>> rows = executeReadQuery(sql, phoneNumber);
 
-		try (PreparedStatement stmt = pConn.getConnection().prepareStatement(sql)) {
-			stmt.setString(1, phone_number);
+	    if (rows.isEmpty()) {
+	        return null;
+	    }
 
-			try (ResultSet rs = stmt.executeQuery()) {
-				if (rs.next()) {
-					LocalDate orderDate = rs.getObject("order_date", LocalDate.class);
-					LocalDate placingDate = rs.getObject("date_of_placing_order", LocalDate.class);
+	    List<Object> row = rows.get(0);
+	    if (row.isEmpty()) {
+	        return null;
+	    }
 
-					LocalTime startTime = rs.getObject("start_time", LocalTime.class);
-					LocalTime finishTime = rs.getObject("finish_time", LocalTime.class);
+	    Integer resId = (Integer) row.get(0);
+	    Integer confirmationCode = (Integer) row.get(1);
+	    String phone = (String) row.get(2);
+	    Integer subId = (Integer) row.get(3);
 
-					int diners = rs.getInt("num_diners");
-					int confirmationCode = rs.getInt("confirmation_code");
-					int subId = rs.getInt("sub_id");
+	    LocalTime startTime = toLocalTime(row.get(4));
+	    LocalTime finishTime = toLocalTime(row.get(5));
+	    LocalDate orderDate = toLocalDate(row.get(6));
 
-					Status status = Status.valueOf(rs.getString("order_status"));
+	    Status status = Status.valueOf((String) row.get(7));
 
-					Reservation r = new Reservation(orderDate, diners, confirmationCode, subId, placingDate, startTime,
-							finishTime, rs.getString("phone"), status);
+	    Integer diners = (Integer) row.get(8);
+	    LocalDate placingDate = toLocalDate(row.get(9));
 
-					// res_id into orderNumber (add setter in Reservation)
-					r.setOrderNumber(rs.getInt("res_id"));
+	    String email = (String) row.get(10);
 
-					return r;
-				}
-			}
-		} catch (SQLException e) {
-			System.out.println("SQLException: searchOrderByPhoneNumber failed.");
-			e.printStackTrace();
-		} finally {
-			pool.releaseConnection(pConn);
-		}
+	    Reservation r = new Reservation(
+	            orderDate,
+	            diners != null ? diners : 0,
+	            confirmationCode != null ? confirmationCode : 0,
+	            subId != null ? subId : 0,
+	            placingDate,
+	            startTime,
+	            finishTime,
+	            phone,
+	            status,
+	            email
+	    );
 
-		return null;
+	    // res_id → orderNumber
+	    if (resId != null) {
+	        r.setOrderNumber(resId);
+	    }
+
+	    return r;
 	}
 
 	/**
@@ -118,58 +149,62 @@ public class ConnectionToDB {
 	 * @param phone_number phone number to search by
 	 * @return list of reservations returned from the DB (empty if none found)
 	 */
-	public List<Reservation> searchOrdersByPhoneNumberList(String phone_number) {
-		String sql = "SELECT res_id, confirmation_code, phone, sub_id, start_time, finish_time, "
-				+ "       order_date, order_status, num_diners, date_of_placing_order "
-				+ "FROM reservations WHERE phone = ?";
+	public List<Reservation> searchOrdersByPhoneNumberList(String phone) {
+		String sql = "SELECT * FROM reservations WHERE phone = ?";
 
-		List<Reservation> reservations = new ArrayList<>();
+	    List<List<Object>> rows = executeReadQuery(sql, phone);
+	    List<Reservation> list = new ArrayList<>();
 
-		MySQLConnectionPool pool = MySQLConnectionPool.getInstance();
-		PooledConnection pConn = pool.getConnection();
-		if (pConn == null)
-			return null;
+	    if (rows.isEmpty()) {
+	        return list;
+	    }
 
-		try (PreparedStatement stmt = pConn.getConnection().prepareStatement(sql)) {
-			stmt.setString(1, phone_number);
+	    for (List<Object> row : rows) {
+	        if (row == null || row.isEmpty()) {
+	            continue;
+	        }
 
-			try (ResultSet rs = stmt.executeQuery()) {
-				while (rs.next()) {
-					int resId = rs.getInt("res_id");
-					LocalDate orderDate = rs.getObject("order_date", LocalDate.class);
-					LocalDate placingDate = rs.getObject("date_of_placing_order", LocalDate.class);
+	        Integer resId = (Integer) row.get(0);
+	        Integer confirmationCode = (Integer) row.get(1);
+	        String phoneNumber = (String) row.get(2);
+	        Integer subId = (Integer) row.get(3);
 
-					LocalTime startTime = rs.getObject("start_time", LocalTime.class);
-					LocalTime finishTime = rs.getObject("finish_time", LocalTime.class);
+	        LocalTime startTime = toLocalTime(row.get(4));
+	        LocalTime finishTime = toLocalTime(row.get(5));
+	        LocalDate orderDate = toLocalDate(row.get(6));
 
-					int diners = rs.getInt("num_diners");
-					int confirmationCode = rs.getInt("confirmation_code");
-					int subId = rs.getInt("sub_id");
+	        Status status = Status.valueOf(((String) row.get(7)).trim());
 
-					Status status = Status.valueOf(rs.getString("order_status"));
+	        Integer diners = (Integer) row.get(8);
+	        LocalDate placingDate = toLocalDate(row.get(9));
 
-					// Use the constructor you DO have (7 args)
-					Reservation r = new Reservation(orderDate, diners, confirmationCode, subId, placingDate, startTime,
-							rs.getString("phone"));
+	        String email = (String) row.get(10);
 
-					// Override DB values that the 7-arg constructor doesn't set correctly
-					r.setFinish_time(finishTime);
-					r.setStatus(status);
+	        Reservation res = new Reservation(
+	                orderDate,
+	                diners != null ? diners : 0,
+	                confirmationCode != null ? confirmationCode : 0,
+	                subId != null ? subId : 0,
+	                placingDate,
+	                startTime,
+	                finishTime,
+	                phoneNumber,
+	                status,
+	                email
+	        );
 
-					// Save res_id into your object (add this setter if missing)
-					r.setOrderNumber(resId);
+	        if (resId != null) {
+	            res.setOrderNumber(resId);
+	        }
 
-					reservations.add(r);
-				}
-			}
-		} catch (SQLException e) {
-			e.printStackTrace();
-		} finally {
-			pool.releaseConnection(pConn);
-		}
+	        list.add(res);
+	    }
 
-		return reservations;
+	    return list;
 	}
+
+
+	
 
 	/**
 	 * Searches for an order by order number (primary key) and returns the order

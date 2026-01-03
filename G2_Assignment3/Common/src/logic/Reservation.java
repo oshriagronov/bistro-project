@@ -20,9 +20,10 @@ public class Reservation implements Serializable {
 	private LocalTime finish_time;
 	private String phone_number;
 	private Status status = Status.PENDING;
+	private String email;
 
 	public Reservation(LocalDate order_date, int number_of_guests, int confirmation_code, int subscriber_id,
-			LocalDate date_of_placing_order, LocalTime start_time, String phone_number) {
+			LocalDate date_of_placing_order, LocalTime start_time, String phone_number, String email) {
 		this.order_date = order_date;
 		this.start_time = start_time;
 		this.finish_time = start_time.plusHours(2);
@@ -31,11 +32,12 @@ public class Reservation implements Serializable {
 		this.confirmation_code = confirmation_code;
 		this.subscriber_id = subscriber_id;
 		this.phone_number = phone_number;
+		this.email=email;
 	}
 
 	public Reservation(LocalDate order_date, int number_of_guests, int confirmation_code, int subscriber_id,
 			LocalDate date_of_placing_order, LocalTime start_time, LocalTime finish_time, String phone_number,
-			Status status) {
+			Status status, String email) {
 		this.order_date = order_date;
 		this.start_time = start_time;
 		this.finish_time = finish_time;
@@ -45,6 +47,7 @@ public class Reservation implements Serializable {
 		this.subscriber_id = subscriber_id;
 		this.phone_number = phone_number;
 		this.status = status;
+		this.email=email;
 	}
 
 	public LocalTime getStart_time() {
@@ -86,7 +89,9 @@ public class Reservation implements Serializable {
 	public Status getStatus() {
 		return status;
 	}
-
+	public String getEmail() {
+		return email;
+	}
 	public void setOrder_date(LocalDate order_date) {
 		this.order_date = order_date;
 	}
@@ -127,5 +132,7 @@ public class Reservation implements Serializable {
 	public void setOrderNumber(int orderNumber) {
 		this.orderNumber = orderNumber;
 	}
-
+	public void setEmail(String email) {
+		this.email=email;
+	}
 }

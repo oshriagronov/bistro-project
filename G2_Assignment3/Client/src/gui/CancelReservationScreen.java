@@ -1,15 +1,18 @@
 package gui;
 
 import client.ClientController;
+import communication.BistroCommand;
 import communication.BistroRequest;
 import communication.BistroResponse;
 import communication.BistroResponseStatus;
-import communication.BistroCommand;
+import communication.StatusUpdate;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.scene.control.Label;
-import javafx.scene.control.TextField;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
+import logic.Status;
 
 /**
  * Controller for the Cancel Reservation screen.
@@ -17,21 +20,22 @@ import javafx.scene.control.Alert.AlertType;
  */
 public class CancelReservationScreen {
 
-    @FXML
-    private TextField codeField; // Text field for entering the reservation/order number
+    public static String fxmlPath = "/gui/CancelReservation.fxml";
 
     @FXML
-    private Label messageLabel; // Label for displaying success/error messages
+    private TextField codeField;
+
+    @FXML
+    private Label messageLabel;
 
     /**
-     * Triggered when the user clicks the "Cancel Reservation" button.
-     * Validates input and sends the order number to the server.
+     * Handles the Cancel Reservation button click.
+     * Validates the input and sends a cancellation request to the server.
      */
     @FXML
-    public void cancelReservation() {
+    private void cancelReservation(ActionEvent event) {
         String text = codeField.getText().trim();
 
-        // Check if the field is empty
         if (text.isEmpty()) {
             messageLabel.setText("Please enter reservation number.");
             messageLabel.setStyle("-fx-text-fill: red;");
@@ -39,8 +43,6 @@ public class CancelReservationScreen {
         }
 
         int orderNumber;
-
-        // Validate that the input is numeric
         try {
             orderNumber = Integer.parseInt(text);
         } catch (NumberFormatException e) {
@@ -49,35 +51,27 @@ public class CancelReservationScreen {
             return;
         }
 
-        // Send the request to the server
         ClientController.getInstance(null, 0).accept(
-        		new BistroRequest(BistroCommand.CANCEL_RESERVATION, orderNumber)
-        );
+                new BistroRequest(BistroCommand.CHANGE_STATUS,
+                        new StatusUpdate(orderNumber, Status.CANCELLED)));
     }
 
     /**
-     * Called when the server sends a response back to the client.
-     * Updates the message label according to the result.
+     * Handles the server response for the cancellation request.
      */
     public void handleCancelResponse(BistroResponse response) {
-        if (response.getStatus() == BistroResponseStatus.SUCCESS) {
+        Alert alert = new Alert(AlertType.INFORMATION);
+        alert.setTitle("Reservation Canceled");
 
-            Alert alert = new Alert(AlertType.INFORMATION);
-            alert.setTitle("Reservation Canceled");
+        if (response.getStatus() == BistroResponseStatus.SUCCESS) {
             alert.setHeaderText("Cancellation Successful");
             alert.setContentText("The reservation has been successfully canceled.");
-            alert.showAndWait();
-
         } else {
-
-        	int orderNumber = (int) response.getData();
-
-        	Alert alert = new Alert(AlertType.INFORMATION);
-        	alert.setTitle("Reservation Canceled");
-        	alert.setHeaderText("Cancellation Successful");
-        	alert.setContentText("Reservation #" + orderNumber + " has been canceled successfully.");
-        	alert.showAndWait();
+            int orderNumber = (int) response.getData();
+            alert.setHeaderText("Cancellation Successful");
+            alert.setContentText("Reservation #" + orderNumber + " has been canceled successfully.");
         }
-    }
 
+        alert.showAndWait();
+    }
 }

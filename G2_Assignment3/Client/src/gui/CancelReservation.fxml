@@ -15,7 +15,7 @@
 
                 <TextField fx:id="phoneField" maxWidth="250" prefHeight="26.0" prefWidth="142.0" promptText="phone number" />
 
-                <TextField fx:id="codeField" maxWidth="250" promptText="confirmation code" />
+                <TextField fx:id="codeField" maxWidth="250" promptText="reservation code" />
 
                 <Button maxWidth="200" onAction="#cancelReservation" text="cancel reservation" />
 

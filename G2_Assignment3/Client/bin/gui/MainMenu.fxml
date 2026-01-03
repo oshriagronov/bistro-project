@@ -25,7 +25,7 @@
 
             <HBox alignment="CENTER" prefHeight="47.0" prefWidth="224.0">
                <children>
-                  <Button fx:id="updateReservation" contentDisplay="CENTER" mnemonicParsing="false" onAction="#updateScreen" prefHeight="25.0" prefWidth="124.0" text="Update reservation" />
+                  <Button fx:id="updateReservation" contentDisplay="CENTER" mnemonicParsing="false" onAction="#updateScreen" prefHeight="25.0" prefWidth="124.0" text="Update Reservation" />
                </children>
             </HBox>
 
@@ -43,6 +43,11 @@
             <HBox alignment="CENTER" prefHeight="51.0" prefWidth="224.0">
                <children>
                   <Button id="AcceptTable" mnemonicParsing="false" onAction="#AcceptTable" prefHeight="25.0" prefWidth="124.0" text="Accept Table" />
+               </children>
+            </HBox>
+            <HBox alignment="CENTER" prefHeight="100.0" prefWidth="224.0">
+               <children>
+                  <Button id="CancelReservation" alignment="CENTER" contentDisplay="CENTER" mnemonicParsing="false" onAction="#CancelReservationScreen" prefHeight="25.0" prefWidth="124.0" text="Cancel Reservation" textAlignment="CENTER" />
                </children>
             </HBox>
             <HBox alignment="CENTER" prefHeight="45.0" prefWidth="224.0" />

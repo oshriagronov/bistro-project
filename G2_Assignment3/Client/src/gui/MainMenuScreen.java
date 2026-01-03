@@ -97,7 +97,23 @@ public class MainMenuScreen {
             e.printStackTrace();
         }
     }
-
+    
+    /**
+     * 
+     * Handles the action when the "Cancel Reservation" button is clicked.
+     * Changes the application's view to the {@code Update.fxml} screen.
+     * * @param event The ActionEvent triggered by the button click.
+     */
+    @FXML
+    void CancelReservationScreen(ActionEvent event) {
+        try {
+            // Use the static method in Main to switch the scene root to the Update screen
+            Main.changeRoot(CancelReservationScreen.fxmlPath);
+        } catch (Exception e) {
+            // Log error if navigation fails (e.g., FXML file not found)
+            e.printStackTrace();
+        }
+    }
     /**
      * Handles the action when the "Back" button is clicked.
      * Navigates the application back to the login menu screen.
