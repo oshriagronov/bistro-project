@@ -9,6 +9,7 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.VBox;
+import logic.LoggedUser;
 import logic.Reservation;
 
 public class UpdateSubDetailsScreen {
@@ -50,14 +51,18 @@ public class UpdateSubDetailsScreen {
 
     }
 
+	/**
+	 * @param event
+	 */
 	@FXML
 	void loadSubscriberDetails(ActionEvent event) {
 
 		// Load subscriber details from the database to the text fields
-        Reservation currentReservation = BistroClient.getCurrentReservation();
+        Reservation currentReservation = ((Object) BistroClient.getInstance(null, 0, null))
+                .getController().getReservationBySubscriberId(LoggedUser.getId());
         if (currentReservation != null) {
-            phoneNum.setText(currentReservation.getPhoneNumber());
-            phoneNum1.setText(currentReservation.getPhoneNumber());
+            prephoneNum.setText(currentReservation.getPhone_number());
+            phoneNum.setText(currentReservation.getPhone_number());
         } else {
             Alert alert = new Alert(Alert.AlertType.ERROR);
             alert.setTitle("Error");

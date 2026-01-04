@@ -8,8 +8,9 @@ public class Worker implements Serializable {
 
     private int workerId;
     private String username;
-    private WorkerType workerType;
     private String passwordHash;
+    private WorkerType workerType;
+
 
     public Worker(int workerId, String username, String passwordHash, WorkerType workerType) {
         this.workerId = workerId;
@@ -18,6 +19,7 @@ public class Worker implements Serializable {
         this.workerType = workerType;
     }
 
+    //TODO:why needed?/where used?
     public Worker(int workerId, String username, WorkerType workerType) {
         this.workerId = workerId;
         this.username = username;

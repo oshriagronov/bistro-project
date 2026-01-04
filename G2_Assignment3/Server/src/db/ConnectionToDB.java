@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.mindrot.jbcrypt.BCrypt;
-
+import logic.LoggedUser;
 import communication.AvgStayCounts;
 import communication.StatusCounts;
 import logic.CurrentDinerRow;
@@ -613,6 +613,39 @@ public class ConnectionToDB {
 	    return new Subscriber(subscriberId, username, firstName, lastName, email, phone, passwordHash);
 	}
 
+	/**
+	 * Retrieves a worker object from the database using the worker ID.
+	 * This method executes a SQL query to fetch all worker fields.
+	 *
+	 * @param worker_id The ID of the worker to search for.
+	 * @return A fully populated Worker object if found, otherwise null.
+	 */
+	public Worker SearchWorkerById(int worker_id) {
+
+	    // SQL query to retrieve all worker fields
+	    String sql = "SELECT * FROM workers WHERE worker_id = ?";
+
+	    // Execute the query
+	    List<List<Object>> rows = executeReadQuery(sql, worker_id);
+
+	    // If no results found, return null
+	    if (rows.isEmpty())
+	        return null;
+
+	    List<Object> row = rows.get(0);
+
+	    if (row.isEmpty())
+	        return null;
+
+	    // Extract fields from the row
+	    Integer workerid = (Integer) row.get(0);
+	    String username = (String) row.get(1);
+		String passwordHash = (String) row.get(2);
+	    Enum<WorkerType> workerType = WorkerType.valueOf(((String) row.get(3)).trim().toUpperCase()); 
+ 
+	    // Create and return a Worker object
+	    return new Worker(workerid, username, passwordHash, (WorkerType) workerType);
+	}
 
 	/**
 	 * Authenticates a worker by username and password.

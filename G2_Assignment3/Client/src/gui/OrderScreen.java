@@ -10,7 +10,7 @@ import java.time.LocalDate;
 
 import java.time.LocalDateTime;
 import java.util.Random;
-
+import java.time.LocalTime;
 import communication.BistroCommand;
 import communication.BistroRequest;
 import communication.BistroResponse;
@@ -26,17 +26,19 @@ import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import logic.LoggedUser;
+import logic.Reservation;
 import logic.Subscriber;
 import logic.UserType;
+import logic.Worker;
 
 public class OrderScreen {
 	public static final String fxmlPath = "/gui/Order.fxml";
 	private static final UserType SUBSCRIBER = null;
-	private static final UserType EMPLOEE = null;
+	private static final UserType EMPLOYEE = null;
 	/** Utility for generating a random confirmation code. */
 	private Random random = new Random();
-	
-	private boolean isSubscriber;
+	private Subscriber sub;
+	private Worker worker;
 
 	/** Alert object used to display success or failure messages to the user. */
 	Alert alert = new Alert(Alert.AlertType.INFORMATION);
@@ -98,12 +100,12 @@ public class OrderScreen {
 	 */
     @FXML
     public void initialize() {
-
+		
         if (LoggedUser.getType()==SUBSCRIBER) {
-        	setSubscriber();
+        	sub =  setupSubscriber();
         }
-        else if (LoggedUser.getType()==EMPLOEE) {
-        	setupWorkerView();
+        else if (LoggedUser.getType()==EMPLOYEE) {
+        	worker = setupWorkerView();
         }
         else {
             setupGuestView();
@@ -154,12 +156,12 @@ public class OrderScreen {
         phoneStart.getItems().addAll("050", "052", "053", "054", "055", "058");
     }
 
-    /**
+	/**
      * Configures the screen for a logged-in subscriber.
      * Fetches subscriber details from the database and auto-fills the UI fields.
      */
     @FXML
-    public Subscriber setSubscriber() {
+    public Subscriber setupSubscriber() {
 
         // Get subscriber ID from LoggedUser
         int id = LoggedUser.getId();
@@ -207,10 +209,30 @@ public class OrderScreen {
 	 * a reservation for a customer. Therefore, guest fields are hidden while
 	 * worker‑related controls remain visible.
 	 */
-	private void setupWorkerView() {
-	    nonSubVbox.setVisible(true);  
-	    workerVbox.setVisible(true); 
-	    subHBOX.setVisible(true);     
+	private Worker setupWorkerView() {
+		// Get worker ID from LoggedUser
+        int id = LoggedUser.getId();
+        BistroRequest request= new BistroRequest(BistroCommand.GET_WORKER, id);
+        Main.client.accept(request);
+        
+        BistroResponse response= Main.client.getResponse();
+
+        if (response == null) {
+            // If something went wrong, fallback to guest mode
+            nonSubVbox.setVisible(false);  
+	    	workerVbox.setVisible(false);
+	    	subHBOX.setVisible(false);
+        }
+        Object data = response.getData();
+        if(data!= null) {
+        	Worker worker=(Worker)data;
+        	 // Hide fields that are not relevant for subscribers
+            nonSubVbox.setVisible(true);
+            workerVbox.setVisible(true);
+            subHBOX.setVisible(false); // worker does NOT need to enter subscriber ID manually
+			return worker;
+        }
+		return null;
 	}
 
 	
@@ -253,13 +275,13 @@ public class OrderScreen {
 		LocalDateTime now = LocalDateTime.now();
 		// Reservation must be at least one hour from the current time
 		LocalDateTime oneHourFromNow = now.plusHours(1); 
-		int amount = 0, hours, minutes;
-		String phone, ID = null, amountStr = "1";
+		int amount=0, hours, minutes;
+		String phone, email, ID = null, amountStr = "1";
 		StringBuilder str = new StringBuilder();
 		boolean check = true;
 		LocalDate date;
 		LocalDate today = LocalDate.now();
-		
+		LocalDateTime selected= null;
 		date = orderDate.getValue();
 		
 		// 1. Validate Date selection
@@ -283,7 +305,7 @@ public class OrderScreen {
 		} else if (date != null) {
 			hours = Integer.parseInt(orderHours.getValue());
 			minutes = Integer.parseInt(orderMinutes.getValue());
-			LocalDateTime selected = date.atTime(hours, minutes);
+			selected = date.atTime(hours, minutes);
 			
 			// Check if selected time is less than one hour from now
 			if (date.equals(today) && selected.isBefore(oneHourFromNow)) {
@@ -292,13 +314,8 @@ public class OrderScreen {
 			}
 		}
 		
-		// 4. Validate Email format
-		if (!orderEmail.getText().matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$")) {
-			str.append("Please enter a valid Email\n");
-			check = false;
-		}
 		
-		// 5. Validate Subscriber ID
+		// 4. Validate Subscriber ID
 		if (!checkBox.isSelected()) {
 			ID = "0"; // Non-subscriber
 		} else {
@@ -310,14 +327,26 @@ public class OrderScreen {
 				check = false;
 			}
 		}
-
-		// 6. Validate Phone Number (must be 7 digits and contain only numbers)
-		phone = phoneNumber.getText();
-		if (phone == null || phone.length() != 7 || !phone.matches("\\d+")) {
-			str.append("Please enter a valid 7-digit phone number\n");
-			check = false;
+		// 5 & 6. Validate Email and Phone Number only for Guests
+		if( LoggedUser.getType()==SUBSCRIBER) {
+			ID= String.valueOf(LoggedUser.getId());
+			email = sub.getEmail();
+			phone = sub.getPhone();
 		}
-		//TODO: fix the proccess according to the tables of the db
+		else {
+			// 5. Validate Email format
+			email = orderEmail.getText();
+			if (!email.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$")) {
+				str.append("Please enter a valid Email\n");
+				check = false;
+			}
+			// 6. Validate Phone Number (must be 7 digits and contain only numbers)
+			phone = phoneNumber.getText();
+			if (phone == null || phone.length() != 7 || !phone.matches("\\d+")) {
+				str.append("Please enter a valid 7-digit phone number\n");
+				check = false;
+			}
+		}
 		// Final Check: Display errors or process reservation
 		if (!check) {
 			showAlert("Reservation Failure", str.toString());
@@ -328,10 +357,9 @@ public class OrderScreen {
 			int confirmation_code = random.nextInt(90000) + 10000;
 			
 			// Create Reservation object: date, amount, code, subscriber ID, today's date (for tracking)
-			//Reservation r = new Reservation(date, amount, confirmation_code, Integer.parseInt(ID), today);
-			
+			Reservation r = new Reservation(date, amount, confirmation_code, Integer.parseInt(ID), today, selected.toLocalTime(), phone, email);
 			// Send the reservation object to the client controller for server communication
-			//Main.client.accept(r);
+			Main.client.accept(r);
 		}
 	}
 
