@@ -191,6 +191,34 @@ public class Server extends AbstractServer {
 					dbReturnedValue != null ? BistroResponseStatus.SUCCESS : BistroResponseStatus.FAILURE,
 					dbReturnedValue);
 			break;
+			// Handles a request to retrieve a subscriber by ID.
+			// Validates the incoming data type, queries the database, and returns the result.
+			case GET_SUB:
+			    try {
+			        // Validate that the received data is an Integer (subscriber ID)
+			        if (!(data instanceof Integer)) {
+			            response = new BistroResponse(BistroResponseStatus.FAILURE, "Invalid subscriber ID format");
+			            break;
+			        }
+
+			        int sub_id1 = (Integer) data;
+
+			        // Query the database for the subscriber
+			        dbReturnedValue = db.SearchSubscriberById(sub_id1);
+
+			        // Build the response based on whether the subscriber was found
+			        response = new BistroResponse(
+			            dbReturnedValue != null ? BistroResponseStatus.SUCCESS : BistroResponseStatus.FAILURE,
+			            dbReturnedValue
+			        );
+
+			    } catch (Exception e) {
+			        // Catch unexpected errors and return a failure response
+			        response = new BistroResponse(BistroResponseStatus.FAILURE, "Server error while retrieving subscriber");
+			        e.printStackTrace();
+			    }
+			    break;
+
 		case ADD_TABLE:
 			// Expect Integer table size; insert table and return success.
 			if (data instanceof Integer) {

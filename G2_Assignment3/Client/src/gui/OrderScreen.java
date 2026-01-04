@@ -7,9 +7,13 @@
 package gui;
 
 import java.time.LocalDate;
+
 import java.time.LocalDateTime;
 import java.util.Random;
 
+import communication.BistroCommand;
+import communication.BistroRequest;
+import communication.BistroResponse;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
@@ -20,117 +24,202 @@ import javafx.scene.control.DateCell;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
-import logic.Reservation;
+import javafx.scene.layout.VBox;
+import logic.LoggedUser;
+import logic.Subscriber;
+import logic.UserType;
 
 public class OrderScreen {
 	public static final String fxmlPath = "/gui/Order.fxml";
+	private static final UserType SUBSCRIBER = null;
+	private static final UserType EMPLOEE = null;
 	/** Utility for generating a random confirmation code. */
 	private Random random = new Random();
 	
+	private boolean isSubscriber;
+
 	/** Alert object used to display success or failure messages to the user. */
 	Alert alert = new Alert(Alert.AlertType.INFORMATION);
 
 	@FXML
-	private ComboBox<String> dinersAmmount;
+    private Button backBtn;
 
-	@FXML
-	private Button orderBtn;
+    @FXML
+    private VBox btnVbox;
 
-	@FXML
-	private Button backBtn;
+    @FXML
+    private CheckBox checkBox;
 
-	@FXML
-	private DatePicker orderDate;
+    @FXML
+    private ComboBox<String> dinersAmmount;
 
-	@FXML
-	private TextField orderEmail;
+    @FXML
+    private VBox nonSubVbox;
 
-	@FXML
-	private ComboBox<String> orderHours;
+    @FXML
+    private Button orderBtn;
 
-	@FXML
-	private ComboBox<String> orderMinutes;
+    @FXML
+    private DatePicker orderDate;
 
-	@FXML
-	private TextField phoneNumber;
+    @FXML
+    private TextField orderEmail;
 
-	@FXML
-	private ComboBox<String> phoneStart;
+    @FXML
+    private ComboBox<String> orderHours;
 
-	@FXML
-	private CheckBox checkBox;
+    @FXML
+    private ComboBox<String> orderMinutes;
 
-	@FXML
-	private TextField subID;
+    @FXML
+    private TextField phoneNumber;
 
-	@FXML
-	private HBox subHBOX;
+    @FXML
+    private ComboBox<String> phoneStart;
+
+    @FXML
+    private HBox subHBOX;
+
+    @FXML
+    private TextField subID;
+
+    @FXML
+    private VBox subVbox;
+
+    @FXML
+    private VBox workerVbox;
+
 
 	/**
-	 * Initializes the controller. This method is called automatically after the FXML 
+	 * Initializes the controller. This method is called automatically 
 	 * file has been loaded.
-	 * It sets up the available options for ComboBoxes (diners amount, hours, minutes, phone prefixes)
+	 * It sets up the available options for Comb
 	 * and configures the DatePicker to only allow future dates within the next month.
 	 */
-	@FXML
-	public void initialize() {
-		// Hide the subscriber ID input field initially
-		subHBOX.setVisible(false);
-		
-		// Configure the DatePicker to restrict selection: only today up to one month ahead is allowed
-		orderDate.setDayCellFactory(d -> new DateCell() {
-			@Override
-			public void updateItem(LocalDate item, boolean empty) {
-			    super.updateItem(item, empty);
+    @FXML
+    public void initialize() {
 
-			    if (empty || item == null) {
-			        setDisable(false);
-			        setStyle("");
-			        return;
-			    }
+        if (LoggedUser.getType()==SUBSCRIBER) {
+        	setSubscriber();
+        }
+        else if (LoggedUser.getType()==EMPLOEE) {
+        	setupWorkerView();
+        }
+        else {
+            setupGuestView();
+        }
 
-			    LocalDate today = LocalDate.now();
-			    LocalDate maxDate = today.plusMonths(1);
+        subHBOX.setVisible(false);
 
-			    // Disable dates before today or more than one month in the future
-			    if (item.isBefore(today) || item.isAfter(maxDate)) {
-			        setDisable(true);
-			        setStyle("-fx-background-color: #ccc;");
-			    } else {
-			        setDisable(false);
-			        setStyle("");
-			    }
-			}
-		});
-		
-		// Initialize diners amount options (1–10)
-		dinersAmmount.getItems().clear();
-		for (int i = 1; i <= 10; i++) {
-			dinersAmmount.getItems().add(String.valueOf(i));
-		}
+        orderDate.setDayCellFactory(d -> new DateCell() {
+            @Override
+            public void updateItem(LocalDate item, boolean empty) {
+                super.updateItem(item, empty);
 
-		// Initialize reservation hours options (12:00–22:30, in half-hour increments)
-		orderHours.getItems().clear();
-		for (int i = 12; i < 23; i++) { // From 12:00 up to 22:xx
-			orderHours.getItems().add(String.format("%02d", i));
-		}
+                if (empty || item == null) {
+                    setDisable(false);
+                    setStyle("");
+                    return;
+                }
 
-		// Initialize reservation minutes options (00, 30)
-		orderMinutes.getItems().clear();
-		for (int i = 0; i < 60; i += 30) {
-			orderMinutes.getItems().add(String.format("%02d", i));
-		}
+                LocalDate today = LocalDate.now();
+                LocalDate maxDate = today.plusMonths(1);
 
-		// Initialize phone prefix options
-		phoneStart.getItems().clear();
-		phoneStart.getItems().addAll("050", "052", "053", "054", "055", "058");
+                if (item.isBefore(today) || item.isAfter(maxDate)) {
+                    setDisable(true);
+                    setStyle("-fx-background-color: #ccc;");
+                } else {
+                    setDisable(false);
+                    setStyle("");
+                }
+            }
+        });
+
+        dinersAmmount.getItems().clear();
+        for (int i = 1; i <= 10; i++) {
+            dinersAmmount.getItems().add(String.valueOf(i));
+        }
+
+        orderHours.getItems().clear();
+        for (int i = 12; i < 23; i++) {
+            orderHours.getItems().add(String.format("%02d", i));
+        }
+
+        orderMinutes.getItems().clear();
+        for (int i = 0; i < 60; i += 30) {
+            orderMinutes.getItems().add(String.format("%02d", i));
+        }
+
+        phoneStart.getItems().clear();
+        phoneStart.getItems().addAll("050", "052", "053", "054", "055", "058");
+    }
+
+    /**
+     * Configures the screen for a logged-in subscriber.
+     * Fetches subscriber details from the database and auto-fills the UI fields.
+     */
+    @FXML
+    public Subscriber setSubscriber() {
+
+        // Get subscriber ID from LoggedUser
+        int id = LoggedUser.getId();
+
+        BistroRequest request= new BistroRequest(BistroCommand.GET_SUB, id);
+        Main.client.accept(request);
+        
+        BistroResponse response= Main.client.getResponse();
+
+        if (response == null) {
+            // If something went wrong, fallback to guest mode
+            setupGuestView();
+            return null;
+        }
+        Object data = response.getData();
+        if(data!= null) {
+        	Subscriber sub=(Subscriber)data;
+        	 // Hide fields that are not relevant for subscribers
+            nonSubVbox.setVisible(false);
+            workerVbox.setVisible(false);
+            subHBOX.setVisible(false); // subscriber does NOT need to enter subscriber ID manually
+            return sub;
+        }
+        return null;
+    }
+
+	/**
+	 * Configures the screen for a non‑logged guest user.
+	 * <p>
+	 * This mode is used when the user arrives from the main menu without logging in.
+	 * All contact fields (phone and email) remain visible because the guest must
+	 * manually provide this information in order to place a reservation.
+	 * Worker‑specific and subscriber‑specific fields are hidden.
+	 */
+	private void setupGuestView() {
+	    nonSubVbox.setVisible(true);  
+	    workerVbox.setVisible(false);  
+	    subHBOX.setVisible(true);     
+	}
+	
+	/**
+	 * Configures the screen for a logged‑in worker.
+	 * <p>
+	 * Workers do not need to enter personal contact information when placing
+	 * a reservation for a customer. Therefore, guest fields are hidden while
+	 * worker‑related controls remain visible.
+	 */
+	private void setupWorkerView() {
+	    nonSubVbox.setVisible(true);  
+	    workerVbox.setVisible(true); 
+	    subHBOX.setVisible(true);     
 	}
 
+	
 	/**
 	 * Handles the action when the subscriber CheckBox is clicked.
 	 * Toggles the visibility of the subscriber ID input field (subHBOX).
 	 * * @param e The ActionEvent triggered by the CheckBox.
 	 */
+	
 	@FXML
 	public void checkClicked(ActionEvent e) {
 		if (checkBox.isSelected())

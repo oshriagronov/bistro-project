@@ -577,6 +577,44 @@ public class ConnectionToDB {
 	}
 
 	/**
+	 * Retrieves a Subscriber object from the database using the subscriber ID.
+	 * This method executes a SQL query to fetch all subscriber fields.
+	 *
+	 * @param sub_id The ID of the subscriber to search for.
+	 * @return A fully populated Subscriber object if found, otherwise null.
+	 */
+	public Subscriber SearchSubscriberById(int sub_id) {
+
+	    // SQL query to retrieve all subscriber fields
+	    String sql = "SELECT * FROM subscriber WHERE subscriberId = ?";
+
+	    // Execute the query
+	    List<List<Object>> rows = executeReadQuery(sql, sub_id);
+
+	    // If no results found, return null
+	    if (rows.isEmpty())
+	        return null;
+
+	    List<Object> row = rows.get(0);
+
+	    if (row.isEmpty())
+	        return null;
+
+	    // Extract fields from the row
+	    Integer subscriberId = (Integer) row.get(0);
+	    String username = (String) row.get(1);
+	    String firstName = (String) row.get(2);
+	    String lastName = (String) row.get(3);
+	    String email = (String) row.get(4);
+	    String phone = (String) row.get(5);
+	    String passwordHash = (String) row.get(6);
+
+	    // Create and return a Subscriber object
+	    return new Subscriber(subscriberId, username, firstName, lastName, email, phone, passwordHash);
+	}
+
+
+	/**
 	 * Authenticates a worker by username and password.
 	 *
 	 * @param username    worker username
@@ -864,3 +902,4 @@ public class ConnectionToDB {
 	}
 
 }
+
