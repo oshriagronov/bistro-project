@@ -27,4 +27,19 @@ public class LoggedUser {
         LoggedUser.id = id;
         LoggedUser.type = UserType.SUBSCRIBER;
     }
+
+    public static void setWorker(int id) {
+        LoggedUser.id = id;
+        LoggedUser.type = UserType.EMPLOYEE;
+    }
+
+    public static void setGuest() {
+        LoggedUser.id = -1;
+        LoggedUser.type = UserType.GUEST;
+    }
+
+    public static void setManager(int id) {
+        LoggedUser.id = id;
+        LoggedUser.type = UserType.MANAGER;
+    }
 }

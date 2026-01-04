@@ -199,7 +199,7 @@ public class OrderScreen {
 	private void setupGuestView() {
 	    nonSubVbox.setVisible(true);  
 	    workerVbox.setVisible(false);  
-	    subHBOX.setVisible(true);     
+	    subHBOX.setVisible(false);     
 	}
 	
 	/**
@@ -229,7 +229,7 @@ public class OrderScreen {
         	 // Hide fields that are not relevant for subscribers
             nonSubVbox.setVisible(true);
             workerVbox.setVisible(true);
-            subHBOX.setVisible(false); // worker does NOT need to enter subscriber ID manually
+            subHBOX.setVisible(false); //worker does NOT need to enter subscriber ID manually
 			return worker;
         }
 		return null;

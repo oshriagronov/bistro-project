@@ -1,5 +1,5 @@
 package logic;
 
 public enum UserType {
-SUBSCRIBER,EMPLOYEE,MANAGER
+SUBSCRIBER,EMPLOYEE,MANAGER,GUEST
 }
