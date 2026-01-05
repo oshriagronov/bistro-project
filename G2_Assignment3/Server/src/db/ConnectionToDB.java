@@ -381,7 +381,7 @@ public class ConnectionToDB {
 	 * @return the table number of a suitable table, or 0 if no such table is found
 	 */
 	public int searchAvailableTableBySize(int number_of_guests) {
-		String sql = "SELECT table_number, table_size FROM `tablestable` WHERE res_id IS NULL AND table_size >= ?";
+		String sql = "SELECT table_number, size FROM `tablestable` WHERE res_id IS NULL AND size >= ?";
 		int min = 10;
 		int table_number = 0;
 		// the two line bellow are needed to use the pool connection
@@ -397,7 +397,7 @@ public class ConnectionToDB {
 			ResultSet rs = stmt.executeQuery();
 			while (rs.next()) {
 				int tableNumber = rs.getInt("table_number");
-				int tableSize = rs.getInt("table_size");
+				int tableSize = rs.getInt("size");
 				if (tableSize < min) {
 					table_number = tableNumber;
 				}
@@ -577,74 +577,74 @@ public class ConnectionToDB {
 	}
 
 	/**
-	 * Retrieves a Subscriber object from the database using the subscriber ID.
-	 * This method executes a SQL query to fetch all subscriber fields.
+	 * Retrieves a Subscriber object from the database using the subscriber ID. This
+	 * method executes a SQL query to fetch all subscriber fields.
 	 *
 	 * @param sub_id The ID of the subscriber to search for.
 	 * @return A fully populated Subscriber object if found, otherwise null.
 	 */
 	public Subscriber SearchSubscriberById(int sub_id) {
 
-	    // SQL query to retrieve all subscriber fields
-	    String sql = "SELECT * FROM subscriber WHERE subscriberId = ?";
+		// SQL query to retrieve all subscriber fields
+		String sql = "SELECT * FROM subscriber WHERE subscriberId = ?";
 
-	    // Execute the query
-	    List<List<Object>> rows = executeReadQuery(sql, sub_id);
+		// Execute the query
+		List<List<Object>> rows = executeReadQuery(sql, sub_id);
 
-	    // If no results found, return null
-	    if (rows.isEmpty())
-	        return null;
+		// If no results found, return null
+		if (rows.isEmpty())
+			return null;
 
-	    List<Object> row = rows.get(0);
+		List<Object> row = rows.get(0);
 
-	    if (row.isEmpty())
-	        return null;
+		if (row.isEmpty())
+			return null;
 
-	    // Extract fields from the row
-	    Integer subscriberId = (Integer) row.get(0);
-	    String username = (String) row.get(1);
-	    String firstName = (String) row.get(2);
-	    String lastName = (String) row.get(3);
-	    String email = (String) row.get(4);
-	    String phone = (String) row.get(5);
-	    String passwordHash = (String) row.get(6);
+		// Extract fields from the row
+		Integer subscriberId = (Integer) row.get(0);
+		String username = (String) row.get(1);
+		String firstName = (String) row.get(2);
+		String lastName = (String) row.get(3);
+		String email = (String) row.get(4);
+		String phone = (String) row.get(5);
+		String passwordHash = (String) row.get(6);
 
-	    // Create and return a Subscriber object
-	    return new Subscriber(subscriberId, username, firstName, lastName, email, phone, passwordHash);
+		// Create and return a Subscriber object
+		return new Subscriber(subscriberId, username, firstName, lastName, email, phone, passwordHash);
 	}
 
 	/**
-	 * Retrieves a worker object from the database using the worker ID.
-	 * This method executes a SQL query to fetch all worker fields.
+	 * Retrieves a worker object from the database using the worker ID. This method
+	 * executes a SQL query to fetch all worker fields.
 	 *
 	 * @param worker_id The ID of the worker to search for.
 	 * @return A fully populated Worker object if found, otherwise null.
 	 */
 	public Worker SearchWorkerById(int worker_id) {
 
-	    // SQL query to retrieve all worker fields
-	    String sql = "SELECT * FROM workers WHERE worker_id = ?";
+		// SQL query to retrieve all worker fields
+		String sql = "SELECT * FROM workers WHERE worker_id = ?";
 
-	    // Execute the query
-	    List<List<Object>> rows = executeReadQuery(sql, worker_id);
+		// Execute the query
+		List<List<Object>> rows = executeReadQuery(sql, worker_id);
 
-	    // If no results found, return null
-	    if (rows.isEmpty())
-	        return null;
+		// If no results found, return null
+		if (rows.isEmpty())
+			return null;
 
-	    List<Object> row = rows.get(0);
+		List<Object> row = rows.get(0);
 
-	    if (row.isEmpty())
-	        return null;
+		if (row.isEmpty())
+			return null;
 
-	    // Extract fields from the row
-	    Integer workerid = (Integer) row.get(0);
-	    String username = (String) row.get(1);
-		String passwordHash = (String) row.get(2);
-	    Enum<WorkerType> workerType = WorkerType.valueOf(((String) row.get(3)).trim().toUpperCase()); 
- 
-	    // Create and return a Worker object
-	    return new Worker(workerid, username, passwordHash, (WorkerType) workerType);
+		// Extract fields from the row
+		Integer workerid = (Integer) row.get(0);
+		String username = (String) row.get(1);
+		// String passwordHash = (String) row.get(2);
+		Enum<WorkerType> workerType = WorkerType.valueOf(((String) row.get(3)).trim().toUpperCase());
+
+		// return new Worker(workerid, username, passwordHash, (WorkerType) workerType);
+		return new Worker(workerid, username, (WorkerType) workerType);
 	}
 
 	/**
@@ -935,4 +935,3 @@ public class ConnectionToDB {
 	}
 
 }
-

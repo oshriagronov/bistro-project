@@ -4,6 +4,9 @@ import java.util.ArrayList;
 
 import communication.BistroCommand;
 import communication.BistroRequest;
+import communication.EventBus;
+import communication.EventListener;
+import communication.EventType;
 import gui.Main;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -33,6 +36,7 @@ public class CurrentDinersScreen {
 
 	/** Path to the FXML file associated with this screen. */
 	public static final String fxmlPath = "/employee/CurrentDiners.fxml";
+	private final EventListener tableListener = t -> loadTables();
 
 	/** Table view displaying the current diner rows. */
 	@FXML
@@ -102,7 +106,7 @@ public class CurrentDinersScreen {
 		subscriberIdCol.setCellValueFactory(new PropertyValueFactory<>("subscriberId"));
 		dinersCol.setCellValueFactory(new PropertyValueFactory<>("diners"));
 		orderNumberCol.setCellValueFactory(new PropertyValueFactory<>("orderNumber"));
-
+		EventBus.getInstance().subscribe(EventType.TABLE_CHANGED, tableListener);
 		loadTables();
 	}
 
@@ -128,5 +132,9 @@ public class CurrentDinersScreen {
 	@FXML
 	void refresh(ActionEvent event) {
 		loadTables();
+	}
+	
+	public void onClose() {
+	    EventBus.getInstance().unsubscribe(EventType.TABLE_CHANGED, tableListener);
 	}
 }

@@ -6,6 +6,8 @@ import communication.BistroCommand;
 import communication.BistroRequest;
 import communication.BistroResponse;
 import communication.BistroResponseStatus;
+import communication.EventBus;
+import communication.EventType;
 import communication.TableSizeUpdate;
 import gui.Main;
 import javafx.collections.FXCollections;
@@ -80,10 +82,7 @@ public class TablesManagementScreen {
     private void reloadTables() {
         Main.client.accept(new BistroRequest(BistroCommand.GET_TABLES, null));
         Object data = Main.client.getResponse().getData();
-
-        @SuppressWarnings("unchecked")
         ArrayList<Table> tables = (ArrayList<Table>) data;
-
         tablesTable.setItems(FXCollections.observableArrayList(tables));
     }
 

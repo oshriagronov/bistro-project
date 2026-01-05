@@ -80,7 +80,7 @@ public class SubscriberLoginScreen {
                     FXMLLoader loader = new FXMLLoader(getClass().getResource(OrderScreen.fxmlPath));
                     // Get controller and set subscriber mode
                     OrderScreen controller = loader.getController();
-                    controller.setSubscriber();
+                    controller.setupSubscriber();
 
                     // Switch screen
                     Main.changeRoot(OrderScreen.fxmlPath);
