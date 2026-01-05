@@ -15,7 +15,7 @@ public class MySQLConnectionPool {
     // DB Config
     private static final String DB_URL = "jdbc:mysql://localhost:3306/bistro";    
     private static final String USER = "root";
-    private static String PASS = "Oshri@Agronov";
+    private static String PASS = "root";
     
     
     // Pool Config (Short times for Example)

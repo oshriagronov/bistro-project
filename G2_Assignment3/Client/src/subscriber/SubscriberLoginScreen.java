@@ -70,21 +70,10 @@ public class SubscriberLoginScreen {
 
             if (Main.client.getResponse().getStatus() == BistroResponseStatus.SUCCESS) {
                 try {
-                    // Get subscriber returned from server
-                    Subscriber logged = (Subscriber) Main.client.getResponse().getData();
-
                     // Save subscriber globally
-                    LoggedUser.setSubscriber(logged.getSubscriberId());
-
-                    // Load OrderScreen
-                    FXMLLoader loader = new FXMLLoader(getClass().getResource(OrderScreen.fxmlPath));
-                    // Get controller and set subscriber mode
-                    OrderScreen controller = loader.getController();
-                    controller.setupSubscriber();
-
+                    LoggedUser.setSubscriber(Integer.parseInt(subscriberCode));
                     // Switch screen
-                    Main.changeRoot(OrderScreen.fxmlPath);
-
+                    Main.changeRoot(SubscriberScreen.fxmlPath);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }

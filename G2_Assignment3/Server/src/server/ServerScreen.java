@@ -1,11 +1,9 @@
 package server;
+
 import javafx.application.Platform;
-import javafx.scene.Parent;
+import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.VBox;
-import javafx.geometry.Insets;
 
 /**
  * Simple JavaFX screen that boots the server and shows a rolling log.
@@ -13,42 +11,28 @@ import javafx.geometry.Insets;
 public class ServerScreen  {
     public static ServerScreen instance;
     private Server server;
-    private TextArea logArea;
-    private Label ipLabel;
-    private Label dbPasswordLabel;
     private String serverPort = "5555";
+
+    @FXML
+    private TextArea logArea;
+
+    @FXML
+    private Label ipLabel;
+
+    @FXML
+    private Label dbPasswordLabel;
+
     /**
-     * Builds the UI and launches the server listening on the configured port.
-     * @param primaryStage the hosting stage supplied by JavaFX.
-     */
-    public Parent createContent() {
-        GridPane grid = new GridPane();
-        grid.setVgap(10);
-        grid.setHgap(10);
-        grid.setPadding(new Insets(10));
-
-        logArea = new TextArea();
-        logArea.setEditable(false);
-        logArea.setPrefSize(350, 200);
-        grid.add(logArea, 0, 1);
-
-        ipLabel = new Label("Server IP: pending...");
-        dbPasswordLabel = new Label("DB Password: pending...");
-
-        VBox infoBox = new VBox(10, ipLabel, dbPasswordLabel);
-        grid.add(infoBox, 1, 1);
-
-        // start server after UI exists
-        startServer(serverPort);
-
-        return grid;
-    }
-    
-    /**
-     * Default constructor keeps a static reference for the server callbacks.
+     * Default constructor is used by the FXMLLoader.
      */
     public ServerScreen() {
+        // FXMLLoader will initialize fields before calling initialize().
+    }
+
+    @FXML
+    private void initialize() {
         instance = this; // server will use this
+        startServer(serverPort);
     }
 
     /**

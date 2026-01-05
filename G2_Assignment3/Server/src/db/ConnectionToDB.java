@@ -507,40 +507,27 @@ public class ConnectionToDB {
 		if (rows.isEmpty())
 			return null;
 		List<Reservation> reservations = new ArrayList<>();
-		for (Object obj : rows) {
-			if (!(obj instanceof List))
-				continue;
-			List<Object> row = (List<Object>) obj;
-			if (row.size() < 8)
+		for (List<Object> row : rows) {
+			if (row.size() < 9)
 				continue;
 
-			Integer confirmationCode = null;
 			Object confirmationObj = row.get(0);
-			if (confirmationObj instanceof Integer)
-				confirmationCode = (Integer) confirmationObj;
-
-			String phoneNumber = null;
 			Object phoneObj = row.get(1);
-			if (phoneObj instanceof String)
-				phoneNumber = (String) phoneObj;
-
-			LocalTime startTime = null;
 			Object startObj = row.get(2);
-			if (startObj instanceof java.sql.Time)
-				startTime = ((java.sql.Time) startObj).toLocalTime();
-
-			LocalTime finishTime = null;
 			Object finishObj = row.get(3);
-			if (finishObj instanceof java.sql.Time)
-				finishTime = ((java.sql.Time) finishObj).toLocalTime();
-
-			LocalDate orderDate = null;
 			Object orderDateObj = row.get(4);
-			if (orderDateObj instanceof java.sql.Date)
-				orderDate = ((java.sql.Date) orderDateObj).toLocalDate();
+			Object statusObj = row.get(5);
+			Object numDinersObj = row.get(6);
+			Object placingDateObj = row.get(7);
+			Object emailObj = row.get(8);
+
+			if (!(confirmationObj instanceof Integer) || !(phoneObj instanceof String)
+					|| !(startObj instanceof java.sql.Time) || !(finishObj instanceof java.sql.Time)
+					|| !(orderDateObj instanceof java.sql.Date) || !(numDinersObj instanceof Integer)
+					|| !(placingDateObj instanceof java.sql.Date))
+				continue;
 
 			Status status = null;
-			Object statusObj = row.get(5);
 			if (statusObj instanceof String) {
 				String text = ((String) statusObj).trim();
 				if (!text.isEmpty()) {
@@ -551,24 +538,17 @@ public class ConnectionToDB {
 					}
 				}
 			}
-
-			Integer numDiners = null;
-			Object numDinersObj = row.get(6);
-			if (numDinersObj instanceof Integer)
-				numDiners = (Integer) numDinersObj;
-
-			LocalDate placingDate = null;
-			Object placingDateObj = row.get(7);
-
-			Object emailObj = row.get(8);
-			String email = (emailObj instanceof String) ? (String) emailObj : null;
-
-			if (placingDateObj instanceof java.sql.Date)
-				placingDate = ((java.sql.Date) placingDateObj).toLocalDate();
-
-			if (confirmationCode == null || phoneNumber == null || startTime == null || finishTime == null
-					|| orderDate == null || status == null || numDiners == null || placingDate == null)
+			if (status == null)
 				continue;
+
+			Integer confirmationCode = (Integer) confirmationObj;
+			String phoneNumber = (String) phoneObj;
+			LocalTime startTime = ((java.sql.Time) startObj).toLocalTime();
+			LocalTime finishTime = ((java.sql.Time) finishObj).toLocalTime();
+			LocalDate orderDate = ((java.sql.Date) orderDateObj).toLocalDate();
+			Integer numDiners = (Integer) numDinersObj;
+			LocalDate placingDate = ((java.sql.Date) placingDateObj).toLocalDate();
+			String email = (emailObj instanceof String) ? (String) emailObj : null;
 
 			reservations.add(new Reservation(orderDate, numDiners, confirmationCode, subscriberId, placingDate,
 					startTime, finishTime, phoneNumber, status, email));
@@ -771,6 +751,65 @@ public class ConnectionToDB {
 		result.add(startTime);
 		return result;
 	}
+
+
+		// Notification service related methods ************************************************
+
+	/**
+	 * Retrieves upcoming confirmed reservations within the next two hours for reminders.
+	 *
+	 * @return list of rows as strings (res_id, phone, email, start_time, confirmation_code),
+	 *         or null if none found
+	 */
+	public List<List<String>> getReservationToSendReminder() {
+		String sql = """
+				    SELECT res_id, phone, email, start_time, confirmation_code
+				    FROM reservations
+				    WHERE order_status = 'CONFIRMED'
+				      AND TIMESTAMP(order_date, start_time) >= NOW()
+				      AND TIMESTAMP(order_date, start_time) <= TIMESTAMPADD(MINUTE, 120, NOW())
+				""";
+		List<List<Object>> rows = executeReadQuery(sql);
+		if (rows.isEmpty())
+			return null;
+		List<List<String>> out = new ArrayList<>(rows.size());
+		for (List<Object> row : rows) {
+			List<String> outRow = new ArrayList<>(row.size());
+			for (Object cell : row) {
+				outRow.add(cell == null ? null : cell.toString());
+			}
+			out.add(outRow);
+		}
+		return out;
+	}
+
+	/**
+	 * Retrieves confirmed reservations that have finished and are past due for payment reminders.
+	 *
+	 * @return list of rows as strings (res_id, phone, email), or null if none found
+	 */
+	public List<List<String>> getReservationToSendPaymentReminder() {
+		String sql = """
+				    SELECT res_id, phone, email
+				    FROM reservations
+				    WHERE order_status = 'CONFIRMED'
+				      AND finish_time IS NOT NULL
+				      AND TIMESTAMP(order_date, finish_time) < NOW()
+				""";
+		List<List<Object>> rows = executeReadQuery(sql);
+		if (rows.isEmpty())
+			return null;
+		List<List<String>> out = new ArrayList<>(rows.size());
+		for (List<Object> row : rows) {
+			List<String> outRow = new ArrayList<>(row.size());
+			for (Object cell : row) {
+				outRow.add(cell == null ? null : cell.toString());
+			}
+			out.add(outRow);
+		}
+		return out;
+	}
+
 
 	/**
 	 * Executes a write query with positional parameters.
