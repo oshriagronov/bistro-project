@@ -1,5 +1,7 @@
 package gui;
 
+import java.util.ResourceBundle;
+
 import communication.BistroCommand;
 import communication.BistroRequest;
 import communication.BistroResponse;
@@ -22,14 +24,20 @@ public class CancelReservationScreen {
     public static final String fxmlPath = "/gui/CancelReservation.fxml";
 
     @FXML
+    private ResourceBundle resources;
+
+
+    @FXML
     private TextField ReservationIdField;
+
+    @FXML
+    private Label messageLabel;
 
     @FXML
     private TextField phoneField;
 
     @FXML
-    private Label messageLabel;
-
+    private TextField emailField;
     /**
      * Handles the Cancel Reservation button click.
      * Validates the input and sends a cancellation request to the server.
@@ -38,9 +46,10 @@ public class CancelReservationScreen {
     private void cancelReservation(ActionEvent event) {
         String reservationId = ReservationIdField.getText().trim();
         String phone = phoneField.getText().trim();
-
-        if (reservationId.isEmpty() || phone.isEmpty()) {
-            messageLabel.setText("Please fill in all fields.");
+        String email = emailField.getText().trim();
+        
+        if (reservationId.isEmpty() || (phone.isEmpty() && email.isEmpty())) {
+            messageLabel.setText("Please fill in phone or email and reservation number.");
             messageLabel.setStyle("-fx-text-fill: red;");
             return;
         }
@@ -59,9 +68,19 @@ public class CancelReservationScreen {
             messageLabel.setStyle("-fx-text-fill: red;");
             return;
         }
-        Main.client.accept(new BistroRequest(BistroCommand.CHANGE_STATUS, new StatusUpdate(phone ,orderNumber, Status.CANCELLED)));
-        BistroResponse response = Main.client.getResponse();
-        handleCancelResponse(response);
+        // Send cancellation request to the server, first if he entered phone else use email
+        if(phone.isEmpty()) {
+            Main.client.accept(new BistroRequest(BistroCommand.CHANGE_STATUS, new StatusUpdate(orderNumber,email, Status.CANCELLED)));
+            BistroResponse response = Main.client.getResponse();
+            handleCancelResponse(response);
+            return;
+        }
+        else if(email.isEmpty()) {
+            Main.client.accept(new BistroRequest(BistroCommand.CHANGE_STATUS, new StatusUpdate(phone ,orderNumber, Status.CANCELLED)));
+            BistroResponse response = Main.client.getResponse();
+            handleCancelResponse(response);
+            return;
+        }
     }
 
     /**
