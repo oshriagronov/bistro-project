@@ -21,17 +21,10 @@
             <Button fx:id="updateReservationBtn" minWidth="180.0" onAction="#goToUpdateReservation" prefWidth="180.0" text="Update Reservation" />
             <Button fx:id="waitingListBtn" minWidth="180.0" onAction="#goToWaitingList" prefWidth="180.0" text="Waiting List" />
             <Button fx:id="historyBtn" minWidth="180.0" onAction="#goToReservationHistory" prefWidth="180.0" text="Reservation History" />
-            <Button fx:id="revealUpdateBtn" minWidth="180.0" onAction="#revealUpdateForm" prefWidth="180.0" text="Update Personal Info" />
+            <Button fx:id="updateInfoBtn" minWidth="180.0" onAction="#updateInfo" prefWidth="180.0" text="Update Personal Info" />
          </children>
       </VBox>
       
-      <VBox fx:id="updateForm" alignment="CENTER" spacing="10.0" visible="false">
-         <children>
-            <TextField fx:id="phoneField" maxWidth="200" promptText="New Phone Number" />
-            <TextField fx:id="emailField" maxWidth="200" promptText="New Email Address" />
-            <Button fx:id="submitBtn" minWidth="180.0" onAction="#handleSubmit" prefWidth="180.0" text="Submit Changes" />
-         </children>
-      </VBox>
       
       <Region VBox.vgrow="ALWAYS" />
       <HBox alignment="CENTER_RIGHT" maxWidth="Infinity" spacing="10.0">

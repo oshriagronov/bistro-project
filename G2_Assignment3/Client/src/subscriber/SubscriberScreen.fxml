@@ -21,7 +21,7 @@
             <Button fx:id="updateReservationBtn" minWidth="180.0" onAction="#goToUpdateReservation" prefWidth="180.0" text="Update Reservation" />
             <Button fx:id="waitingListBtn" minWidth="180.0" onAction="#goToWaitingList" prefWidth="180.0" text="Waiting List" />
             <Button fx:id="historyBtn" minWidth="180.0" onAction="#goToReservationHistory" prefWidth="180.0" text="Reservation History" />
-            <Button fx:id="revealUpdateBtn" minWidth="180.0" onAction="#revealUpdateForm" prefWidth="180.0" text="Update Personal Info" />
+            <Button fx:id="updateInfoBtn" minWidth="180.0" onAction="#updateInfo" prefWidth="180.0" text="Update Personal Info" />
          </children>
       </VBox>
       

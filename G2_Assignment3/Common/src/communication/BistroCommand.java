@@ -30,5 +30,6 @@ public enum BistroCommand {
     GET_STAYING_TIMES,
     GET_SUBSCRIBER_HISTORY,
     GET_SUB,
-    GET_WORKER
+    GET_WORKER,
+    GET_SUBSCRIBER_BY_ID
 }

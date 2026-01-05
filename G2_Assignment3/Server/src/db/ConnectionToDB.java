@@ -564,22 +564,16 @@ public class ConnectionToDB {
 	 * @return A fully populated Subscriber object if found, otherwise null.
 	 */
 	public Subscriber SearchSubscriberById(int sub_id) {
-
 		// SQL query to retrieve all subscriber fields
-		String sql = "SELECT * FROM subscriber WHERE subscriberId = ?";
-
+		String sql = "SELECT sub_id, username, first_name, last_name, email, phone FROM subscriber WHERE sub_id = ?";
 		// Execute the query
 		List<List<Object>> rows = executeReadQuery(sql, sub_id);
-
 		// If no results found, return null
 		if (rows.isEmpty())
 			return null;
-
 		List<Object> row = rows.get(0);
-
 		if (row.isEmpty())
 			return null;
-
 		// Extract fields from the row
 		Integer subscriberId = (Integer) row.get(0);
 		String username = (String) row.get(1);
@@ -587,8 +581,7 @@ public class ConnectionToDB {
 		String lastName = (String) row.get(3);
 		String email = (String) row.get(4);
 		String phone = (String) row.get(5);
-		String passwordHash = (String) row.get(6);
-
+		String passwordHash = "";
 		// Create and return a Subscriber object
 		return new Subscriber(subscriberId, username, firstName, lastName, email, phone, passwordHash);
 	}

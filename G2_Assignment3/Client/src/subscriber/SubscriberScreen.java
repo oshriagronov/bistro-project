@@ -4,14 +4,12 @@ import communication.BistroCommand;
 import communication.BistroRequest;
 import gui.Main;
 import gui.UpdateScreen;
+import gui.UpdateSubDetailsScreen;
 import gui.WaitingListScreen;
 import gui.OrderScreen;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
-import javafx.scene.control.TextField;
-import javafx.scene.layout.VBox;
 import logic.LoggedUser;
 
 /**
@@ -21,19 +19,6 @@ import logic.LoggedUser;
 public class SubscriberScreen {
 	public static final String fxmlPath = "/subscriber/SubscriberScreen.fxml";
 	/** Alert used to show validation messages to the user. */
-	private final Alert alert = new Alert(Alert.AlertType.INFORMATION);
-
-	@FXML
-	/** Input for updated phone number. */
-	private TextField phoneField;
-
-	@FXML
-	/** Input for updated email address. */
-	private TextField emailField;
-
-	@FXML
-	/** Container for the update form. */
-	private VBox updateForm;
 
 	@FXML
 	/** Button that reveals the update form. */
@@ -63,73 +48,18 @@ public class SubscriberScreen {
 	/** Button to navigate to new reservation screen. */
 	private Button newReservationBtn;
 
-	@FXML
-	/**
-	 * Initializes the view and hides the update form.
-	 */
-	void initialize() {
-		updateForm.setVisible(false);
-	}
-
-	/**
-	 * Shows a simple modal alert.
-	 * @param title alert title
-	 * @param body message to display
-	 */
-	private void showAlert(String title, String body) {
-		alert.setTitle(title);
-		alert.setHeaderText(null);
-		alert.setContentText(body);
-		alert.showAndWait();
-	}
 
 	@FXML
 	/**
 	 * Reveals the update form and hides the update button.
 	 * @param event JavaFX action event
 	 */
-	void revealUpdateForm(ActionEvent event) {
-		updateForm.setVisible(true);
-		revealUpdateBtn.setVisible(false);
-	}
-
-	@FXML
-	/**
-	 * Validates inputs, shows a success/failure alert, and hides the form on success.
-	 * @param event JavaFX action event
-	 */
-	void handleSubmit(ActionEvent event) {
-		String phone = phoneField.getText();
-		String email = emailField.getText();
-		StringBuilder errors = new StringBuilder();
-		boolean ok = true;
-
-		if ((phone == null || phone.isBlank()) && (email == null || email.isBlank())) {
-			ok = false;
-			errors.append("Please enter phone number or email\n");
+	void updateInfo(ActionEvent event) {
+		try {
+			Main.changeRoot(UpdateSubDetailsScreen.fxmlPath, 640, 560);
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
-
-		if (phone != null && !phone.isBlank() && (!phone.matches("05\\d{8}"))) {
-			ok = false;
-			errors.append("Phone number must be 10 digits and start with 05\n");
-		}
-
-		if (email != null && !email.isBlank()
-				&& !email.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$")) {
-			ok = false;
-			errors.append("Please enter a valid Email\n");
-		}
-
-		if (!ok) {
-			showAlert("Update Failure", errors.toString());
-			return;
-		}
-
-		showAlert("Update Success", "Personal info updated.");
-		updateForm.setVisible(false);
-		revealUpdateBtn.setVisible(true);
-		phoneField.clear();
-		emailField.clear();
 	}
 
 	@FXML
@@ -139,6 +69,7 @@ public class SubscriberScreen {
 	 */
 	void backToSubscriberLogin(ActionEvent event) {
 		try {
+			LoggedUser.setGuest();
 			Main.changeRoot(SubscriberLoginScreen.fxmlPath);
 		} catch (Exception e) {
 			e.printStackTrace();
