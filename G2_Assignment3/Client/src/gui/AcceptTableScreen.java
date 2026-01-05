@@ -6,6 +6,8 @@ import communication.BistroCommand;
 import communication.BistroRequest;
 import communication.BistroResponse;
 import communication.BistroResponseStatus;
+import communication.EventBus;
+import communication.EventType;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
@@ -173,6 +175,7 @@ public class AcceptTableScreen {
                 infoVbox.setVisible(false);
                 tableResultText.setText("Your table is: " + data.toString());
                 tableResultText.setVisible(true);
+                EventBus.getInstance().publish(EventType.TABLE_CHANGED);
                 return;
             }
         }

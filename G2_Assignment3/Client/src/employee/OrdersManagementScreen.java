@@ -5,6 +5,9 @@ import java.util.ArrayList;
 
 import communication.BistroCommand;
 import communication.BistroRequest;
+import communication.EventBus;
+import communication.EventListener;
+import communication.EventType;
 import communication.StatusUpdate;
 import gui.Main;
 import javafx.event.ActionEvent;
@@ -21,6 +24,7 @@ import logic.Status;
 
 public class OrdersManagementScreen {
 	public static final String fxmlPath = "/employee/OrdersManagement.fxml";
+	private final EventListener ordersListener = t -> loadResults();
 	@FXML
 	private Button applyStatusBTN;
 
@@ -95,6 +99,8 @@ public class OrdersManagementScreen {
 		finishTimeCol.setCellValueFactory(new PropertyValueFactory<>("finish_time"));
 
 		phoneCol.setCellValueFactory(new PropertyValueFactory<>("phone_number"));
+		
+		EventBus.getInstance().subscribe(EventType.ORDER_CHANGED, ordersListener);
 
 		ordersTable.getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, newSelection) -> {
 
@@ -151,12 +157,22 @@ public class OrdersManagementScreen {
 
 	@FXML
 	void clickSearch(ActionEvent event) {
-		String phone_number = phoneTXT.getText();
-		Main.client.accept(new BistroRequest(BistroCommand.GET_ACTIVE_RESERVATIONS_BY_PHONE, phone_number));
-		Object data = Main.client.getResponse().getData();
-		ArrayList<Reservation> reservations = (ArrayList<Reservation>) data;
-		ordersTable.setItems(javafx.collections.FXCollections.observableArrayList(reservations));
-
+		loadResults();
+	}
+	
+	private void loadResults() {
+	    String phone_number = phoneTXT.getText();
+	    if (phone_number == null || phone_number.isBlank()) {
+	        return;
+	    }
+	    Main.client.accept(new BistroRequest(BistroCommand.GET_ACTIVE_RESERVATIONS_BY_PHONE, phone_number));
+	    Object data = Main.client.getResponse().getData();
+	    ArrayList<Reservation> reservations = (ArrayList<Reservation>) data;
+	    ordersTable.setItems(javafx.collections.FXCollections.observableArrayList(reservations));
+	}
+	
+	public void onClose() {
+	    EventBus.getInstance().unsubscribe(EventType.ORDER_CHANGED, ordersListener);
 	}
 
 }

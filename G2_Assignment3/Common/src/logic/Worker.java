@@ -8,18 +8,17 @@ public class Worker implements Serializable {
 
     private int workerId;
     private String username;
-    private String passwordHash;
+    //private String passwordHash;
     private WorkerType workerType;
 
 
-    public Worker(int workerId, String username, String passwordHash, WorkerType workerType) {
+   /* public Worker(int workerId, String username, String passwordHash, WorkerType workerType) {
         this.workerId = workerId;
         this.username = username;
         this.passwordHash = passwordHash;
         this.workerType = workerType;
-    }
+    } */
 
-    //TODO:why needed?/where used?
     public Worker(int workerId, String username, WorkerType workerType) {
         this.workerId = workerId;
         this.username = username;
@@ -38,7 +37,7 @@ public class Worker implements Serializable {
         return workerType;
     }
 
-    public String getPasswordHash() {
+ /*   public String getPasswordHash() {
         return passwordHash;
-    }
+    }*/
 }

@@ -10,7 +10,10 @@ import org.mindrot.jbcrypt.BCrypt;
 import communication.BistroRequest;
 import communication.BistroResponse;
 import communication.BistroResponseStatus;
+import communication.EventBus;
+import communication.EventType;
 import communication.NewSubscriberInfo;
+import communication.ServerEvent;
 import communication.StatusUpdate;
 import communication.TableSizeUpdate;
 import communication.TableStatusUpdate;
@@ -130,6 +133,7 @@ public class Server extends AbstractServer {
 				dbReturnedValue = db.changeOrderStatus(statusUpdate.getPhoneNumber(), statusUpdate.getOrderNumber(),
 						statusUpdate.getStatus());
 				response = new BistroResponse(BistroResponseStatus.SUCCESS, dbReturnedValue);
+				sendToAllClients(new ServerEvent(EventType.ORDER_CHANGED));
 			} else
 				response = new BistroResponse(BistroResponseStatus.FAILURE, "update failed.");
 			break;
@@ -158,6 +162,8 @@ public class Server extends AbstractServer {
 					if (res != null) {
 						db.changeTableResId(tableNumber);
 						response = new BistroResponse(BistroResponseStatus.SUCCESS, res);
+						sendToAllClients(new ServerEvent(EventType.TABLE_CHANGED));
+						sendToAllClients(new ServerEvent(EventType.ORDER_CHANGED));
 					} else {
 						response = new BistroResponse(BistroResponseStatus.FAILURE, "Order not found.");
 					}
@@ -225,6 +231,7 @@ public class Server extends AbstractServer {
 
 				dbReturnedValue = db.addTable((int) data);
 				response = new BistroResponse(BistroResponseStatus.SUCCESS, null);
+				sendToAllClients(new ServerEvent(EventType.TABLE_CHANGED));
 			} else
 				response = new BistroResponse(BistroResponseStatus.FAILURE, null);
 			break;
@@ -233,6 +240,7 @@ public class Server extends AbstractServer {
 			if (data instanceof Integer) {
 				dbReturnedValue = db.deleteTable((int) data);
 				response = new BistroResponse(BistroResponseStatus.SUCCESS, null);
+				sendToAllClients(new ServerEvent(EventType.TABLE_CHANGED));
 			} else
 				response = new BistroResponse(BistroResponseStatus.FAILURE, null);
 			break;

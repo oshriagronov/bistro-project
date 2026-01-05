@@ -9,6 +9,9 @@ import java.util.Map;
 import communication.AvgStayCounts;
 import communication.BistroCommand;
 import communication.BistroRequest;
+import communication.EventBus;
+import communication.EventListener;
+import communication.EventType;
 import communication.StatusCounts;
 import gui.Main;
 import javafx.event.ActionEvent;
@@ -17,6 +20,7 @@ import javafx.scene.chart.BarChart;
 import javafx.scene.chart.LineChart;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
+import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 
@@ -35,10 +39,14 @@ public class StatusReportController {
 
 	/** FXML path for the timing report screen */
 	public static final String fxmlPath = "/employee/TimingReport.fxml";
+	private final EventListener ordersListener = t -> onRefresh();
 
 	/** Month labels used for chart X-axis */
 	private final String[] months = { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov",
 			"Dec" };
+
+	@FXML
+	private Button menuBtn;
 
 	@FXML
 	private NumberAxis yAxis;
@@ -74,6 +82,7 @@ public class StatusReportController {
 		reportTypeComboBox.getSelectionModel().selectFirst();
 		setReportView("Arrival times");
 		reportTypeComboBox.setOnAction(e -> setReportView(reportTypeComboBox.getValue()));
+		EventBus.getInstance().subscribe(EventType.ORDER_CHANGED, ordersListener);
 	}
 
 	/**
@@ -84,7 +93,7 @@ public class StatusReportController {
 	 * @param event the refresh button click event
 	 */
 	@FXML
-	private void onRefresh(ActionEvent event) {
+	private void onRefresh() {
 		Integer year = yearComboBox.getValue();
 		if (year == null)
 			return;
@@ -129,6 +138,19 @@ public class StatusReportController {
 				loadYearStayinTime(year);
 			}
 		});
+
+		yearComboBox.setOnAction(e -> {
+			Integer year = yearComboBox.getValue();
+			if (year == null)
+				return;
+
+			String type = reportTypeComboBox.getValue();
+			if ("Departure times".equals(type)) {
+				loadYearStayinTime(year);
+			} else {
+				loadYear(year);
+			}
+		});
 	}
 
 	/**
@@ -150,7 +172,7 @@ public class StatusReportController {
 
 		Map<Integer, StatusCounts> byMonth = new HashMap<>();
 		for (StatusCounts r : rows) {
-			byMonth.put(r.month, r);
+			byMonth.put(r.getMonth(), r);
 		}
 
 		XYChart.Series<String, Number> onTime = new XYChart.Series<>();
@@ -164,9 +186,9 @@ public class StatusReportController {
 
 		for (int m = 1; m <= 12; m++) {
 			StatusCounts r = byMonth.get(m);
-			int onTimeCount = (r == null) ? 0 : r.onTime;
-			int lateCount = (r == null) ? 0 : r.late;
-			int cancCount = (r == null) ? 0 : r.cancelled;
+			int onTimeCount = (r == null) ? 0 : r.getOnTime();
+			int lateCount = (r == null) ? 0 : r.getLate();
+			int cancCount = (r == null) ? 0 : r.getCancelled();
 
 			String label = months[m - 1];
 			onTime.getData().add(new XYChart.Data<>(label, onTimeCount));
@@ -251,5 +273,18 @@ public class StatusReportController {
 		departureLineChart.setManaged(!arrival);
 
 		reportTitle.setText(arrival ? "Timing Report (Arrival)" : "Timing Report (Average staying time)");
+	}
+
+	@FXML
+	void backToMenu(ActionEvent event) {
+		try {
+			Main.changeRoot(employeeMenu.fxmlPath, 600, 500);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	public void onClose() {
+		EventBus.getInstance().unsubscribe(EventType.ORDER_CHANGED, ordersListener);
 	}
 }
