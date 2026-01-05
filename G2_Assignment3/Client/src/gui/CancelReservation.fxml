@@ -13,7 +13,14 @@
             <children>
 
                 <Label style="-fx-font-size: 22px; -fx-font-weight: bold;" text="Cancel Reservation" textAlignment="CENTER" textFill="#0e4c99" />
-
+                <HBox alignment="CENTER" spacing="10">
+                    <children>
+                        <Label text="Email" />
+                        <TextField fx:id="emailField"
+                                maxWidth="250"
+                                prefWidth="180.0" />
+                    </children>
+                </HBox>
                 <HBox alignment="CENTER" spacing="10">
                     <children>
                         <Label text="Phone number" />
