@@ -1,4 +1,4 @@
-package gui;
+package subscriber;
 
 import java.net.URL;
 import java.util.ArrayList;
@@ -7,6 +7,7 @@ import communication.BistroCommand;
 import communication.BistroRequest;
 import communication.BistroResponse;
 import communication.BistroResponseStatus;
+import gui.Main;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
@@ -16,12 +17,11 @@ import javafx.scene.control.TextField;
 import javafx.scene.layout.VBox;
 import logic.LoggedUser;
 import logic.Subscriber;
-import subscriber.SubscriberScreen;
 
 
 public class UpdateSubDetailsScreen {
 
-    public static final String fxmlPath = "/gui/UpdateSubDetails.fxml";
+    public static final String fxmlPath = "/subscriber/UpdateSubDetails.fxml";
 
     private final Alert alert = new Alert(Alert.AlertType.INFORMATION);
 
@@ -127,8 +127,15 @@ public class UpdateSubDetailsScreen {
         if (!lastName.isBlank()) {
             updateDetails.add(lastName);
         }
-        showAlert("Update Ready", "Details collected. You can now send them to the server.");
-        // TODO: send updateDetails to the server.
+        Main.client.accept(new BistroRequest(BistroCommand.UPDATE_SUBSCRIBER_INFO, updateDetails));
+        boolean isSuccess = Main.client.getResponse().getStatus() == BistroResponseStatus.SUCCESS;
+        String title = isSuccess ? "Success" : "Error";
+        String message = isSuccess
+                ? "Information updated successfully."
+                : "Something went wrong with sending the request to the server.";
+        showAlert(title, message);
+
+
 
     }
 

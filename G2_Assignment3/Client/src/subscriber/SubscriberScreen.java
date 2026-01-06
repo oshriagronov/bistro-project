@@ -4,7 +4,6 @@ import communication.BistroCommand;
 import communication.BistroRequest;
 import gui.Main;
 import gui.UpdateScreen;
-import gui.UpdateSubDetailsScreen;
 import gui.WaitingListScreen;
 import gui.OrderScreen;
 import javafx.event.ActionEvent;
