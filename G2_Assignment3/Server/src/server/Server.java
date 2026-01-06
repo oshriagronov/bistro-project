@@ -127,6 +127,20 @@ public class Server extends AbstractServer {
 					dbReturnedValue != null ? BistroResponseStatus.SUCCESS : BistroResponseStatus.FAILURE,
 					dbReturnedValue);
 			break;
+			
+		case ADD_RESERVATION:
+			// Handle adding a new reservation to the database
+		    if (data instanceof Reservation) {
+		        int success = db.insertReservation((Reservation) data);
+		        response = new BistroResponse(
+		        	    success > 0 ? BistroResponseStatus.SUCCESS : BistroResponseStatus.FAILURE,
+		        	    success > 0 ? "Reservation saved" : "Reservation failed"
+		        );
+		    } else {
+		        response = new BistroResponse(BistroResponseStatus.FAILURE, "Invalid reservation data");
+		    }
+		    break;
+
 		case CANCEL_RESERVATION:
 			// Expect Integer order number; delete reservation and return rows affected.
 			dbReturnedValue = db.deleteOrderByOrderNumber((int) data);
