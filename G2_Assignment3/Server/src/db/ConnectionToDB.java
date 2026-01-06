@@ -92,6 +92,31 @@ public class ConnectionToDB {
 		String sql = "UPDATE `reservations` SET order_date = ?, num_of_diners = ? WHERE res_id = ?";
 		return executeWriteQuery(sql, order_date, number_of_guests, order_number);
 	}
+	
+	/**
+	 * Inserts a new reservation into the 'reservations' table.
+	 * Uses a prepared SQL statement with placeholders to safely insert all fields.
+	 *
+	 * @param r the Reservation object containing all reservation details
+	 * @return number of affected rows (1 if insert succeeded, 0 if failed)
+	 */
+	public int insertReservation(Reservation r) {
+	    String sql = "INSERT INTO reservations (confirmation_code, phone, email, sub_id, start_time, finish_time, order_date, order_status, num_diners, date_of_placing_order) "
+	               + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+
+	    return executeWriteQuery(sql,
+	        r.getConfirmationCode(),     // int
+	        r.getPhone_number(),         // String
+	        r.getEmail(),                // String
+	        r.getSubscriberId(),         // int
+	        r.getStart_time(),           // LocalTime
+	        r.getFinish_time(),          // LocalTime
+	        r.getOrderDate(),            // LocalDate
+	        r.getStatus().name(),        // Enum → String
+	        r.getNumberOfGuests(),       // int
+	        r.getDateOfPlacingOrder()    // LocalDate
+	    );
+	}
 
 	/**
 	 * Searches for the latest order by phone number and returns the order details.
@@ -829,7 +854,14 @@ public class ConnectionToDB {
 				else if (p instanceof String)
 					stmt.setString(idx, (String) p);
 				else if (p instanceof LocalDate)
-					stmt.setDate(1, java.sql.Date.valueOf((LocalDate) p));
+					stmt.setDate(idx, java.sql.Date.valueOf((LocalDate) p));
+				else if (p instanceof java.sql.Date)
+				    stmt.setDate(idx, (java.sql.Date) p);
+				else if (p instanceof java.sql.Time)
+				    stmt.setTime(idx, (java.sql.Time) p);
+				else if (p instanceof LocalTime)
+				    stmt.setTime(idx, java.sql.Time.valueOf((LocalTime) p));
+
 				else
 					throw new SQLException();
 			}
