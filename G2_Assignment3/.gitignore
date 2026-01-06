@@ -1,0 +1,33 @@
+# Java build outputs
+**/bin/
+**/out/
+**/build/
+**/target/
+**/dist/
+**/tmp/
+**/*.class
+
+# Logs
+**/*.log
+logs/
+
+# IDE/project files
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+.settings/
+.classpath
+.project
+
+# OS/editor noise
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# Local env files
+.env
+.env.*
