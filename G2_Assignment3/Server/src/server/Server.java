@@ -279,11 +279,33 @@ public class Server extends AbstractServer {
 					dbReturnedValue = db.getMonthlySlotStats((int) data);
 				response = new BistroResponse(BistroResponseStatus.SUCCESS, dbReturnedValue);
 				break;
-			case GET_STAYING_TIMES:
-				if (data instanceof Integer)
-					dbReturnedValue = db.getMonthlyAverageStay((int) data);
-				response = new BistroResponse(BistroResponseStatus.SUCCESS, dbReturnedValue);
+		case GET_STAYING_TIMES:
+			if (data instanceof Integer)
+				dbReturnedValue = db.getMonthlyAverageStay((int) data);
+			response = new BistroResponse(BistroResponseStatus.SUCCESS, dbReturnedValue);
+			break;
+		case UPDATE_SUBSCRIBER_INFO:
+			if (!(data instanceof ArrayList<?>)) {
+				response = new BistroResponse(BistroResponseStatus.FAILURE, null);
 				break;
+			}
+			boolean isValidUpdateDetails = true;
+			for (Object entry : (ArrayList<?>) data) {
+				if (!(entry instanceof String)) {
+					isValidUpdateDetails = false;
+					break;
+				}
+			}
+			if (!isValidUpdateDetails) {
+				response = new BistroResponse(BistroResponseStatus.FAILURE, null);
+				break;
+			}
+			@SuppressWarnings("unchecked")
+			ArrayList<String> updateDetails = (ArrayList<String>) data;
+			int updatedRows = db.updateSubscriberInfo(updateDetails);
+			response = new BistroResponse(updatedRows == 1 ? BistroResponseStatus.SUCCESS
+					: BistroResponseStatus.FAILURE, null);
+			break;
 
 			default:
 				// Expect unknown/unsupported command; return INVALID_REQUEST.

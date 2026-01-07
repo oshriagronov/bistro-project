@@ -17,6 +17,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.layout.VBox;
 import logic.LoggedUser;
 import logic.Subscriber;
+import org.mindrot.jbcrypt.BCrypt;
 
 
 public class UpdateSubDetailsScreen {
@@ -119,7 +120,8 @@ public class UpdateSubDetailsScreen {
             updateDetails.add(username);
         }
         if (!password.isBlank()) {
-            updateDetails.add(password);
+            String hash = BCrypt.hashpw(password, BCrypt.gensalt());
+            updateDetails.add(hash);
         }
         if (!firstName.isBlank()) {
             updateDetails.add(firstName);
