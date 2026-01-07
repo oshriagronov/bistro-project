@@ -480,6 +480,22 @@ public class ConnectionToDB {
 	}
 
 	/**
+	 * Updates subscriber details based on the provided list values.
+	 *
+	 * @param updateDetails ordered subscriber values to update
+	 * @return number of rows affected
+	 */
+	public int updateSubscriberInfo(ArrayList<String> updateDetails) {
+		if (updateDetails == null || updateDetails.size() < 7) {
+			return 0;
+		}
+		String sql = "UPDATE subscriber SET phone = ?, email = ?, username = ?, password_hash = ?, "
+				+ "first_name = ?, last_name = ? WHERE sub_id = ?";
+		return executeWriteQuery(sql, updateDetails.get(0), updateDetails.get(1), updateDetails.get(2),
+				updateDetails.get(3), updateDetails.get(4), updateDetails.get(5), updateDetails.get(6));
+	}
+
+	/**
 	 * Checks subscriber credentials against the DB.
 	 *
 	 * @param subscriberId subscriber ID
