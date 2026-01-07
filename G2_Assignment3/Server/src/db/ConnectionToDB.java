@@ -202,6 +202,60 @@ public class ConnectionToDB {
 	}
 
 	/**
+	 * Searches for all reservations associated with a given email address.
+	 * <p>
+	 * This method executes a read-only SQL query using {@link #executeReadQuery} to
+	 * retrieve all orders whose email field matches the provided value. The results
+	 * are ordered by reservation date in descending order (most recent orders
+	 * first).
+	 * </p>
+	 * <p>
+	 * Each row returned from the database is mapped into a {@link Reservation}
+	 * object. If no matching orders are found, an empty list is returned.
+	 * </p>
+	 *
+	 * @param email the email address to search reservations by
+	 * @return a list of {@link Reservation} objects associated with the given
+	 *         email; an empty list if no reservations are found
+	 */
+
+	public List<Reservation> searchOrdersByEmail(String email) {
+		String sql = "SELECT res_id, confirmation_code, phone, email, sub_id, start_time, finish_time, "
+				+ "       order_date, order_status, num_diners, date_of_placing_order " + "FROM reservations "
+				+ "WHERE email = ? " + "ORDER BY order_date DESC";
+
+		List<List<Object>> rows = executeReadQuery(sql, email);
+		List<Reservation> list = new ArrayList<>();
+
+		for (List<Object> row : rows) {
+			Integer resId = (Integer) row.get(0);
+			Integer confirmationCode = (Integer) row.get(1);
+			String phoneNumber = (String) row.get(2);
+			String emailValue = (String) row.get(3);
+			Integer subId = (Integer) row.get(4);
+
+			LocalTime startTime = toLocalTime(row.get(5));
+			LocalTime finishTime = toLocalTime(row.get(6));
+			LocalDate orderDate = toLocalDate(row.get(7));
+
+			Status status = Status.valueOf(((String) row.get(8)).trim());
+
+			Integer diners = (Integer) row.get(9);
+			LocalDate placingDate = toLocalDate(row.get(10));
+
+			Reservation res = new Reservation(orderDate, diners, confirmationCode, subId, placingDate, startTime,
+					finishTime, phoneNumber, status, emailValue);
+
+			if (resId != null)
+				res.setOrderNumber(resId);
+
+			list.add(res);
+		}
+
+		return list;
+	}
+
+	/**
 	 * Searches for an order by order number (primary key) and returns the order
 	 * details.
 	 * 
@@ -930,16 +984,16 @@ public class ConnectionToDB {
 		return rows;
 	}
 
-	public List<StatusCounts> getMonthlySlotStats(int year) {
-		String sql = "SELECT " + "  MONTH(order_date) AS mon, "
+	public List<StatusCounts> getDailySlotStats(int year, int month) {
+		String sql = "SELECT " + "DAY(order_date) AS day_in_month, "
 				+ "  SUM(CASE WHEN order_status IN ('CONFIRMED','COMPLETED') "
 				+ "           AND MOD(MINUTE(start_time), 30) = 0 THEN 1 ELSE 0 END) AS on_time, "
 				+ "  SUM(CASE WHEN order_status IN ('CONFIRMED','COMPLETED') "
 				+ "           AND MOD(MINUTE(start_time), 30) <> 0 THEN 1 ELSE 0 END) AS late, "
 				+ "  SUM(CASE WHEN order_status = 'CANCELLED' "
 				+ "           AND MOD(MINUTE(start_time), 30) > 15 THEN 1 ELSE 0 END) AS cancelled "
-				+ "FROM reservations " + "WHERE YEAR(order_date) = ? " + "GROUP BY MONTH(order_date) "
-				+ "ORDER BY MONTH(order_date)";
+				+ "FROM reservations " + "WHERE YEAR(order_date) = ? AND MONTH(order_date) = ? "
+				+ "GROUP BY DAY(order_date) " + "ORDER BY DAY(order_date)";
 
 		List<StatusCounts> out = new ArrayList<>();
 
@@ -950,14 +1004,15 @@ public class ConnectionToDB {
 
 		try (PreparedStatement stmt = pConn.getConnection().prepareStatement(sql)) {
 			stmt.setInt(1, year);
+			stmt.setInt(2, month);
 
 			try (ResultSet rs = stmt.executeQuery()) {
 				while (rs.next()) {
-					out.add(new StatusCounts(year, rs.getInt("mon"), rs.getInt("on_time"), rs.getInt("late"),
+					int day = rs.getInt("day_in_month");
+					out.add(new StatusCounts(year, month, day, rs.getInt("on_time"), rs.getInt("late"),
 							rs.getInt("cancelled")));
 				}
 			}
-
 		} catch (SQLException e) {
 			e.printStackTrace();
 		} finally {
@@ -967,12 +1022,13 @@ public class ConnectionToDB {
 		return out;
 	}
 
-	public List<AvgStayCounts> getMonthlyAverageStay(int year) {
-		String sql = "SELECT " + "  MONTH(order_date) AS mon,   AVG(TIMESTAMPDIFF( " + "    MINUTE, "
-				+ "    TIMESTAMP(order_date, start_time), TIMESTAMP(order_date, finish_time) "
-				+ "  )) AS avg_stay_minutes FROM reservations WHERE YEAR(order_date) = ? "
-				+ "  AND order_status = 'COMPLETED' AND start_time IS NOT NULL "
-				+ "  AND finish_time IS NOT NULL GROUP BY MONTH(order_date) " + "ORDER BY MONTH(order_date)";
+	public List<AvgStayCounts> getDailyAverageStay(int year, int month) {
+		String sql = "SELECT " + "  DAY(order_date) AS day_in_month, " + "  AVG(TIMESTAMPDIFF(MINUTE, "
+				+ "      TIMESTAMP(order_date, start_time), " + "      TIMESTAMP(order_date, finish_time) "
+				+ "  )) AS avg_stay_minutes " + "FROM reservations "
+				+ "WHERE YEAR(order_date) = ? AND MONTH(order_date) = ? " + "  AND order_status = 'COMPLETED' "
+				+ "  AND start_time IS NOT NULL " + "  AND finish_time IS NOT NULL " + "GROUP BY DAY(order_date) "
+				+ "ORDER BY DAY(order_date)";
 
 		List<AvgStayCounts> out = new ArrayList<>();
 
@@ -983,10 +1039,12 @@ public class ConnectionToDB {
 
 		try (PreparedStatement stmt = pConn.getConnection().prepareStatement(sql)) {
 			stmt.setInt(1, year);
+			stmt.setInt(2, month);
 
 			try (ResultSet rs = stmt.executeQuery()) {
 				while (rs.next()) {
-					out.add(new AvgStayCounts(year, rs.getInt("mon"), rs.getDouble("avg_stay_minutes")));
+					int day = rs.getInt("day_in_month");
+					out.add(new AvgStayCounts(year, month, day, rs.getDouble("avg_stay_minutes")));
 				}
 			}
 		} catch (SQLException e) {

@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.Label?>
@@ -11,69 +10,110 @@
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
-<?import javafx.scene.text.Font?>
 
-<BorderPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="employee.OrdersManagementScreen">
+<BorderPane style="-fx-background-color: #f6f7fb;"
+	xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+	fx:controller="employee.OrdersManagementScreen">
 
-    <!-- TOP: Search -->
-    <top>
-        <VBox spacing="12" style="-fx-padding: 15;" BorderPane.alignment="CENTER">
-            <Label style="-fx-font-size: 20px; -fx-font-weight: bold;" text="Orders Management" textFill="#071ae6">
-            <font>
-               <Font name="Calibri Bold" size="12.0" />
-            </font></Label>
+	<!-- TOP: Header + Search -->
+	<top>
+		<VBox spacing="12" style="-fx-padding: 18;"
+			BorderPane.alignment="CENTER">
+			<!-- Card -->
+			<VBox spacing="10"
+				style="-fx-background-color: white;                          -fx-padding: 14;                          -fx-background-radius: 12;                          -fx-border-radius: 12;                          -fx-border-color: #e6e8f0;">
+				<Label style="-fx-font-size: 22px; -fx-font-weight: 800;"
+					text="Orders Management" textFill="#0c35eb" />
 
-            <HBox alignment="CENTER_LEFT" spacing="10">
-                <Label text="Phone number: " />
-                <TextField fx:id="phoneTXT" prefWidth="220" />
-                <Button fx:id="searchBTN" onAction="#clickSearch" text="Search" />
-                <Button fx:id="clearBTN" onAction="#clickClear" text="Clear" />
-            </HBox>
+				<HBox alignment="CENTER_LEFT" spacing="10">
 
-            <Label fx:id="statusLabel" text="" />
-            <Separator />
-        </VBox>
-    </top>
+					<ComboBox fx:id="inputChoiceCB" prefHeight="32.0"
+						prefWidth="140.0" />
 
-    <!-- CENTER: Table -->
-    <center>
-        <VBox spacing="10" style="-fx-padding: 15;">
-            <TableView fx:id="ordersTable" maxWidth="Infinity" prefHeight="450" VBox.vgrow="ALWAYS">
-                <columns>
-                    <TableColumn fx:id="orderIdCol" prefWidth="100" text="Order ID" />
-               <TableColumn fx:id="phoneCol" prefWidth="75.0" text="Phone" />
-               <TableColumn fx:id="emailCol" prefWidth="86.0" text="Email" />
-                    <TableColumn fx:id="dateCol" prefWidth="102.00003814697266" text="Date" />
-                    <TableColumn fx:id="startTimeCol" prefWidth="117.99998474121094" text="Start Time" />
-               <TableColumn fx:id="finishTimeCol" prefWidth="102.00006103515625" text="Finish time" />
-                    <TableColumn fx:id="dinersCol" prefWidth="85.33328247070312" text="Diners" />
-                    <TableColumn fx:id="statusCol" prefWidth="100.00009155273438" text="Status" />
-                </columns>
-            </TableView>
+					<TextField fx:id="inputTXT" prefHeight="32.0"
+						prefWidth="260.0" promptText="Enter phone or email..." />
 
-            <HBox alignment="CENTER_RIGHT" spacing="10" />
-        </VBox>
-    </center>
+					<Button fx:id="searchBTN" onAction="#clickSearch"
+						style="-fx-background-color: #2f5bea;                                    -fx-text-fill: white;                                    -fx-font-weight: 700;                                    -fx-background-radius: 8;                                    -fx-padding: 6 14;"
+						text="Search" />
 
-    <!-- RIGHT: Status change panel (Option 2) -->
-    <right>
-        <VBox maxWidth="200" prefHeight="493.0" prefWidth="199.0" spacing="10" style="-fx-padding: 15;">
-            <Label style="-fx-font-weight: bold; -fx-font-size: 14px;" text="Selected Order" />
+					<Button fx:id="clearBTN" onAction="#clickClear"
+						style="-fx-background-color: #eef1f7;                                    -fx-text-fill: #1f2a44;                                    -fx-font-weight: 700;                                    -fx-background-radius: 8;                                    -fx-padding: 6 14;"
+						text="Clear" />
+				</HBox>
 
-            <Label text="New Status:" />
-            <ComboBox fx:id="statusCombo" prefWidth="200" />
+				<Label fx:id="statusLabel" style="-fx-text-fill: #6a7286;"
+					text="" />
 
-            <Button fx:id="applyStatusBTN" onAction="#clickApplyStatus" text="Apply Status" />
-             <Button fx:id="deleteBTN" onAction="#clickDeleteSelected" text="Delete Selected" />
+				<Separator />
+			</VBox>
+		</VBox>
+	</top>
 
-            <Separator />
-         <VBox prefHeight="210.0" prefWidth="169.0" />
-         <Button fx:id="menuBTN" alignment="CENTER" mnemonicParsing="false" onAction="#clickMenu" text="Back to menu">
-            <VBox.margin>
-               <Insets top="250.0" />
-            </VBox.margin>
-         </Button>
-        </VBox>
-    </right>
+	<!-- CENTER: Orders Table -->
+	<center>
+		<VBox spacing="12" style="-fx-padding: 18;">
+			<!-- Card -->
+			<VBox spacing="10"
+				style="-fx-background-color: white;                          -fx-padding: 14;                          -fx-background-radius: 12;                          -fx-border-radius: 12;                          -fx-border-color: #e6e8f0;">
+				<TableView fx:id="ordersTable" maxWidth="Infinity"
+					prefHeight="450"
+					style="-fx-background-radius: 10; -fx-border-radius: 10;"
+					VBox.vgrow="ALWAYS">
+					<columns>
+						<TableColumn fx:id="orderIdCol" prefWidth="90"
+							text="Order ID" />
+						<TableColumn fx:id="phoneCol" prefWidth="110"
+							text="Phone" />
+						<TableColumn fx:id="emailCol" prefWidth="170"
+							text="Email" />
+						<TableColumn fx:id="dateCol" prefWidth="110"
+							text="Date" />
+						<TableColumn fx:id="startTimeCol" prefWidth="95"
+							text="Start Time" />
+						<TableColumn fx:id="finishTimeCol" prefWidth="95"
+							text="Finish Time" />
+						<TableColumn fx:id="dinersCol" prefWidth="70"
+							text="Diners" />
+						<TableColumn fx:id="statusCol" prefWidth="110"
+							text="Status" />
+					</columns>
+				</TableView>
+			</VBox>
+		</VBox>
+	</center>
+
+	<!-- RIGHT: Actions -->
+	<right>
+		<VBox prefWidth="240" spacing="12" style="-fx-padding: 18;">
+			<!-- Card -->
+			<VBox spacing="10"
+				style="-fx-background-color: white;                          -fx-padding: 14;                          -fx-background-radius: 12;                          -fx-border-radius: 12;                          -fx-border-color: #e6e8f0;">
+				<Label
+					style="-fx-font-size: 14px;                               -fx-font-weight: 800;                               -fx-text-fill: #1f2a44;"
+					text="Selected Order" />
+
+				<Label style="-fx-text-fill: #5a6275; -fx-font-weight: 600;"
+					text="New status:" />
+
+				<ComboBox fx:id="statusCombo" prefHeight="32"
+					prefWidth="200" />
+
+				<Button fx:id="applyStatusBTN" onAction="#clickApplyStatus"
+					style="-fx-background-color: #2f5bea;                                -fx-text-fill: white;                                -fx-font-weight: 700;                                -fx-background-radius: 8;                                -fx-padding: 6 14;"
+					text="Apply Status" />
+
+				<Button fx:id="deleteBTN" onAction="#clickDeleteSelected"
+					style="-fx-background-color: #ffe7e7;                                -fx-text-fill: #b42318;                                -fx-font-weight: 700;                                -fx-background-radius: 8;                                -fx-padding: 6 14;"
+					text="Delete Selected" />
+			</VBox>
+
+			<VBox VBox.vgrow="ALWAYS" />
+
+			<Button fx:id="menuBTN" onAction="#clickMenu"
+				style="-fx-background-color: #eef1f7;                            -fx-text-fill: #1f2a44;                            -fx-font-weight: 700;                            -fx-background-radius: 8;                            -fx-padding: 8 14;"
+				text="Back to menu" />
+		</VBox>
+	</right>
 
 </BorderPane>

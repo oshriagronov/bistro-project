@@ -1,5 +1,6 @@
 package communication;
 
+import java.time.YearMonth;
 import java.util.ArrayList;
 
 /**
@@ -183,6 +184,24 @@ public final class RequestFactory {
         }
         return withPayload(BistroCommand.GET_ACTIVE_RESERVATIONS_BY_PHONE, phone);
     }
+    
+    /**
+     * Creates a request to retrieve reservations by email address.
+     * <p>
+     * The server is expected to return all reservations whose {@code email}
+     * matches the provided value.
+     * </p>
+     *
+     * @param email the email address to search by
+     * @return a {@link BistroRequest} for {@link BistroCommand#GET_RESERVATIONS_BY_EMAIL}
+     * @throws IllegalArgumentException if {@code email} is null or blank
+     */
+    public static BistroRequest getReservationsByEmail(String email) {
+        if (email == null || email.isBlank()) {
+            throw new IllegalArgumentException("Email is required");
+        }
+        return withPayload(BistroCommand.GET_RESERVATIONS_BY_EMAIL, email.trim());
+    }
 
     // -------------------------------------------------------------------------
     // Accept table
@@ -228,4 +247,38 @@ public final class RequestFactory {
         }
         return withPayload(BistroCommand.FORGOT_CONFIRMATION_CODE, phone);
     }
+    
+ // -------------------------------------------------------------------------
+ // Reports
+ // -------------------------------------------------------------------------
+
+ /**
+  * Creates a request to retrieve the monthly arrival timing report
+  * (on-time, late, cancelled) for the given year-month.
+  *
+  * @param ym the year-month to generate the report for
+  * @return a {@link BistroRequest} for {@link BistroCommand#GET_TIMINGS}
+  * @throws IllegalArgumentException if {@code ym} is null
+  */
+ public static BistroRequest getMonthlyArrivalTimesReport(YearMonth ym) {
+     if (ym == null) {
+         throw new IllegalArgumentException("YearMonth is required");
+     }
+     return withPayload(BistroCommand.GET_TIMINGS, ym);
+ }
+
+ /**
+  * Creates a request to retrieve the monthly average staying time report
+  * for completed reservations in the given year-month.
+  *
+  * @param ym the year-month to generate the report for
+  * @return a {@link BistroRequest} for {@link BistroCommand#GET_STAYING_TIMES}
+  * @throws IllegalArgumentException if {@code ym} is null
+  */
+ public static BistroRequest getMonthlyStayingTimesReport(YearMonth ym) {
+     if (ym == null) {
+         throw new IllegalArgumentException("YearMonth is required");
+     }
+     return withPayload(BistroCommand.GET_STAYING_TIMES, ym);
+ }
 }

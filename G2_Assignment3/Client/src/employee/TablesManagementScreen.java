@@ -127,7 +127,7 @@ public class TablesManagementScreen {
 	public void initialize() {
 		applySizeBtn.setDisable(true);
 		deleteBtn.setDisable(true);
-
+		tablesTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
 		sizeCombo.setItems(FXCollections.observableArrayList(2, 4, 6, 8, 10));
 		newTableSize.setItems(FXCollections.observableArrayList(2, 4, 6, 8, 10));
 		newTableSize.getSelectionModel().selectFirst();

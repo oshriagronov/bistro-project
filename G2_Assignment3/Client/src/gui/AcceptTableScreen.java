@@ -175,7 +175,6 @@ public class AcceptTableScreen {
                 infoVbox.setVisible(false);
                 tableResultText.setText("Your table is: " + data.toString());
                 tableResultText.setVisible(true);
-                EventBus.getInstance().publish(EventType.TABLE_CHANGED);
                 return;
             }
         }

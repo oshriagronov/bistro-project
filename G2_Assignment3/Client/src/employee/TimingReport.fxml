@@ -33,6 +33,8 @@
 			<Label style="-fx-font-size: 13px; -fx-text-fill: #374151;" text="Year:" />
 
 			<ComboBox fx:id="yearComboBox" prefWidth="140" style="-fx-background-radius: 10; -fx-font-size: 13px;" />
+         <Label prefHeight="19.0" prefWidth="49.0" style="-fx-font-size: 13px; -fx-text-fill: #374151;" text="Month:" />
+         <ComboBox fx:id="monthComboBox" prefHeight="27.0" prefWidth="131.0" style="-fx-background-radius: 10; -fx-font-size: 13px;" />
 
 			<Label style="-fx-font-size: 13px; -fx-text-fill: #374151;" text="Report:" />
 
@@ -50,7 +52,6 @@
 		<HBox alignment="CENTER_LEFT">
 			<Label style="-fx-font-size: 14px; -fx-font-weight: 700; -fx-text-fill: #111827;" text="Status over time" />
 			<Region HBox.hgrow="ALWAYS" />
-			<Label style="-fx-font-size: 12px; -fx-text-fill: #6B7280;" text="Jan → Dec" />
 		</HBox>
 
 		<!-- Chart switch area (keeps layout stable) -->
