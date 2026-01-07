@@ -603,6 +603,27 @@ public class ConnectionToDB {
 	}
 
 	/**
+	 * Retrieves confirmation codes for all confirmed reservations of a subscriber.
+	 *
+	 * @param subscriberId subscriber identifier
+	 * @return list of confirmation codes as strings (empty if none found)
+	 */
+	public ArrayList<String> getConfirmedReservationCodesBySubscriber(int subscriberId) {
+		String sql = "SELECT confirmation_code FROM reservations WHERE sub_id = ? AND order_status = 'CONFIRMED'";
+		List<List<Object>> rows = executeReadQuery(sql, subscriberId);
+		ArrayList<String> codes = new ArrayList<>();
+		for (List<Object> row : rows) {
+			if (row.isEmpty())
+				continue;
+			Object codeObj = row.get(0);
+			if (codeObj != null) {
+				codes.add(codeObj.toString());
+			}
+		}
+		return codes;
+	}
+
+	/**
 	 * Retrieves a Subscriber object from the database using the subscriber ID. This
 	 * method executes a SQL query to fetch all subscriber fields.
 	 *

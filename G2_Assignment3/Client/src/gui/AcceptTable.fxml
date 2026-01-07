@@ -23,7 +23,7 @@
       <VBox fx:id="infoVbox" layoutX="186.0" layoutY="105.0" prefHeight="218.0" prefWidth="266.0">
          <children>
 
-            <HBox prefHeight="52.0" prefWidth="168.0" spacing="10.0">
+            <HBox fx:id="phoneBox" prefHeight="52.0" prefWidth="168.0" spacing="10.0">
                <children>
                   <Text text="phone">
                      <HBox.margin>
@@ -34,6 +34,13 @@
                </children>
             </HBox>
 
+            <HBox fx:id="subscriberConfirmationBox" managed="false" prefHeight="52.0" prefWidth="178.0" spacing="10.0" visible="false">
+               <children>
+                  <Text text="confirmation code" />
+                  <ComboBox fx:id="subscriberConfirmationCodes" prefWidth="134.0" />
+               </children>
+            </HBox>
+
             <HBox fx:id="confirmationBox" prefHeight="52.0" prefWidth="178.0" spacing="10.0">
                <children>
                   <Text text="confirmation code" />
@@ -41,7 +48,7 @@
                </children>
             </HBox>
 
-            <HBox prefHeight="28.0" prefWidth="168.0">
+            <HBox fx:id="forgotConfirmationBox" prefHeight="28.0" prefWidth="168.0">
                <children>
                   <Button fx:id="forgotConfirmationBtn" mnemonicParsing="false" onAction="#handleForgotConfirmation" text="Forgot Confirmation Code" />
                </children>

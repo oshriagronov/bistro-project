@@ -1,13 +1,4 @@
 /**
- * Todo:
- * 1. use the format BistroRequest
- * 2. use the factory for all the Request
- * 3. fix the bug at UpdateScreen in method search.
- * 4. each screen has his own Controller so we should work on it.
- */
-
-
-/**
  * The main entry point for the JavaFX GUI application.
  * This class handles the initialization of the primary stage, 
  * the loading of the main menu FXML, and the initialization of the client controller.

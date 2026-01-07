@@ -219,7 +219,18 @@ public class Server extends AbstractServer {
 				dbReturnedValue
 			);
 			break;
+		case GET_SUBSCRIBER_CONFIRMATION_CODES:
+			if (!(data instanceof Integer)) {
+				response = new BistroResponse(BistroResponseStatus.FAILURE, "Invalid subscriber ID format");
+				break;
+			}
 
+			dbReturnedValue = db.getConfirmedReservationCodesBySubscriber((Integer) data);
+			response = new BistroResponse(
+				dbReturnedValue != null ? BistroResponseStatus.SUCCESS : BistroResponseStatus.FAILURE,
+				dbReturnedValue
+			);
+			break;
 		case ADD_TABLE:
 				// Expect Integer table size; insert table and return success.
 				if (data instanceof Integer) {
