@@ -1,7 +1,6 @@
 package subscriber;
 
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.ResourceBundle;
 import communication.BistroCommand;
 import communication.BistroRequest;
@@ -109,27 +108,27 @@ public class UpdateSubDetailsScreen {
             return;
         }
 
-        ArrayList<String> updateDetails = new ArrayList<>();
+        Subscriber updatedSubscriber = new Subscriber(LoggedUser.getId(), (String) null);
         if (!phone.isBlank()) {
-            updateDetails.add(phone);
+            updatedSubscriber.setPhone(phone);
         }
         if (!email.isBlank()) {
-            updateDetails.add(email);
+            updatedSubscriber.setEmail(email);
         }
         if (!username.isBlank()) {
-            updateDetails.add(username);
+            updatedSubscriber.setUsername(username);
         }
         if (!password.isBlank()) {
             String hash = BCrypt.hashpw(password, BCrypt.gensalt());
-            updateDetails.add(hash);
+            updatedSubscriber.setPasswordHash(hash);
         }
         if (!firstName.isBlank()) {
-            updateDetails.add(firstName);
+            updatedSubscriber.setFirstName(firstName);
         }
         if (!lastName.isBlank()) {
-            updateDetails.add(lastName);
+            updatedSubscriber.setLastName(lastName);
         }
-        Main.client.accept(new BistroRequest(BistroCommand.UPDATE_SUBSCRIBER_INFO, updateDetails));
+        Main.client.accept(new BistroRequest(BistroCommand.UPDATE_SUBSCRIBER_INFO, updatedSubscriber));
         boolean isSuccess = Main.client.getResponse().getStatus() == BistroResponseStatus.SUCCESS;
         String title = isSuccess ? "Success" : "Error";
         String message = isSuccess

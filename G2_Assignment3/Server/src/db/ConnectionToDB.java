@@ -480,19 +480,49 @@ public class ConnectionToDB {
 	}
 
 	/**
-	 * Updates subscriber details based on the provided list values.
+	 * Updates subscriber details based on the provided subscriber fields. Only
+	 * non-null/non-blank values are updated.
 	 *
-	 * @param updateDetails ordered subscriber values to update
+	 * @param subscriber subscriber data to update
 	 * @return number of rows affected
 	 */
-	public int updateSubscriberInfo(ArrayList<String> updateDetails) {
-		if (updateDetails == null || updateDetails.size() < 7) {
+	public int updateSubscriberInfo(Subscriber subscriber) {
+		if (subscriber == null || subscriber.getSubscriberId() == null) {
 			return 0;
 		}
-		String sql = "UPDATE subscriber SET phone = ?, email = ?, username = ?, password_hash = ?, "
-				+ "first_name = ?, last_name = ? WHERE sub_id = ?";
-		return executeWriteQuery(sql, updateDetails.get(0), updateDetails.get(1), updateDetails.get(2),
-				updateDetails.get(3), updateDetails.get(4), updateDetails.get(5), updateDetails.get(6));
+
+		List<String> assignments = new ArrayList<>();
+		List<Object> params = new ArrayList<>();
+
+		addIfPresent(subscriber.getPhone(), "phone = ?", assignments, params);
+		addIfPresent(subscriber.getEmail(), "email = ?", assignments, params);
+		addIfPresent(subscriber.getUsername(), "username = ?", assignments, params);
+		addIfPresent(subscriber.getPasswordHash(), "password_hash = ?", assignments, params);
+		addIfPresent(subscriber.getFirstName(), "first_name = ?", assignments, params);
+		addIfPresent(subscriber.getLastName(), "last_name = ?", assignments, params);
+
+		if (assignments.isEmpty()) {
+			return 0;
+		}
+
+		params.add(subscriber.getSubscriberId());
+		String sql = "UPDATE subscriber SET " + String.join(", ", assignments) + " WHERE sub_id = ?";
+		return executeWriteQuery(sql, params.toArray());
+	}
+
+	/**
+	 * Adds an assignment clause and parameter when the provided value contains text.
+	 *
+	 * @param value   candidate value to set
+	 * @param clause  SQL assignment fragment (e.g., "email = ?")
+	 * @param clauses target list for SQL fragments
+	 * @param params  target list for prepared statement parameters
+	 */
+	private static void addIfPresent(String value, String clause, List<String> clauses, List<Object> params) {
+		if (value != null && !value.trim().isEmpty()) {
+			clauses.add(clause);
+			params.add(value);
+		}
 	}
 
 	/**

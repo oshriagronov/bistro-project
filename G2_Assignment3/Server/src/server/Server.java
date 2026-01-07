@@ -285,25 +285,17 @@ public class Server extends AbstractServer {
 			response = new BistroResponse(BistroResponseStatus.SUCCESS, dbReturnedValue);
 			break;
 		case UPDATE_SUBSCRIBER_INFO:
-			if (!(data instanceof ArrayList<?>)) {
+			if (!(data instanceof Subscriber)) {
 				response = new BistroResponse(BistroResponseStatus.FAILURE, null);
 				break;
 			}
-			boolean isValidUpdateDetails = true;
-			for (Object entry : (ArrayList<?>) data) {
-				if (!(entry instanceof String)) {
-					isValidUpdateDetails = false;
-					break;
-				}
-			}
-			if (!isValidUpdateDetails) {
-				response = new BistroResponse(BistroResponseStatus.FAILURE, null);
+			subscriber = (Subscriber) data;
+			if (subscriber.getSubscriberId() == null) {
+				response = new BistroResponse(BistroResponseStatus.FAILURE, "Missing subscriber id.");
 				break;
 			}
-			@SuppressWarnings("unchecked")
-			ArrayList<String> updateDetails = (ArrayList<String>) data;
-			int updatedRows = db.updateSubscriberInfo(updateDetails);
-			response = new BistroResponse(updatedRows == 1 ? BistroResponseStatus.SUCCESS
+			int updatedRows = db.updateSubscriberInfo(subscriber);
+			response = new BistroResponse(updatedRows >= 1 ? BistroResponseStatus.SUCCESS
 					: BistroResponseStatus.FAILURE, null);
 			break;
 
