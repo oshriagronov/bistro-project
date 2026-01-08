@@ -33,12 +33,10 @@ import logic.Worker;
 
 public class OrderScreen {
 	public static final String fxmlPath = "/gui/Order.fxml";
-	private static final UserType SUBSCRIBER = null;
-	private static final UserType EMPLOYEE = null;
 	/** Utility for generating a random confirmation code. */
 	private Random random = new Random();
-	private Subscriber sub;
-	private Worker worker;
+	private Subscriber sub=null;
+	private Worker worker=null;
 
 	/** Alert object used to display success or failure messages to the user. */
 	Alert alert = new Alert(Alert.AlertType.INFORMATION);
@@ -101,11 +99,11 @@ public class OrderScreen {
     @FXML
     public void initialize() {
 		
-        if (LoggedUser.getType()==SUBSCRIBER) {
-        	sub =  setupSubscriber();
+        if (LoggedUser.getType()==UserType.SUBSCRIBER) {
+        	setupSubscriber();
         }
-        else if (LoggedUser.getType()==EMPLOYEE) {
-        	worker = setupWorkerView();
+        else if (LoggedUser.getType()==UserType.EMPLOYEE) {
+        	setupWorkerView();
         }
         else {
             setupGuestView();
@@ -161,7 +159,7 @@ public class OrderScreen {
      * Fetches subscriber details from the database and auto-fills the UI fields.
      */
     @FXML
-    public Subscriber setupSubscriber() {
+    public void setupSubscriber() {
 
         // Get subscriber ID from LoggedUser
         int id = LoggedUser.getId();
@@ -174,18 +172,16 @@ public class OrderScreen {
         if (response == null) {
             // If something went wrong, fallback to guest mode
             setupGuestView();
-            return null;
+            return;
         }
         Object data = response.getData();
         if(data!= null) {
-        	Subscriber sub=(Subscriber)data;
+        	this.sub=(Subscriber)data;
         	 // Hide fields that are not relevant for subscribers
             nonSubVbox.setVisible(false);
             workerVbox.setVisible(false);
             subHBOX.setVisible(false); // subscriber does NOT need to enter subscriber ID manually
-            return sub;
         }
-        return null;
     }
 
 	/**
@@ -201,7 +197,7 @@ public class OrderScreen {
 	    workerVbox.setVisible(false);  
 	    subHBOX.setVisible(false);     
 	}
-	
+	//TODO maybe we don't need to save worker 
 	/**
 	 * Configures the screen for a logged‑in worker.
 	 * <p>
@@ -209,7 +205,7 @@ public class OrderScreen {
 	 * a reservation for a customer. Therefore, guest fields are hidden while
 	 * worker‑related controls remain visible.
 	 */
-	private Worker setupWorkerView() {
+	private void setupWorkerView() {
 		// Get worker ID from LoggedUser
         int id = LoggedUser.getId();
         BistroRequest request= new BistroRequest(BistroCommand.GET_WORKER, id);
@@ -222,17 +218,16 @@ public class OrderScreen {
             nonSubVbox.setVisible(false);  
 	    	workerVbox.setVisible(false);
 	    	subHBOX.setVisible(false);
+	    	return;
         }
         Object data = response.getData();
         if(data!= null) {
-        	Worker worker=(Worker)data;
+        	this.worker=(Worker)data;
         	 // Hide fields that are not relevant for subscribers
             nonSubVbox.setVisible(true);
             workerVbox.setVisible(true);
             subHBOX.setVisible(false); //worker does NOT need to enter subscriber ID manually
-			return worker;
         }
-		return null;
 	}
 
 	
@@ -328,7 +323,7 @@ public class OrderScreen {
 			}
 		}
 		// 5 & 6. Validate Email and Phone Number only for Guests
-		if( LoggedUser.getType()==SUBSCRIBER) {
+		if( LoggedUser.getType()==UserType.SUBSCRIBER) {
 			ID= String.valueOf(LoggedUser.getId());
 			email = sub.getEmail();
 			phone = sub.getPhone();
@@ -359,7 +354,9 @@ public class OrderScreen {
 			// Create Reservation object: date, amount, code, subscriber ID, today's date (for tracking)
 			Reservation r = new Reservation(date, amount, confirmation_code, Integer.parseInt(ID), today, selected.toLocalTime(), phone, email);
 			// Send the reservation object to the client controller for server communication
-			Main.client.accept(r);
+			BistroRequest req = new BistroRequest(BistroCommand.ADD_RESERVATION, r);
+			Main.client.accept(req);
+
 		}
 	}
 

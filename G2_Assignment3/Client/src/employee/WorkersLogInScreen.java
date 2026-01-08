@@ -1,10 +1,13 @@
 package employee;
 
+import java.util.ResourceBundle;
+
 import communication.BistroCommand;
 import communication.BistroRequest;
 import communication.BistroResponse;
 import communication.BistroResponseStatus;
 import communication.WorkerLoginRequest;
+import gui.LoginMenuScreen;
 import gui.Main;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -30,26 +33,28 @@ public class WorkersLogInScreen {
 	Alert alert = new Alert(Alert.AlertType.INFORMATION);
 
 	/** Button to submit the login credentials. */
-	@FXML
-	private Button loginBTN;
+	 @FXML
+    private ResourceBundle resources;
 
-	/** Container for the login button. */
-	@FXML
-	private HBox loginHbox;
+    @FXML
+    private Button backBtn;
 
-	/** Text field for entering the employee password. */
-	@FXML
-	private PasswordField passwordTxt;
+    @FXML
+    private Button loginBTN;
 
-	/** Container for the password input field. */
-	@FXML
-	private HBox passwordHbox;
+    @FXML
+    private PasswordField passwordTxt;
 
-	@FXML
-	private TextField usernameTxt;
+    @FXML
+    private Text statusText;
 
-	@FXML
-	private Text statusText;
+    @FXML
+    private TextField usernameTxt;
+
+    @FXML
+    void back(ActionEvent event) {
+
+    }
 
 	/**
 	 * Initializes the controller. This method is automatically called after the
@@ -113,6 +118,18 @@ public class WorkersLogInScreen {
 				showAlert("Login error", (String) response.getData());
 		}
 
+	}
+	/**
+	 * Handles the back button action. Navigates back to the previous screen.
+	 * @param event The ActionEvent triggered by the back button.
+	 */
+	@FXML
+	void backBtnAction(ActionEvent event) {
+		try {
+			Main.changeRoot(LoginMenuScreen.fxmlPath);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 }
