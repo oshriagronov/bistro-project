@@ -21,15 +21,8 @@
          </font>
       </Text>
 
-      <VBox fx:id="infoVbox" layoutX="157.0" layoutY="74.0" prefHeight="265.0" prefWidth="373.0">
+      <VBox fx:id="infoVbox" layoutX="157.0" layoutY="74.0" prefHeight="265.0" prefWidth="373.0" spacing="12.0">
          <children>
-
-            <HBox fx:id="confirmationBox" prefHeight="35.0" prefWidth="266.0" spacing="10.0">
-               <children>
-                  <Text text="confirmation code" />
-                  <TextField fx:id="confirmationCode" prefWidth="68.0" />
-               </children>
-            </HBox>
 
             <HBox fx:id="subscriberConfirmationBox" managed="false" prefHeight="52.0" prefWidth="178.0" spacing="10.0" visible="false">
                <children>
@@ -37,16 +30,18 @@
                   <ComboBox fx:id="subscriberConfirmationCodes" prefWidth="134.0" />
                </children>
             </HBox>
-            <HBox prefHeight="51.0" prefWidth="266.0">
+            <VBox fx:id="detailsVbox" prefHeight="114.0" prefWidth="367.0" spacing="10.0">
                <children>
-                  <CheckBox fx:id="forgotCheckBox" mnemonicParsing="false" text="forgot your code?" />
-               </children>
-            </HBox>
-            <VBox fx:id="detailsVbox" prefHeight="114.0" prefWidth="367.0">
-               <children>
-                  <Text strokeType="OUTSIDE" strokeWidth="0.0" text="please enter the identifying detail you put when you placed the order" wrappingWidth="413.744140625" />
+                  <Text fx:id="identifyingDetailsText" managed="false" strokeType="OUTSIDE" strokeWidth="0.0" text="please enter the identifying detail you put when you placed the order" visible="false" wrappingWidth="413.744140625" />
+
+                  <HBox fx:id="confirmationBox" alignment="CENTER_LEFT" prefHeight="35.0" prefWidth="266.0" spacing="10.0">
+                     <children>
+                        <Text text="confirmation code" />
+                        <TextField fx:id="confirmationCode" prefWidth="68.0" />
+                     </children>
+                  </HBox>
       
-                  <HBox fx:id="phoneBox" prefHeight="65.0" prefWidth="367.0" spacing="10.0">
+                  <HBox fx:id="phoneBox" alignment="CENTER_LEFT" prefHeight="65.0" prefWidth="367.0" spacing="10.0">
                      <children>
                         <Text text="phone">
                            <HBox.margin>
@@ -57,24 +52,27 @@
                         <TextField fx:id="restPhone" prefHeight="11.0" prefWidth="134.0" />
                      </children>
                   </HBox>
-                  <HBox prefHeight="50.0" prefWidth="367.0">
+                  <HBox alignment="CENTER_LEFT" prefHeight="50.0" prefWidth="367.0" spacing="10.0">
                      <children>
                         <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Email" />
                         <TextField fx:id="emailField" />
                      </children>
                   </HBox>
+                  <CheckBox fx:id="forgotCheckBox" mnemonicParsing="false" onAction="#handleForgotCheckBox" text="forgot your code?">
+                     <VBox.margin>
+                        <Insets top="6.0" />
+                     </VBox.margin>
+                  </CheckBox>
                </children>
             </VBox>
 
-            <HBox fx:id="forgotConfirmationBox" prefHeight="28.0" prefWidth="168.0">
-               <children>
-                  <Button fx:id="forgotConfirmationBtn" mnemonicParsing="false" onAction="#handleForgotConfirmation" text="Forgot Confirmation Code" />
-               </children>
-            </HBox>
-
             <HBox prefHeight="28.0" prefWidth="168.0">
                <children>
-                  <Button fx:id="submitBTN" alignment="CENTER" contentDisplay="CENTER" mnemonicParsing="false" onAction="#handleSubmit" prefHeight="25.0" prefWidth="61.0" text="Submit" />
+                  <Button fx:id="submitBTN" alignment="CENTER" contentDisplay="CENTER" mnemonicParsing="false" onAction="#handleSubmit" prefHeight="25.0" prefWidth="61.0" text="Submit">
+                     <HBox.margin>
+                        <Insets top="8.0" />
+                     </HBox.margin>
+                  </Button>
                </children>
             </HBox>
 

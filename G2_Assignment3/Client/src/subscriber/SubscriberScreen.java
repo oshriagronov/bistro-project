@@ -3,6 +3,7 @@ package subscriber;
 import communication.BistroCommand;
 import communication.BistroRequest;
 import gui.AcceptTableScreen;
+import gui.CancelReservationScreen;
 import gui.Main;
 import gui.UpdateScreen;
 import gui.WaitingListScreen;
@@ -51,6 +52,10 @@ public class SubscriberScreen {
 	@FXML
 	/** Button to navigate to accept table screen. */
 	private Button acceptTableBtn;
+
+	@FXML
+	/** Button to navigate to cancel reservation screen. */
+	private Button cancelReservationBtn;
 
 
 	@FXML
@@ -127,6 +132,19 @@ public class SubscriberScreen {
 	void goToNewReservation(ActionEvent event) {
 		try {
 			Main.changeRoot(OrderScreen.fxmlPath);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	@FXML
+	/**
+	 * Navigates to the cancel reservation screen.
+	 * @param event JavaFX action event
+	 */
+	void goToCancelReservation(ActionEvent event) {
+		try {
+			Main.changeRoot(CancelReservationScreen.fxmlPath);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

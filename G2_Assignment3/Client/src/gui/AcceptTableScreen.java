@@ -20,8 +20,6 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import logic.LoggedUser;
-import logic.Reservation;
-import logic.Subscriber;
 import logic.UserType;
 import subscriber.SubscriberScreen;
 
@@ -46,19 +44,13 @@ public class AcceptTableScreen {
     private TextField confirmationCode;
 
     @FXML
-    private VBox detailVbox;
+    private VBox detailsVbox;
 
     @FXML
     private TextField emailField;
 
     @FXML
     private CheckBox forgotCheckBox;
-
-    @FXML
-    private HBox forgotConfirmationBox;
-
-    @FXML
-    private Button forgotConfirmationBtn;
 
     @FXML
     private VBox infoVbox;
@@ -84,6 +76,9 @@ public class AcceptTableScreen {
     @FXML
     private Text tableResultText;
 
+    @FXML
+    private Text identifyingDetailsText;
+
 
 
     private boolean usePhoneAsConfirmation = false;
@@ -94,22 +89,19 @@ public class AcceptTableScreen {
      * Restores the view to its default state after an error or reset.
      */
     private void resetToDefaultView() {
-        detailVbox.setVisible(false);
+        detailsVbox.setVisible(true);
         infoVbox.setVisible(true);
         tableResultText.setVisible(false);
         usePhoneAsConfirmation = false;
-        applyUserView();
         confirmationCode.clear();
         restPhone.clear();
         if (subscriberConfirmationCodes != null) {
             subscriberConfirmationCodes.getSelectionModel().clearSelection();
         }
-        if (forgotCheckBox.isSelected()){
-            detailVbox.setVisible(true);
+        if (!isSubscriber && forgotCheckBox != null) {
+            forgotCheckBox.setSelected(false);
         }
-        else{
-            detailVbox.setVisible(false);
-        }
+        applyUserView();
     }
 
     /**
@@ -163,16 +155,25 @@ public class AcceptTableScreen {
      */
     private void applyUserView() {
         if (isSubscriber) {
-            toggleNode(phoneBox, false);
-            toggleNode(confirmationBox, false);
-            toggleNode(forgotConfirmationBox, false);
+            toggleNode(detailsVbox, false);
             toggleNode(subscriberConfirmationBox, true);
         } else {
-            toggleNode(phoneBox, true);
-            toggleNode(confirmationBox, true);
-            toggleNode(forgotConfirmationBox, true);
+            toggleNode(detailsVbox, true);
             toggleNode(subscriberConfirmationBox, false);
+            updateForgotUI();
         }
+    }
+
+    /**
+     * Adjusts the UI based on the "forgot code" checkbox state.
+     */
+    private void updateForgotUI() {
+        if (isSubscriber) {
+            return;
+        }
+        boolean forgotSelected = forgotCheckBox != null && forgotCheckBox.isSelected();
+        toggleNode(confirmationBox, !forgotSelected);
+        toggleNode(identifyingDetailsText, forgotSelected);
     }
 
     /**
@@ -205,6 +206,14 @@ public class AcceptTableScreen {
     }
 
     /**
+     * Handles toggling of the forgot confirmation checkbox.
+     */
+    @FXML
+    void handleForgotCheckBox(ActionEvent event) {
+        updateForgotUI();
+    }
+
+    /**
      * Displays an information alert to the user.
      * @param title The title of the alert window.
      * @param body The content text of the alert.
@@ -221,6 +230,9 @@ public class AcceptTableScreen {
      */
     private void setupDefaultView() {
         isSubscriber = false;
+        if (forgotCheckBox != null) {
+            forgotCheckBox.setSelected(false);
+        }
         applyUserView();
         prePhone.getItems().clear();
         prePhone.getItems().addAll("050", "052", "053", "054", "055", "058");
@@ -361,6 +373,10 @@ public class AcceptTableScreen {
             message.append("Could not find a matching order.");
         }
         showAlert("Message", message.toString());
+        if (!isSubscriber && forgotCheckBox != null) {
+            forgotCheckBox.setSelected(false);
+            updateForgotUI();
+        }
     }
 
     /**

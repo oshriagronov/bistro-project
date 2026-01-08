@@ -19,6 +19,7 @@
          <children>
             <Button fx:id="newReservationBtn" minWidth="180.0" onAction="#goToNewReservation" prefWidth="180.0" text="New Reservation" />
             <Button fx:id="updateReservationBtn" minWidth="180.0" onAction="#goToUpdateReservation" prefWidth="180.0" text="Update Reservation" />
+            <Button fx:id="cancelReservationBtn" minWidth="180.0" onAction="#goToCancelReservation" prefWidth="180.0" text="Cancel Reservation" />
             <Button fx:id="waitingListBtn" minWidth="180.0" onAction="#goToWaitingList" prefWidth="180.0" text="Waiting List" />
             <Button fx:id="acceptTableBtn" minWidth="180.0" onAction="#goToAcceptTable" prefWidth="180.0" text="Accept Table" />
             <Button fx:id="historyBtn" minWidth="180.0" onAction="#goToReservationHistory" prefWidth="180.0" text="Reservation History" />
