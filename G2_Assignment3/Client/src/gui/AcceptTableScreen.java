@@ -13,6 +13,7 @@ import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
@@ -39,16 +40,25 @@ public class AcceptTableScreen {
     private Button backBtn;
 
     @FXML
-    private TextField confirmationCode;
-
-    @FXML
     private HBox confirmationBox;
 
     @FXML
-    private Button forgotConfirmationBtn;
+    private TextField confirmationCode;
+
+    @FXML
+    private VBox detailVbox;
+
+    @FXML
+    private TextField emailField;
+
+    @FXML
+    private CheckBox forgotCheckBox;
 
     @FXML
     private HBox forgotConfirmationBox;
+
+    @FXML
+    private Button forgotConfirmationBtn;
 
     @FXML
     private VBox infoVbox;
@@ -63,16 +73,18 @@ public class AcceptTableScreen {
     private TextField restPhone;
 
     @FXML
+    private Button submitBTN;
+
+    @FXML
     private HBox subscriberConfirmationBox;
 
     @FXML
     private ComboBox<String> subscriberConfirmationCodes;
 
     @FXML
-    private Button submitBTN;
-
-    @FXML
     private Text tableResultText;
+
+
 
     private boolean usePhoneAsConfirmation = false;
     private boolean isSubscriber = false;
@@ -82,6 +94,7 @@ public class AcceptTableScreen {
      * Restores the view to its default state after an error or reset.
      */
     private void resetToDefaultView() {
+        detailVbox.setVisible(false);
         infoVbox.setVisible(true);
         tableResultText.setVisible(false);
         usePhoneAsConfirmation = false;
@@ -90,6 +103,12 @@ public class AcceptTableScreen {
         restPhone.clear();
         if (subscriberConfirmationCodes != null) {
             subscriberConfirmationCodes.getSelectionModel().clearSelection();
+        }
+        if (forgotCheckBox.isSelected()){
+            detailVbox.setVisible(true);
+        }
+        else{
+            detailVbox.setVisible(false);
         }
     }
 
