@@ -3,6 +3,7 @@ package db;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
@@ -14,9 +15,11 @@ import communication.AvgStayCounts;
 import communication.StatusCounts;
 import logic.CurrentDinerRow;
 import logic.Reservation;
+import logic.SpecialDay;
 import logic.Status;
 import logic.Subscriber;
 import logic.Table;
+import logic.WeeklySchedule;
 import logic.Worker;
 import logic.WorkerType;
 
@@ -92,30 +95,29 @@ public class ConnectionToDB {
 		String sql = "UPDATE `reservations` SET order_date = ?, num_of_diners = ? WHERE res_id = ?";
 		return executeWriteQuery(sql, order_date, number_of_guests, order_number);
 	}
-	
+
 	/**
-	 * Inserts a new reservation into the 'reservations' table.
-	 * Uses a prepared SQL statement with placeholders to safely insert all fields.
+	 * Inserts a new reservation into the 'reservations' table. Uses a prepared SQL
+	 * statement with placeholders to safely insert all fields.
 	 *
 	 * @param r the Reservation object containing all reservation details
 	 * @return number of affected rows (1 if insert succeeded, 0 if failed)
 	 */
 	public int insertReservation(Reservation r) {
-	    String sql = "INSERT INTO reservations (confirmation_code, phone, email, sub_id, start_time, finish_time, order_date, order_status, num_diners, date_of_placing_order) "
-	               + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+		String sql = "INSERT INTO reservations (confirmation_code, phone, email, sub_id, start_time, finish_time, order_date, order_status, num_diners, date_of_placing_order) "
+				+ "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
-	    return executeWriteQuery(sql,
-	        r.getConfirmationCode(),     // int
-	        r.getPhone_number(),         // String
-	        r.getEmail(),                // String
-	        r.getSubscriberId(),         // int
-	        r.getStart_time(),           // LocalTime
-	        r.getFinish_time(),          // LocalTime
-	        r.getOrderDate(),            // LocalDate
-	        r.getStatus().name(),        // Enum → String
-	        r.getNumberOfGuests(),       // int
-	        r.getDateOfPlacingOrder()    // LocalDate
-	    );
+		return executeWriteQuery(sql, r.getConfirmationCode(), // int
+				r.getPhone_number(), // String
+				r.getEmail(), // String
+				r.getSubscriberId(), // int
+				r.getStart_time(), // LocalTime
+				r.getFinish_time(), // LocalTime
+				r.getOrderDate(), // LocalDate
+				r.getStatus().name(), // Enum → String
+				r.getNumberOfGuests(), // int
+				r.getDateOfPlacingOrder() // LocalDate
+		);
 	}
 
 	/**
@@ -195,6 +197,60 @@ public class ConnectionToDB {
 
 			if (resId != null)
 				res.setOrderNumber(resId);
+			list.add(res);
+		}
+
+		return list;
+	}
+
+	/**
+	 * Searches for all reservations associated with a given email address.
+	 * <p>
+	 * This method executes a read-only SQL query using {@link #executeReadQuery} to
+	 * retrieve all orders whose email field matches the provided value. The results
+	 * are ordered by reservation date in descending order (most recent orders
+	 * first).
+	 * </p>
+	 * <p>
+	 * Each row returned from the database is mapped into a {@link Reservation}
+	 * object. If no matching orders are found, an empty list is returned.
+	 * </p>
+	 *
+	 * @param email the email address to search reservations by
+	 * @return a list of {@link Reservation} objects associated with the given
+	 *         email; an empty list if no reservations are found
+	 */
+
+	public List<Reservation> searchOrdersByEmail(String email) {
+		String sql = "SELECT res_id, confirmation_code, phone, email, sub_id, start_time, finish_time, "
+				+ "       order_date, order_status, num_diners, date_of_placing_order " + "FROM reservations "
+				+ "WHERE email = ? " + "ORDER BY order_date DESC";
+
+		List<List<Object>> rows = executeReadQuery(sql, email);
+		List<Reservation> list = new ArrayList<>();
+
+		for (List<Object> row : rows) {
+			Integer resId = (Integer) row.get(0);
+			Integer confirmationCode = (Integer) row.get(1);
+			String phoneNumber = (String) row.get(2);
+			String emailValue = (String) row.get(3);
+			Integer subId = (Integer) row.get(4);
+
+			LocalTime startTime = toLocalTime(row.get(5));
+			LocalTime finishTime = toLocalTime(row.get(6));
+			LocalDate orderDate = toLocalDate(row.get(7));
+
+			Status status = Status.valueOf(((String) row.get(8)).trim());
+
+			Integer diners = (Integer) row.get(9);
+			LocalDate placingDate = toLocalDate(row.get(10));
+
+			Reservation res = new Reservation(orderDate, diners, confirmationCode, subId, placingDate, startTime,
+					finishTime, phoneNumber, status, emailValue);
+
+			if (resId != null)
+				res.setOrderNumber(resId);
+
 			list.add(res);
 		}
 
@@ -837,14 +893,15 @@ public class ConnectionToDB {
 		return result;
 	}
 
-
-		// Notification service related methods ************************************************
+	// Notification service related methods
+	// ************************************************
 
 	/**
-	 * Retrieves upcoming confirmed reservations within the next two hours for reminders.
+	 * Retrieves upcoming confirmed reservations within the next two hours for
+	 * reminders.
 	 *
-	 * @return list of rows as strings (res_id, phone, email, start_time, confirmation_code),
-	 *         or null if none found
+	 * @return list of rows as strings (res_id, phone, email, start_time,
+	 *         confirmation_code), or null if none found
 	 */
 	public List<List<String>> getReservationToSendReminder() {
 		String sql = """
@@ -869,7 +926,8 @@ public class ConnectionToDB {
 	}
 
 	/**
-	 * Retrieves confirmed reservations that have finished and are past due for payment reminders.
+	 * Retrieves confirmed reservations that have finished and are past due for
+	 * payment reminders.
 	 *
 	 * @return list of rows as strings (res_id, phone, email), or null if none found
 	 */
@@ -894,7 +952,6 @@ public class ConnectionToDB {
 		}
 		return out;
 	}
-
 
 	/**
 	 * Executes a write query with positional parameters.
@@ -923,11 +980,11 @@ public class ConnectionToDB {
 				else if (p instanceof LocalDate)
 					stmt.setDate(idx, java.sql.Date.valueOf((LocalDate) p));
 				else if (p instanceof java.sql.Date)
-				    stmt.setDate(idx, (java.sql.Date) p);
+					stmt.setDate(idx, (java.sql.Date) p);
 				else if (p instanceof java.sql.Time)
-				    stmt.setTime(idx, (java.sql.Time) p);
+					stmt.setTime(idx, (java.sql.Time) p);
 				else if (p instanceof LocalTime)
-				    stmt.setTime(idx, java.sql.Time.valueOf((LocalTime) p));
+					stmt.setTime(idx, java.sql.Time.valueOf((LocalTime) p));
 
 				else
 					throw new SQLException();
@@ -997,16 +1054,16 @@ public class ConnectionToDB {
 		return rows;
 	}
 
-	public List<StatusCounts> getMonthlySlotStats(int year) {
-		String sql = "SELECT " + "  MONTH(order_date) AS mon, "
+	public List<StatusCounts> getDailySlotStats(int year, int month) {
+		String sql = "SELECT " + "DAY(order_date) AS day_in_month, "
 				+ "  SUM(CASE WHEN order_status IN ('CONFIRMED','COMPLETED') "
 				+ "           AND MOD(MINUTE(start_time), 30) = 0 THEN 1 ELSE 0 END) AS on_time, "
 				+ "  SUM(CASE WHEN order_status IN ('CONFIRMED','COMPLETED') "
 				+ "           AND MOD(MINUTE(start_time), 30) <> 0 THEN 1 ELSE 0 END) AS late, "
 				+ "  SUM(CASE WHEN order_status = 'CANCELLED' "
 				+ "           AND MOD(MINUTE(start_time), 30) > 15 THEN 1 ELSE 0 END) AS cancelled "
-				+ "FROM reservations " + "WHERE YEAR(order_date) = ? " + "GROUP BY MONTH(order_date) "
-				+ "ORDER BY MONTH(order_date)";
+				+ "FROM reservations " + "WHERE YEAR(order_date) = ? AND MONTH(order_date) = ? "
+				+ "GROUP BY DAY(order_date) " + "ORDER BY DAY(order_date)";
 
 		List<StatusCounts> out = new ArrayList<>();
 
@@ -1017,14 +1074,15 @@ public class ConnectionToDB {
 
 		try (PreparedStatement stmt = pConn.getConnection().prepareStatement(sql)) {
 			stmt.setInt(1, year);
+			stmt.setInt(2, month);
 
 			try (ResultSet rs = stmt.executeQuery()) {
 				while (rs.next()) {
-					out.add(new StatusCounts(year, rs.getInt("mon"), rs.getInt("on_time"), rs.getInt("late"),
+					int day = rs.getInt("day_in_month");
+					out.add(new StatusCounts(year, month, day, rs.getInt("on_time"), rs.getInt("late"),
 							rs.getInt("cancelled")));
 				}
 			}
-
 		} catch (SQLException e) {
 			e.printStackTrace();
 		} finally {
@@ -1034,12 +1092,13 @@ public class ConnectionToDB {
 		return out;
 	}
 
-	public List<AvgStayCounts> getMonthlyAverageStay(int year) {
-		String sql = "SELECT " + "  MONTH(order_date) AS mon,   AVG(TIMESTAMPDIFF( " + "    MINUTE, "
-				+ "    TIMESTAMP(order_date, start_time), TIMESTAMP(order_date, finish_time) "
-				+ "  )) AS avg_stay_minutes FROM reservations WHERE YEAR(order_date) = ? "
-				+ "  AND order_status = 'COMPLETED' AND start_time IS NOT NULL "
-				+ "  AND finish_time IS NOT NULL GROUP BY MONTH(order_date) " + "ORDER BY MONTH(order_date)";
+	public List<AvgStayCounts> getDailyAverageStay(int year, int month) {
+		String sql = "SELECT " + "  DAY(order_date) AS day_in_month, " + "  AVG(TIMESTAMPDIFF(MINUTE, "
+				+ "      TIMESTAMP(order_date, start_time), " + "      TIMESTAMP(order_date, finish_time) "
+				+ "  )) AS avg_stay_minutes " + "FROM reservations "
+				+ "WHERE YEAR(order_date) = ? AND MONTH(order_date) = ? " + "  AND order_status = 'COMPLETED' "
+				+ "  AND start_time IS NOT NULL " + "  AND finish_time IS NOT NULL " + "GROUP BY DAY(order_date) "
+				+ "ORDER BY DAY(order_date)";
 
 		List<AvgStayCounts> out = new ArrayList<>();
 
@@ -1050,10 +1109,12 @@ public class ConnectionToDB {
 
 		try (PreparedStatement stmt = pConn.getConnection().prepareStatement(sql)) {
 			stmt.setInt(1, year);
+			stmt.setInt(2, month);
 
 			try (ResultSet rs = stmt.executeQuery()) {
 				while (rs.next()) {
-					out.add(new AvgStayCounts(year, rs.getInt("mon"), rs.getDouble("avg_stay_minutes")));
+					int day = rs.getInt("day_in_month");
+					out.add(new AvgStayCounts(year, month, day, rs.getDouble("avg_stay_minutes")));
 				}
 			}
 		} catch (SQLException e) {
@@ -1062,6 +1123,97 @@ public class ConnectionToDB {
 			pool.releaseConnection(pConn);
 		}
 
+		return out;
+	}
+
+	public List<WeeklySchedule> loadRegularTimes() {
+		String sql = """
+				SELECT day, opening_time, closing_time
+				FROM regulartimes
+				ORDER BY FIELD(day, 'Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday')
+				""";
+
+		List<List<Object>> rows = executeReadQuery(sql);
+		List<WeeklySchedule> out = new ArrayList<>();
+
+		for (List<Object> row : rows) {
+			if (row.size() < 3)
+				continue;
+
+			String dayStr = row.get(0) == null ? null : row.get(0).toString();
+			DayOfWeek day = toDayOfWeek(dayStr);
+
+			LocalTime open = toLocalTime(row.get(1));
+			LocalTime close = toLocalTime(row.get(2));
+
+			if (day != null) {
+				out.add(new WeeklySchedule(day, open, close));
+			}
+		}
+
+		return out;
+	}
+
+	private static DayOfWeek toDayOfWeek(String dbDay) {
+		if (dbDay == null)
+			return null;
+
+		return switch (dbDay.trim()) {
+		case "Sunday" -> DayOfWeek.SUNDAY;
+		case "Monday" -> DayOfWeek.MONDAY;
+		case "Tuesday" -> DayOfWeek.TUESDAY;
+		case "Wednesday" -> DayOfWeek.WEDNESDAY;
+		case "Thursday" -> DayOfWeek.THURSDAY;
+		case "Friday" -> DayOfWeek.FRIDAY;
+		case "Saturday" -> DayOfWeek.SATURDAY;
+		default -> null;
+		};
+	}
+
+	public int updateRegularDayTimes(String day, LocalTime opening, LocalTime closing) {
+		String sql = "UPDATE regulartimes SET opening_time = ?, closing_time = ? WHERE day = ?";
+		return executeWriteQuery(sql, opening, closing, day);
+	}
+
+	public int updateSpecialDay(LocalDate day, LocalTime opening, LocalTime closing) {
+		String sql = """
+				    INSERT INTO specialdates (date, opening_time, closing_time)
+				    VALUES (?, ?, ?)
+				    ON DUPLICATE KEY UPDATE
+				        opening_time = VALUES(opening_time),
+				        closing_time = VALUES(closing_time)
+				""";
+
+		return executeWriteQuery(sql, day, opening, closing);
+	}
+
+	public List<SpecialDay> loadUpcomingSpecialDates(int limit) {
+		String sql = """
+				SELECT date, opening_time, closing_time
+				FROM specialdates
+				WHERE date >= CURDATE()
+				ORDER BY date ASC
+				LIMIT ?
+				""";
+
+		// executeReadQuery אצלך תומך רק ב-Integer/String/LocalDate.
+		// LIMIT ? זה Integer, אז זה בסדר.
+		List<List<Object>> rows = executeReadQuery(sql, limit);
+
+		List<SpecialDay> out = new ArrayList<>();
+		for (List<Object> row : rows) {
+			if (row.size() < 3)
+				continue;
+
+			LocalDate date = toLocalDate(row.get(0));
+			LocalTime open = toLocalTime(row.get(1));
+			LocalTime close = toLocalTime(row.get(2));
+
+			if (date == null)
+				continue;
+
+			out.add(new SpecialDay(date, open, close));
+		}
 		return out;
 	}
 

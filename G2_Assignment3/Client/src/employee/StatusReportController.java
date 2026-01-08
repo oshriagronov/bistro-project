@@ -1,6 +1,7 @@
 package employee;
 
 import java.time.LocalDate;
+import java.time.YearMonth;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -12,6 +13,7 @@ import communication.BistroRequest;
 import communication.EventBus;
 import communication.EventListener;
 import communication.EventType;
+import communication.RequestFactory;
 import communication.StatusCounts;
 import gui.Main;
 import javafx.event.ActionEvent;
@@ -20,6 +22,7 @@ import javafx.scene.chart.BarChart;
 import javafx.scene.chart.LineChart;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
@@ -41,10 +44,6 @@ public class StatusReportController {
 	public static final String fxmlPath = "/employee/TimingReport.fxml";
 	private final EventListener ordersListener = t -> onRefresh();
 
-	/** Month labels used for chart X-axis */
-	private final String[] months = { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov",
-			"Dec" };
-
 	@FXML
 	private Button menuBtn;
 
@@ -53,6 +52,9 @@ public class StatusReportController {
 
 	@FXML
 	private Label reportTitle;
+
+	@FXML
+	private ComboBox<Integer> monthComboBox;
 
 	@FXML
 	private ComboBox<Integer> yearComboBox;
@@ -69,6 +71,8 @@ public class StatusReportController {
 	@FXML
 	private NumberAxis departureYAxis;
 
+	private final Alert alert = new Alert(Alert.AlertType.INFORMATION);
+
 	/**
 	 * Initializes the controller.
 	 * <p>
@@ -78,11 +82,22 @@ public class StatusReportController {
 	@FXML
 	public void initialize() {
 		initYearPicker();
+		initMonthPicker();
+		statusBarChart.setCategoryGap(8);
+		statusBarChart.setBarGap(2);
 		reportTypeComboBox.getItems().addAll("Arrival times", "Departure times");
 		reportTypeComboBox.getSelectionModel().selectFirst();
 		setReportView("Arrival times");
-		reportTypeComboBox.setOnAction(e -> setReportView(reportTypeComboBox.getValue()));
 		EventBus.getInstance().subscribe(EventType.ORDER_CHANGED, ordersListener);
+		initDefaultSelectionToLastAvailable();
+		onRefresh();
+	}
+
+	public void showAlert(String title, String body) {
+		alert.setTitle(title);
+		alert.setHeaderText(null);
+		alert.setContentText(body);
+		alert.showAndWait();
 	}
 
 	/**
@@ -95,17 +110,23 @@ public class StatusReportController {
 	@FXML
 	private void onRefresh() {
 		Integer year = yearComboBox.getValue();
-		if (year == null)
+		Integer month = monthComboBox.getValue();
+		if (year == null || month == null)
 			return;
+
+		if (!canViewMonthlyReport(year, month)) {
+			showAlert("Not available yet", "This monthly report is available only after the month ends.");
+			return;
+		}
 
 		String type = reportTypeComboBox.getValue();
 		if (type == null)
 			return;
 
 		if ("Arrival times".equals(type)) {
-			loadYear(year);
+			loadMonth(year, month);
 		} else {
-			loadYearStayinTime(year);
+			loadMonthStayinTime(year, month);
 		}
 	}
 
@@ -117,40 +138,24 @@ public class StatusReportController {
 	 */
 	private void initYearPicker() {
 		int currentYear = LocalDate.now().getYear();
-
-		for (int y = currentYear; y >= currentYear - 4; y--) {
+		for (int y = currentYear; y >= currentYear - 2; y--) {
 			yearComboBox.getItems().add(y);
 		}
-
 		yearComboBox.setValue(currentYear);
-		yearComboBox.setOnAction(e -> loadYear(yearComboBox.getValue()));
 
-		reportTypeComboBox.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
-			if (newVal == null)
-				return;
-
-			int year = yearComboBox.getValue();
-			setReportView(newVal);
-
-			if ("Arrival times".equals(newVal)) {
-				loadYear(year);
-			} else {
-				loadYearStayinTime(year);
-			}
+		yearComboBox.setOnAction(e -> onRefresh());
+		reportTypeComboBox.setOnAction(e -> {
+			setReportView(reportTypeComboBox.getValue());
+			onRefresh();
 		});
+	}
 
-		yearComboBox.setOnAction(e -> {
-			Integer year = yearComboBox.getValue();
-			if (year == null)
-				return;
-
-			String type = reportTypeComboBox.getValue();
-			if ("Departure times".equals(type)) {
-				loadYearStayinTime(year);
-			} else {
-				loadYear(year);
-			}
-		});
+	private void initMonthPicker() {
+		for (int m = 1; m <= 12; m++) {
+			monthComboBox.getItems().add(m);
+		}
+		monthComboBox.setValue(LocalDate.now().getMonthValue());
+		monthComboBox.setOnAction(e -> onRefresh());
 	}
 
 	/**
@@ -161,18 +166,18 @@ public class StatusReportController {
 	 *
 	 * @param year the year to load data for
 	 */
-	private void loadYear(int year) {
-		reportTitle.setText("Arrival times in – " + year);
+	private void loadMonth(int year, int month) {
+		reportTitle.setText("Arrival times – " + year + "-" + String.format("%02d", month));
 
-		Main.client.accept(new BistroRequest(BistroCommand.GET_TIMINGS, year));
+		Main.client.accept(RequestFactory.getMonthlyArrivalTimesReport(YearMonth.of(year, month)));
 
 		List<StatusCounts> rows = (List<StatusCounts>) Main.client.getResponse().getData();
 		if (rows == null)
 			rows = new ArrayList<>();
 
-		Map<Integer, StatusCounts> byMonth = new HashMap<>();
+		Map<Integer, StatusCounts> byDay = new HashMap<>();
 		for (StatusCounts r : rows) {
-			byMonth.put(r.getMonth(), r);
+			byDay.put(r.getDay(), r);
 		}
 
 		XYChart.Series<String, Number> onTime = new XYChart.Series<>();
@@ -184,13 +189,15 @@ public class StatusReportController {
 		XYChart.Series<String, Number> cancelled = new XYChart.Series<>();
 		cancelled.setName("Cancelled");
 
-		for (int m = 1; m <= 12; m++) {
-			StatusCounts r = byMonth.get(m);
+		int daysInMonth = java.time.YearMonth.of(year, month).lengthOfMonth();
+
+		for (int m = 1; m <= daysInMonth; m++) {
+			StatusCounts r = byDay.get(m);
 			int onTimeCount = (r == null) ? 0 : r.getOnTime();
 			int lateCount = (r == null) ? 0 : r.getLate();
 			int cancCount = (r == null) ? 0 : r.getCancelled();
 
-			String label = months[m - 1];
+			String label = String.valueOf(m);
 			onTime.getData().add(new XYChart.Data<>(label, onTimeCount));
 			late.getData().add(new XYChart.Data<>(label, lateCount));
 			cancelled.getData().add(new XYChart.Data<>(label, cancCount));
@@ -208,27 +215,32 @@ public class StatusReportController {
 	 *
 	 * @param year the year to load data for
 	 */
-	private void loadYearStayinTime(int year) {
-		reportTitle.setText("Average staying time in – " + year);
+	private void loadMonthStayinTime(int year, int month) {
 
-		Main.client.accept(new BistroRequest(BistroCommand.GET_STAYING_TIMES, year));
+		YearMonth ym = YearMonth.of(year, month);
+		reportTitle.setText("Average staying time – " + year + "-" + String.format("%02d", month));
+
+		Main.client.accept(RequestFactory.getMonthlyStayingTimesReport(ym));
 
 		List<AvgStayCounts> rows = (List<AvgStayCounts>) Main.client.getResponse().getData();
 		if (rows == null)
 			rows = new ArrayList<>();
 
-		Map<Integer, AvgStayCounts> byMonth = new HashMap<>();
+		Map<Integer, AvgStayCounts> byDay = new HashMap<>();
 		for (AvgStayCounts r : rows) {
-			byMonth.put(r.getMonth(), r);
+			byDay.put(r.getDay(), r);
 		}
 
 		XYChart.Series<String, Number> averageTimes = new XYChart.Series<>();
 		averageTimes.setName("Avg stay (min)");
 
-		for (int m = 1; m <= 12; m++) {
-			AvgStayCounts r = byMonth.get(m);
+		int daysInMonth = ym.lengthOfMonth();
+
+		for (int day = 1; day <= daysInMonth; day++) {
+			AvgStayCounts r = byDay.get(day);
 			double avg = (r == null) ? 0.0 : r.getAvgMinutes();
-			String label = months[m - 1];
+
+			String label = String.valueOf(day);
 			averageTimes.getData().add(new XYChart.Data<>(label, avg));
 		}
 
@@ -274,6 +286,42 @@ public class StatusReportController {
 
 		reportTitle.setText(arrival ? "Timing Report (Arrival)" : "Timing Report (Average staying time)");
 	}
+
+	private boolean canViewMonthlyReport(int year, int month) {
+		YearMonth selected = YearMonth.of(year, month);
+		LocalDate today = LocalDate.now();
+
+		YearMonth current = YearMonth.from(today);
+		if (selected.isAfter(current))
+			return false;
+
+		if (selected.isBefore(current))
+			return true;
+
+		return today.getDayOfMonth() == current.lengthOfMonth();
+	}
+	
+	private YearMonth lastAvailableMonth() {
+	    LocalDate today = LocalDate.now();
+	    YearMonth current = YearMonth.from(today);
+
+	    boolean monthEnded = today.getDayOfMonth() == current.lengthOfMonth();
+	    return monthEnded ? current : current.minusMonths(1);
+	}
+	
+	
+	private void initDefaultSelectionToLastAvailable() {
+	    YearMonth ym = lastAvailableMonth();
+
+	    // תוודא שהשנה קיימת ברשימה (אם אתה מוסיף רק 4 שנים אחורה)
+	    if (!yearComboBox.getItems().contains(ym.getYear())) {
+	        yearComboBox.getItems().add(ym.getYear());
+	    }
+
+	    yearComboBox.setValue(ym.getYear());
+	    monthComboBox.setValue(ym.getMonthValue());
+	}
+
 
 	@FXML
 	void backToMenu(ActionEvent event) {

@@ -8,11 +8,15 @@
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="lib" path="mysql-connector-j-9.5.0.jar"/>
 <<<<<<< HEAD
+<<<<<<< HEAD
 	<classpathentry kind="lib" path="C:/Users/oshri/Documents/bistro-project/G2_Assignment3/jbcrypt-0.4.jar"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/Common"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/OCSF"/>
 =======
 	<classpathentry kind="lib" path="C:/Users/liraz/Documents/bistro-project/G2_Assignment3/jbcrypt-0.4.jar"/>
 >>>>>>> main
+=======
+	<classpathentry kind="lib" path="C:/Users/טל מצגר/Desktop/bistro-project/G2_Assignment3/jbcrypt-0.4.jar"/>
+>>>>>>> af672171587ab5d9b04822fe61efde70f4e77c09
 	<classpathentry kind="output" path="bin"/>
 </classpath>

@@ -15,6 +15,9 @@ public class employeeMenu {
 	private Button ordersBTN;
 
 	@FXML
+	private Button scheduleBtn;
+
+	@FXML
 	private Button reportsBTN;
 
 	@FXML
@@ -48,6 +51,15 @@ public class employeeMenu {
 	void manageTables(ActionEvent event) {
 		try {
 			Main.changeRoot(TablesManagementScreen.fxmlPath, 1000, 800);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	@FXML
+	void manageSchedule(ActionEvent event) {
+		try {
+			Main.changeRoot(ScheduleManagementScreen.fxmlPath, 1000, 800);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
