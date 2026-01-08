@@ -25,8 +25,10 @@ import communication.TableStatusUpdate;
 import communication.WorkerLoginRequest;
 import db.ConnectionToDB;
 import logic.Reservation;
+import logic.SpecialDay;
 import logic.Subscriber;
 import logic.Table;
+import logic.WeeklySchedule;
 import logic.Worker;
 import ocsf.server.*;
 
@@ -103,6 +105,8 @@ public class Server extends AbstractServer {
 			if (orderNumber == -1) {
 				response = new BistroResponse(BistroResponseStatus.FAILURE, "Bad order number.");
 			}
+			dbReturnedValue = db.searchOrderByOrderNumber(orderNumber);
+			response = new BistroResponse(BistroResponseStatus.SUCCESS, dbReturnedValue);
 			break;
 		case GET_TABLE_BY_PHONE_AND_CODE:
 			// Expect ArrayList [phone, confirmationCode]; fetch reservation then find an
@@ -306,7 +310,34 @@ public class Server extends AbstractServer {
 						((YearMonth) data).getMonthValue());
 			response = new BistroResponse(BistroResponseStatus.SUCCESS, dbReturnedValue);
 			break;
-
+		case LOAD_WEEKLY_SCHEDULE:
+			dbReturnedValue = db.loadRegularTimes();
+			response = new BistroResponse(BistroResponseStatus.SUCCESS, dbReturnedValue);
+			break;
+		case LOAD_SPECIAL_DATES:
+			if (data instanceof Integer) {
+				dbReturnedValue = db.loadUpcomingSpecialDates((int) data);
+				response = new BistroResponse(BistroResponseStatus.SUCCESS, dbReturnedValue);
+			}
+			else
+				response = new BistroResponse(BistroResponseStatus.FAILURE, "Failed loading the spedcial dates");
+			break;
+		case UPDATE_REGULAR_SCHEDULE:
+			if (data instanceof WeeklySchedule) {
+				WeeklySchedule ws = (WeeklySchedule) data;
+				dbReturnedValue = db.updateRegularDayTimes(ws.getDayOfWeek().toString(), ws.getOpen(), ws.getClose());
+				response = new BistroResponse(BistroResponseStatus.SUCCESS, dbReturnedValue);
+			} else
+				response = new BistroResponse(BistroResponseStatus.FAILURE, "Failed to update schedule");
+			break;
+		case UPDATE_SPECIAL_DAY:
+			if (data instanceof SpecialDay) {
+				SpecialDay sd = (SpecialDay) data;
+				dbReturnedValue = db.updateSpecialDay(sd.getDay(), sd.getOpen(), sd.getClose());
+				response = new BistroResponse(BistroResponseStatus.SUCCESS, dbReturnedValue);
+			} else
+				response = new BistroResponse(BistroResponseStatus.FAILURE, "Failed to update the chosen date");
+			break;
 		default:
 			// Expect unknown/unsupported command; return INVALID_REQUEST.
 			response = new BistroResponse(BistroResponseStatus.INVALID_REQUEST, null);

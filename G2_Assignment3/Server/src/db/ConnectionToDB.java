@@ -3,6 +3,7 @@ package db;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
@@ -14,9 +15,11 @@ import communication.AvgStayCounts;
 import communication.StatusCounts;
 import logic.CurrentDinerRow;
 import logic.Reservation;
+import logic.SpecialDay;
 import logic.Status;
 import logic.Subscriber;
 import logic.Table;
+import logic.WeeklySchedule;
 import logic.Worker;
 import logic.WorkerType;
 
@@ -92,30 +95,29 @@ public class ConnectionToDB {
 		String sql = "UPDATE `reservations` SET order_date = ?, num_of_diners = ? WHERE res_id = ?";
 		return executeWriteQuery(sql, order_date, number_of_guests, order_number);
 	}
-	
+
 	/**
-	 * Inserts a new reservation into the 'reservations' table.
-	 * Uses a prepared SQL statement with placeholders to safely insert all fields.
+	 * Inserts a new reservation into the 'reservations' table. Uses a prepared SQL
+	 * statement with placeholders to safely insert all fields.
 	 *
 	 * @param r the Reservation object containing all reservation details
 	 * @return number of affected rows (1 if insert succeeded, 0 if failed)
 	 */
 	public int insertReservation(Reservation r) {
-	    String sql = "INSERT INTO reservations (confirmation_code, phone, email, sub_id, start_time, finish_time, order_date, order_status, num_diners, date_of_placing_order) "
-	               + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+		String sql = "INSERT INTO reservations (confirmation_code, phone, email, sub_id, start_time, finish_time, order_date, order_status, num_diners, date_of_placing_order) "
+				+ "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
-	    return executeWriteQuery(sql,
-	        r.getConfirmationCode(),     // int
-	        r.getPhone_number(),         // String
-	        r.getEmail(),                // String
-	        r.getSubscriberId(),         // int
-	        r.getStart_time(),           // LocalTime
-	        r.getFinish_time(),          // LocalTime
-	        r.getOrderDate(),            // LocalDate
-	        r.getStatus().name(),        // Enum → String
-	        r.getNumberOfGuests(),       // int
-	        r.getDateOfPlacingOrder()    // LocalDate
-	    );
+		return executeWriteQuery(sql, r.getConfirmationCode(), // int
+				r.getPhone_number(), // String
+				r.getEmail(), // String
+				r.getSubscriberId(), // int
+				r.getStart_time(), // LocalTime
+				r.getFinish_time(), // LocalTime
+				r.getOrderDate(), // LocalDate
+				r.getStatus().name(), // Enum → String
+				r.getNumberOfGuests(), // int
+				r.getDateOfPlacingOrder() // LocalDate
+		);
 	}
 
 	/**
@@ -824,14 +826,15 @@ public class ConnectionToDB {
 		return result;
 	}
 
-
-		// Notification service related methods ************************************************
+	// Notification service related methods
+	// ************************************************
 
 	/**
-	 * Retrieves upcoming confirmed reservations within the next two hours for reminders.
+	 * Retrieves upcoming confirmed reservations within the next two hours for
+	 * reminders.
 	 *
-	 * @return list of rows as strings (res_id, phone, email, start_time, confirmation_code),
-	 *         or null if none found
+	 * @return list of rows as strings (res_id, phone, email, start_time,
+	 *         confirmation_code), or null if none found
 	 */
 	public List<List<String>> getReservationToSendReminder() {
 		String sql = """
@@ -856,7 +859,8 @@ public class ConnectionToDB {
 	}
 
 	/**
-	 * Retrieves confirmed reservations that have finished and are past due for payment reminders.
+	 * Retrieves confirmed reservations that have finished and are past due for
+	 * payment reminders.
 	 *
 	 * @return list of rows as strings (res_id, phone, email), or null if none found
 	 */
@@ -881,7 +885,6 @@ public class ConnectionToDB {
 		}
 		return out;
 	}
-
 
 	/**
 	 * Executes a write query with positional parameters.
@@ -910,11 +913,11 @@ public class ConnectionToDB {
 				else if (p instanceof LocalDate)
 					stmt.setDate(idx, java.sql.Date.valueOf((LocalDate) p));
 				else if (p instanceof java.sql.Date)
-				    stmt.setDate(idx, (java.sql.Date) p);
+					stmt.setDate(idx, (java.sql.Date) p);
 				else if (p instanceof java.sql.Time)
-				    stmt.setTime(idx, (java.sql.Time) p);
+					stmt.setTime(idx, (java.sql.Time) p);
 				else if (p instanceof LocalTime)
-				    stmt.setTime(idx, java.sql.Time.valueOf((LocalTime) p));
+					stmt.setTime(idx, java.sql.Time.valueOf((LocalTime) p));
 
 				else
 					throw new SQLException();
@@ -1053,6 +1056,97 @@ public class ConnectionToDB {
 			pool.releaseConnection(pConn);
 		}
 
+		return out;
+	}
+
+	public List<WeeklySchedule> loadRegularTimes() {
+		String sql = """
+				SELECT day, opening_time, closing_time
+				FROM regulartimes
+				ORDER BY FIELD(day, 'Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday')
+				""";
+
+		List<List<Object>> rows = executeReadQuery(sql);
+		List<WeeklySchedule> out = new ArrayList<>();
+
+		for (List<Object> row : rows) {
+			if (row.size() < 3)
+				continue;
+
+			String dayStr = row.get(0) == null ? null : row.get(0).toString();
+			DayOfWeek day = toDayOfWeek(dayStr);
+
+			LocalTime open = toLocalTime(row.get(1));
+			LocalTime close = toLocalTime(row.get(2));
+
+			if (day != null) {
+				out.add(new WeeklySchedule(day, open, close));
+			}
+		}
+
+		return out;
+	}
+
+	private static DayOfWeek toDayOfWeek(String dbDay) {
+		if (dbDay == null)
+			return null;
+
+		return switch (dbDay.trim()) {
+		case "Sunday" -> DayOfWeek.SUNDAY;
+		case "Monday" -> DayOfWeek.MONDAY;
+		case "Tuesday" -> DayOfWeek.TUESDAY;
+		case "Wednesday" -> DayOfWeek.WEDNESDAY;
+		case "Thursday" -> DayOfWeek.THURSDAY;
+		case "Friday" -> DayOfWeek.FRIDAY;
+		case "Saturday" -> DayOfWeek.SATURDAY;
+		default -> null;
+		};
+	}
+
+	public int updateRegularDayTimes(String day, LocalTime opening, LocalTime closing) {
+		String sql = "UPDATE regulartimes SET opening_time = ?, closing_time = ? WHERE day = ?";
+		return executeWriteQuery(sql, opening, closing, day);
+	}
+
+	public int updateSpecialDay(LocalDate day, LocalTime opening, LocalTime closing) {
+		String sql = """
+				    INSERT INTO specialdates (date, opening_time, closing_time)
+				    VALUES (?, ?, ?)
+				    ON DUPLICATE KEY UPDATE
+				        opening_time = VALUES(opening_time),
+				        closing_time = VALUES(closing_time)
+				""";
+
+		return executeWriteQuery(sql, day, opening, closing);
+	}
+
+	public List<SpecialDay> loadUpcomingSpecialDates(int limit) {
+		String sql = """
+				SELECT date, opening_time, closing_time
+				FROM specialdates
+				WHERE date >= CURDATE()
+				ORDER BY date ASC
+				LIMIT ?
+				""";
+
+		// executeReadQuery אצלך תומך רק ב-Integer/String/LocalDate.
+		// LIMIT ? זה Integer, אז זה בסדר.
+		List<List<Object>> rows = executeReadQuery(sql, limit);
+
+		List<SpecialDay> out = new ArrayList<>();
+		for (List<Object> row : rows) {
+			if (row.size() < 3)
+				continue;
+
+			LocalDate date = toLocalDate(row.get(0));
+			LocalTime open = toLocalTime(row.get(1));
+			LocalTime close = toLocalTime(row.get(2));
+
+			if (date == null)
+				continue;
+
+			out.add(new SpecialDay(date, open, close));
+		}
 		return out;
 	}
 

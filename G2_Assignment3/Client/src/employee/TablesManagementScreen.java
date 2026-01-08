@@ -95,7 +95,7 @@ public class TablesManagementScreen {
 	 * Loads (or reloads) the tables list from the server and updates the TableView.
 	 */
 	private void reloadTables() {
-		//Main.client.accept(new BistroRequest(BistroCommand.GET_TABLES, null));
+		// Main.client.accept(new BistroRequest(BistroCommand.GET_TABLES, null));
 		Main.client.accept(RequestFactory.getTables());
 		Object data = Main.client.getResponse().getData();
 		ArrayList<Table> tables = (ArrayList<Table>) data;
@@ -129,6 +129,7 @@ public class TablesManagementScreen {
 		deleteBtn.setDisable(true);
 		tablesTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
 		sizeCombo.setItems(FXCollections.observableArrayList(2, 4, 6, 8, 10));
+		sizeCombo.getSelectionModel().selectFirst();
 		newTableSize.setItems(FXCollections.observableArrayList(2, 4, 6, 8, 10));
 		newTableSize.getSelectionModel().selectFirst();
 
@@ -156,8 +157,10 @@ public class TablesManagementScreen {
 		Table selected = tablesTable.getSelectionModel().getSelectedItem();
 		selected.setTable_size(sizeCombo.getValue());
 
-		/*Main.client.accept(new BistroRequest(BistroCommand.CHANGE_TABLE_SIZE,
-				new TableSizeUpdate(selected.getTable_number(), sizeCombo.getValue())));*/
+		/*
+		 * Main.client.accept(new BistroRequest(BistroCommand.CHANGE_TABLE_SIZE, new
+		 * TableSizeUpdate(selected.getTable_number(), sizeCombo.getValue())));
+		 */
 		Main.client.accept(RequestFactory.changeTableSize(selected.getTable_number(), sizeCombo.getValue()));
 		BistroResponse resp = Main.client.getResponse();
 		if (resp != null && resp.getStatus() == BistroResponseStatus.SUCCESS) {
