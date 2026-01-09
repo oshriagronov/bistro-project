@@ -1,16 +1,30 @@
 package gui;
 
 import javafx.scene.control.TextField;
+import javafx.scene.layout.VBox;
+import communication.BistroCommand;
+import communication.BistroRequest;
+import communication.BistroResponse;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
+import logic.LoggedUser;
 import logic.Reservation;
+import logic.Subscriber;
+import logic.UserType;
+import logic.Worker;
 
 public class WaitingListScreen {
 	public static final String fxmlPath = "/gui/WaitingList.fxml";
+	private Subscriber sub=null;
+	private Worker worker=null;
     Alert alert = new Alert(Alert.AlertType.INFORMATION);
+
+     @FXML
+    private Button backBtn;
 
     @FXML
     private ComboBox<String> diners;
@@ -19,16 +33,22 @@ public class WaitingListScreen {
     private TextField emailField;
 
     @FXML
+    private VBox nonSubVbox;
+
+    @FXML
     private TextField phoneField;
 
     @FXML
     private ComboBox<String> prePhone;
 
     @FXML
+    private CheckBox subCheckBox;
+
+    @FXML
     private Button submit;
 
 	@FXML
-	private Button backBtn;
+    private VBox workerVbox;
 
     public void showAlert(String title, String body) {
 		alert.setTitle(title);
@@ -39,18 +59,25 @@ public class WaitingListScreen {
 
     @FXML
     void initialize() {
+		if (LoggedUser.getType()==UserType.SUBSCRIBER) {
+        	this.sub = ScreenSetup.setupSubscriber(nonSubVbox, workerVbox, null);
+        }
+        else if (LoggedUser.getType()==UserType.EMPLOYEE) {
+        	this.worker = ScreenSetup.setupWorkerView(nonSubVbox, workerVbox, null);
+        }
+        else {
+            ScreenSetup.setupGuestView(nonSubVbox, workerVbox, null);
+        }
+		
         diners.getItems().clear();
 		for (int i = 1; i <= 10; i++) {
 			diners.getItems().add(String.valueOf(i));
 		}
         prePhone.getItems().clear();
-		for (int i = 0; i <= 8; i++) {
-			prePhone.getItems().add(String.valueOf("05"+i));
-		}
-
+        prePhone.getItems().addAll("050", "052", "053", "054", "055", "058");
     }
 
-    @FXML
+	@FXML
 	void submit(ActionEvent event) {
 		StringBuilder str = new StringBuilder();
 		boolean check = true;
@@ -69,8 +96,9 @@ public class WaitingListScreen {
 		} else {
 			showAlert("Reservasion Success", "Reservation successfully created.");
 			// Send the update command and new details to the server
-			Reservation waitingList = new Reservation(Integer.parseInt(number_of_guests), num, phone_number);
-			Main.client.accept(waitingList);
+			//TODO: fix the constructor
+			//Reservation waitingList = new Reservation(Integer.parseInt(number_of_guests), num, phone_number);
+			//Main.client.accept(waitingList);
 		}
     }
 

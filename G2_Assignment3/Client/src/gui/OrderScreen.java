@@ -100,13 +100,13 @@ public class OrderScreen {
     public void initialize() {
 		
         if (LoggedUser.getType()==UserType.SUBSCRIBER) {
-        	setupSubscriber();
+        	this.sub = ScreenSetup.setupSubscriber(nonSubVbox, workerVbox, subHBOX);
         }
         else if (LoggedUser.getType()==UserType.EMPLOYEE) {
-        	setupWorkerView();
+        	this.worker = ScreenSetup.setupWorkerView(nonSubVbox, workerVbox, subHBOX);
         }
         else {
-            setupGuestView();
+            ScreenSetup.setupGuestView(nonSubVbox, workerVbox, subHBOX);
         }
 
         subHBOX.setVisible(false);
@@ -153,82 +153,6 @@ public class OrderScreen {
         phoneStart.getItems().clear();
         phoneStart.getItems().addAll("050", "052", "053", "054", "055", "058");
     }
-
-	/**
-     * Configures the screen for a logged-in subscriber.
-     * Fetches subscriber details from the database and auto-fills the UI fields.
-     */
-    @FXML
-    public void setupSubscriber() {
-
-        // Get subscriber ID from LoggedUser
-        int id = LoggedUser.getId();
-
-        BistroRequest request= new BistroRequest(BistroCommand.GET_SUB, id);
-        Main.client.accept(request);
-        
-        BistroResponse response= Main.client.getResponse();
-
-        if (response == null) {
-            // If something went wrong, fallback to guest mode
-            setupGuestView();
-            return;
-        }
-        Object data = response.getData();
-        if(data!= null) {
-        	this.sub=(Subscriber)data;
-        	 // Hide fields that are not relevant for subscribers
-            nonSubVbox.setVisible(false);
-            workerVbox.setVisible(false);
-            subHBOX.setVisible(false); // subscriber does NOT need to enter subscriber ID manually
-        }
-    }
-
-	/**
-	 * Configures the screen for a non‑logged guest user.
-	 * <p>
-	 * This mode is used when the user arrives from the main menu without logging in.
-	 * All contact fields (phone and email) remain visible because the guest must
-	 * manually provide this information in order to place a reservation.
-	 * Worker‑specific and subscriber‑specific fields are hidden.
-	 */
-	private void setupGuestView() {
-	    nonSubVbox.setVisible(true);  
-	    workerVbox.setVisible(false);  
-	    subHBOX.setVisible(false);     
-	}
-	//TODO maybe we don't need to save worker 
-	/**
-	 * Configures the screen for a logged‑in worker.
-	 * <p>
-	 * Workers do not need to enter personal contact information when placing
-	 * a reservation for a customer. Therefore, guest fields are hidden while
-	 * worker‑related controls remain visible.
-	 */
-	private void setupWorkerView() {
-		// Get worker ID from LoggedUser
-        int id = LoggedUser.getId();
-        BistroRequest request= new BistroRequest(BistroCommand.GET_WORKER, id);
-        Main.client.accept(request);
-        
-        BistroResponse response= Main.client.getResponse();
-
-        if (response == null) {
-            // If something went wrong, fallback to guest mode
-            nonSubVbox.setVisible(false);  
-	    	workerVbox.setVisible(false);
-	    	subHBOX.setVisible(false);
-	    	return;
-        }
-        Object data = response.getData();
-        if(data!= null) {
-        	this.worker=(Worker)data;
-        	 // Hide fields that are not relevant for subscribers
-            nonSubVbox.setVisible(true);
-            workerVbox.setVisible(true);
-            subHBOX.setVisible(false); //worker does NOT need to enter subscriber ID manually
-        }
-	}
 
 	
 	/**
