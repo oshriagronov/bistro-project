@@ -34,6 +34,11 @@ public class MainMenuScreen {
     @FXML
     private Button AcceptTable;
     /**
+     * Button used to navigate to the payment screen.
+     */
+    @FXML
+    private Button paymentBtn;
+    /**
      * Button used to return to the login menu screen.
      */
     @FXML
@@ -93,6 +98,18 @@ public class MainMenuScreen {
     void AcceptTable(ActionEvent event) {
         try {
             Main.changeRoot(AcceptTableScreen.fxmlPath);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+    
+    /**
+     * Navigates to the payment screen.
+     */
+    @FXML
+    void openPaymentScreen(ActionEvent event) {
+        try {
+            Main.changeRoot(PaymentScreen.fxmlPath);
         } catch (Exception e) {
             e.printStackTrace();
         }

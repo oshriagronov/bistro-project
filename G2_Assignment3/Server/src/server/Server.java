@@ -108,18 +108,22 @@ public class Server extends AbstractServer {
 			dbReturnedValue = db.searchOrderByOrderNumber(orderNumber);
 			response = new BistroResponse(BistroResponseStatus.SUCCESS, dbReturnedValue);
 			break;
-		case GET_TABLE_BY_PHONE_AND_CODE:
-			// Expect ArrayList [phone, confirmationCode]; fetch reservation then find an
+		case GET_TABLE_BY_IDENTIFIER_AND_CODE:
+			// Expect ArrayList [identifier, confirmationCode]; fetch reservation then find an
 			// available table.
 			if (data instanceof ArrayList) {
 				ArrayList<?> params = (ArrayList<?>) data;
-				String phone = (String) params.get(0);
+				String identifier = (String) params.get(0);
 				int code = Integer.parseInt((String) params.get(1));
-
-				Reservation res = db.getOrderByPhoneAndCode(phone, code);
+				Reservation res;
+				res = identifier.contains("@") ? 
+					db.getOrderByEmailAndCode(identifier, code) :
+					db.getOrderByPhoneAndCode(identifier, code);
 				if (res != null) {
 					int tableNum = db.searchAvailableTableBySize(res.getNumberOfGuests());
 					if (tableNum > 0) {
+						db.updateTableResId(tableNum, res.getOrderNumber());
+						db.updateReservationTimes(res.getOrderNumber());
 						response = new BistroResponse(BistroResponseStatus.SUCCESS, tableNum);
 					} else {
 						response = new BistroResponse(BistroResponseStatus.NO_AVAILABLE_TABLE, null);
@@ -243,7 +247,7 @@ public class Server extends AbstractServer {
 		// Handles a request to retrieve a subscriber by ID.
 		// Validates the incoming data type, queries the database, and returns the
 		// result.
-		case GET_SUB:
+		case GET_SUBSCRIBER_BY_ID:
 			// Validate that the received data is an Integer (subscriber ID)
 			if (!(data instanceof Integer)) {
 				response = new BistroResponse(BistroResponseStatus.FAILURE, "Invalid subscriber ID format");

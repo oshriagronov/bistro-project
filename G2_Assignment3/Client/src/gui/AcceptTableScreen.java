@@ -1,7 +1,8 @@
 package gui;
 
+import java.io.IOException;
 import java.util.ArrayList;
-
+import logic.Subscriber;
 import communication.BistroCommand;
 import communication.BistroRequest;
 import communication.BistroResponse;
@@ -25,7 +26,7 @@ import employee.employeeMenu;
 /**
  * Controller class for the AcceptTableScreen.fxml view.
  * This class handles the logic for customers to confirm their arrival
- * by entering their phone number and confirmation code to receive their table number.
+ * by entering their phone/email and confirmation code to receive their table number.
  */
 public class AcceptTableScreen {
     public static final String fxmlPath = "/gui/AcceptTable.fxml";
@@ -78,9 +79,6 @@ public class AcceptTableScreen {
     @FXML
     private Text identifyingDetailsText;
 
-
-
-    private boolean usePhoneAsConfirmation = false;
     private boolean isSubscriber = false;
     private String subscriberPhone = null;
 
@@ -91,9 +89,11 @@ public class AcceptTableScreen {
         detailsVbox.setVisible(true);
         infoVbox.setVisible(true);
         tableResultText.setVisible(false);
-        usePhoneAsConfirmation = false;
         confirmationCode.clear();
         restPhone.clear();
+        if (emailField != null) {
+            emailField.clear();
+        }
         if (subscriberConfirmationCodes != null) {
             subscriberConfirmationCodes.getSelectionModel().clearSelection();
         }
@@ -156,20 +156,11 @@ public class AcceptTableScreen {
         if (isSubscriber) {
             toggleNode(detailsVbox, false);
             toggleNode(subscriberConfirmationBox, true);
-        } else {
-            toggleNode(detailsVbox, true);
-            toggleNode(subscriberConfirmationBox, false);
-            updateForgotUI();
-        }
-    }
-
-    /**
-     * Adjusts the UI based on the "forgot code" checkbox state.
-     */
-    private void updateForgotUI() {
-        if (isSubscriber) {
             return;
         }
+
+        toggleNode(detailsVbox, true);
+        toggleNode(subscriberConfirmationBox, false);
         boolean forgotSelected = forgotCheckBox != null && forgotCheckBox.isSelected();
         toggleNode(confirmationBox, !forgotSelected);
         toggleNode(identifyingDetailsText, forgotSelected);
@@ -199,6 +190,19 @@ public class AcceptTableScreen {
 
         if (isSubscriber) {
             setupSubscriberView();
+            BistroResponse response = sendRequest(BistroCommand.GET_SUBSCRIBER_BY_ID, LoggedUser.getId());
+            if (response.getData() instanceof Subscriber) {
+                subscriberPhone = ((Subscriber) response.getData()).getPhone();
+            }
+            else {
+                showAlert("Error", "There was error getting your subscriber information.");
+                try {
+                    Main.changeRoot(SubscriberScreen.fxmlPath);
+                } catch (IOException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
+            }
         } else {
             setupDefaultView();
         }
@@ -209,7 +213,7 @@ public class AcceptTableScreen {
      */
     @FXML
     void handleForgotCheckBox(ActionEvent event) {
-        updateForgotUI();
+        applyUserView();
     }
 
     /**
@@ -275,7 +279,7 @@ public class AcceptTableScreen {
 
     /**
      * Handles the submit button action.
-     * Validates inputs, sends the phone and confirmation code to the server,
+     * Validates inputs, sends the phone/email and confirmation code to the server,
      * and displays the assigned table number when found.
      * @param event The ActionEvent triggered by the submit button.
      */
@@ -283,98 +287,94 @@ public class AcceptTableScreen {
     @FXML
     void handleSubmit(ActionEvent event){
         StringBuilder errors = new StringBuilder();
-        String code;
-        String phoneNumber;
-
-        if (isSubscriber) {
-            code = subscriberConfirmationCodes != null ? subscriberConfirmationCodes.getValue() : null;
-            phoneNumber = subscriberPhone;
-
-            if (code == null || code.isBlank() || !code.matches("\\d+")) {
-                errors.append("Please select a valid confirmation code\n");
-            }
-            if (phoneNumber == null || phoneNumber.isBlank()) {
-                errors.append("Missing subscriber phone number\n");
-            }
-        } else {
-            boolean phoneValid = validatePhoneInputs(errors);
-            phoneNumber = phoneValid ? buildPhoneNumber() : null;
-            code = usePhoneAsConfirmation ? (phoneValid ? restPhone.getText() : "") : confirmationCode.getText();
-
-            if (!usePhoneAsConfirmation) {
-                if (code == null || code.isBlank() || !code.matches("\\d+")) {
-                    errors.append("Please enter a valid confirmation code\n");
-                }
-            }
-        }
+        String code = isSubscriber ? resolveSubscriberCode(errors) : resolveGuestCode(errors);
+        String identifier = isSubscriber ? resolveSubscriberIdentifier(errors) : resolveGuestIdentifier(errors);
 
         if (errors.length() > 0) {
             showAlert("Input Error", errors.toString());
             return;
         }
 
-        if (phoneNumber == null) {
-            showAlert("Input Error", "Phone number is missing.");
-            return;
-        }
-
-        ArrayList <String> search = new ArrayList<>();
-        search.add(phoneNumber);
+        ArrayList <String> search = new ArrayList<>(2);
+        search.add(identifier);
         search.add(code);
-        BistroResponse response = sendRequest(BistroCommand.GET_TABLE_BY_PHONE_AND_CODE, search);
+        BistroResponse response = sendRequest(BistroCommand.GET_TABLE_BY_IDENTIFIER_AND_CODE, search);
         if (response != null && response.getStatus() == BistroResponseStatus.SUCCESS) {
             Object data = response.getData();
-            if (data != null) { //TODO: returns the table number so maybe int/Integer
+            if (data != null) {
                 infoVbox.setVisible(false);
                 tableResultText.setText("Your table is: " + data.toString());
                 tableResultText.setVisible(true);
                 return;
             }
         }
-
         resetToDefaultView();
         showAlert("Error", "Could not find a matching order.");
     }
 
     /**
-     * Handles the "Forgot Confirmation" action.
-     * Retrieves the confirmation code and start time for the given phone number.
-     *
-     * @param event The ActionEvent triggered by the forgot confirmation button.
+     * Collects and validates the subscriber confirmation code selected in the combo box.
+     * Called from {@link #handleSubmit(ActionEvent)} whenever a subscriber submits form.
      */
-    @FXML
-    void handleForgotConfirmation(ActionEvent event) {
-        StringBuilder errors = new StringBuilder();
-        ArrayList<String> result;
+    private String resolveSubscriberCode(StringBuilder errors) {
+        String code = subscriberConfirmationCodes != null ? subscriberConfirmationCodes.getValue() : null;
+        if (code == null || code.isBlank() || !code.matches("\\d+")) {
+            errors.append("Please select a valid confirmation code\n");
+        }
+        return code;
+    }
 
-        if (!validatePhoneInputs(errors)) {
-            showAlert("Input Error", errors.toString());
-            return;
+    /**
+     * Ensures the stored subscriber phone number is present before using it for lookup.
+     * Append an error when it is missing so {@link #handleSubmit(ActionEvent)} can alert the user.
+     */
+    private String resolveSubscriberIdentifier(StringBuilder errors) {
+        if (subscriberPhone == null || subscriberPhone.isBlank()) {
+            errors.append("Missing subscriber phone number\n");
+            return null;
         }
-        confirmationCode.clear();
-        String phoneNumber = buildPhoneNumber();
-        BistroResponse response = sendRequest(BistroCommand.FORGOT_CONFIRMATION_CODE, phoneNumber);
-        StringBuilder message = new StringBuilder();
-        if (response != null && response.getStatus() == BistroResponseStatus.SUCCESS) {
-            Object data = response.getData();
-            if (data != null && data instanceof ArrayList<?>){
-                result = new ArrayList<>();
-                // Safely cast and filter the list items
-                for (Object obj : (ArrayList<?>) data) {
-                    if (obj instanceof String) {
-                        result.add((String) obj);
-                    }
-                }
-                message.append("Your confirmation code is: " + result.get(0) + "\nStart time is: " + result.get(1));
+        return subscriberPhone;
+    }
+
+    /**
+     * Reads the confirmation code entered by a guest user and validates that it is numeric.
+     */
+    private String resolveGuestCode(StringBuilder errors) {
+        String code = confirmationCode != null ? confirmationCode.getText().trim() : null;
+        if (code == null || code.isBlank() || !code.matches("\\d+")) {
+            errors.append("Please enter a valid confirmation code\n");
+        }
+        return code;
+    }
+
+    /**
+     * Chooses either the full phone number or email to use for guest lookup.
+     * Phone takes precedence once it validates; errors are appended when both contacts are missing.
+     */
+    private String resolveGuestIdentifier(StringBuilder errors) {
+        String email = emailField != null ? emailField.getText().trim() : "";
+        boolean hasEmail = !email.isEmpty();
+        String prefix = prePhone.getValue();
+        String rest = restPhone.getText();
+        boolean hasPhoneInput = (prefix != null && !prefix.isBlank()) || (rest != null && !rest.isBlank());
+
+        if (hasPhoneInput) {
+            StringBuilder phoneErrors = new StringBuilder();
+            boolean phoneValid = validatePhoneInputs(phoneErrors);
+            if (phoneValid) {
+                return buildPhoneNumber();
             }
-        } else {
-            message.append("Could not find a matching order.");
+            if (!hasEmail) {
+                errors.append(phoneErrors);
+            }
         }
-        showAlert("Message", message.toString());
-        if (!isSubscriber && forgotCheckBox != null) {
-            forgotCheckBox.setSelected(false);
-            updateForgotUI();
+
+        if (hasEmail) {
+            return email;
         }
+
+        errors.append("Please enter a phone number or email\n");
+        return null;
     }
 
     /**

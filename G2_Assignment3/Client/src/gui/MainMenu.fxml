@@ -50,6 +50,11 @@
                   <Button id="CancelReservation" alignment="CENTER" contentDisplay="CENTER" mnemonicParsing="false" onAction="#CancelReservationScreen" prefHeight="25.0" prefWidth="124.0" text="Cancel Reservation" textAlignment="CENTER" />
                </children>
             </HBox>
+            <HBox alignment="CENTER" prefHeight="45.0" prefWidth="224.0">
+               <children>
+                  <Button fx:id="paymentBtn" mnemonicParsing="false" onAction="#openPaymentScreen" prefHeight="25.0" prefWidth="124.0" text="Payment" />
+               </children>
+            </HBox>
             <HBox alignment="CENTER" prefHeight="45.0" prefWidth="224.0" />
          </children>
       </VBox>

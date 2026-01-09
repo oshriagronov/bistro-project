@@ -15,7 +15,11 @@ import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
+import logic.LoggedUser;
 import logic.Reservation;
+import logic.UserType;
+import subscriber.SubscriberScreen;
+import employee.employeeMenu;
 
 /**
  * Controller class for the Payment.fxml view.
@@ -54,6 +58,9 @@ public class PaymentScreen {
 
     @FXML
     private Text total;
+
+    @FXML
+    private Button backBtn;
 
     /**
      * Initializes the controller.
@@ -134,6 +141,28 @@ public class PaymentScreen {
         } else {
             showAlert("Error", "Could not find bill for these details.");
         }
+    }
+
+    /**
+     * Handles the back button action and routes to the appropriate previous screen.
+     */
+    @FXML
+    void back(ActionEvent event) {
+        try {
+            Main.changeRoot(getBackFxmlPath());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private String getBackFxmlPath() {
+        UserType type = LoggedUser.getType();
+        if (type == UserType.SUBSCRIBER) {
+            return SubscriberScreen.fxmlPath;
+        } else if (type == UserType.EMPLOYEE || type == UserType.MANAGER) {
+            return employeeMenu.fxmlPath;
+        }
+        return MainMenuScreen.fxmlPath;
     }
 
 }

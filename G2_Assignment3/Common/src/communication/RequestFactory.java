@@ -220,8 +220,8 @@ public final class RequestFactory {
 	 *         {@link BistroCommand#GET_TABLE_BY_PHONE_AND_CODE}
 	 * @throws IllegalArgumentException if parameters are invalid
 	 */
-	public static BistroRequest getTableByPhoneAndCode(String phone, String code) {
-		if (phone == null || phone.isBlank()) {
+	public static BistroRequest getTableByIdentifierAndCode(String identifier, String code) {
+		if (identifier == null || identifier.isBlank()) {
 			throw new IllegalArgumentException("Phone is required");
 		}
 		if (code == null || code.isBlank()) {
@@ -229,10 +229,10 @@ public final class RequestFactory {
 		}
 
 		ArrayList<String> search = new ArrayList<>(2);
-		search.add(phone);
+		search.add(identifier);
 		search.add(code);
 
-		return withPayload(BistroCommand.GET_TABLE_BY_PHONE_AND_CODE, search);
+		return withPayload(BistroCommand.GET_TABLE_BY_IDENTIFIER_AND_CODE, search);
 	}
 
 	/**

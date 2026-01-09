@@ -17,24 +17,24 @@
             <Font size="24.0" />
          </font>
       </Text>
-      <VBox fx:id="infoVbox" layoutX="155.0" layoutY="105.0" prefHeight="233.0" prefWidth="290.0">
+      <VBox fx:id="infoVbox" layoutX="155.0" layoutY="105.0" prefHeight="233.0" prefWidth="290.0" spacing="15.0">
          <children>
-            <HBox fx:id="phoneHbox" prefHeight="100.0" prefWidth="200.0">
+            <HBox fx:id="phoneHbox" alignment="CENTER_LEFT" prefHeight="100.0" prefWidth="200.0" spacing="10.0">
                <children>
                   <Text strokeType="OUTSIDE" strokeWidth="0.0" text="phone number" />
                   <ComboBox fx:id="prePhone" prefHeight="25.0" prefWidth="65.0" />
-                  <TextField fx:id="restPhone" />
+                  <TextField fx:id="restPhone" prefWidth="150.0" />
                </children>
             </HBox>
-            <HBox fx:id="codeHbox" prefHeight="100.0" prefWidth="200.0">
+            <HBox fx:id="codeHbox" alignment="CENTER_LEFT" prefHeight="100.0" prefWidth="200.0" spacing="10.0">
                <children>
                   <Text strokeType="OUTSIDE" strokeWidth="0.0" text="confirmation code" />
-                  <TextField fx:id="confirmationCode" />
+                  <TextField fx:id="confirmationCode" prefWidth="150.0" />
                </children>
             </HBox>
-            <HBox fx:id="submitHbox" prefHeight="100.0" prefWidth="200.0">
+            <HBox fx:id="submitHbox" alignment="CENTER" prefHeight="100.0" prefWidth="200.0">
                <children>
-                  <Button fx:id="submitBTN" alignment="CENTER" mnemonicParsing="false" onAction="#handleSubmit" text="find my bill" />
+                  <Button fx:id="submitBTN" alignment="CENTER" mnemonicParsing="false" onAction="#handleSubmit" text="Get Bill" />
                </children>
             </HBox>
          </children>
@@ -44,5 +44,6 @@
             <Font size="36.0" />
          </font>
       </Text>
+      <Button fx:id="backBtn" layoutX="520.0" layoutY="360.0" mnemonicParsing="false" onAction="#back" text="Back" />
    </children>
 </Pane>

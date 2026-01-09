@@ -63,7 +63,7 @@ public class UpdateSubDetailsScreen {
      * Initializes the view with reservation history.
      */
     void initialize() {
-        Main.client.accept(new BistroRequest(BistroCommand.GET_SUB, LoggedUser.getId()));
+        Main.client.accept(new BistroRequest(BistroCommand.GET_SUBSCRIBER_BY_ID, LoggedUser.getId()));
         BistroResponse response = Main.client.getResponse();
         if(response.getStatus() == BistroResponseStatus.SUCCESS && response.getData() instanceof Subscriber){
             Subscriber sub = (Subscriber)Main.client.getResponse().getData();

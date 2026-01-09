@@ -33,7 +33,7 @@ CREATE TABLE `reservations` (
   `start_time` time NOT NULL,
   `finish_time` time NOT NULL,
   `order_date` date NOT NULL,
-  `order_status` enum('PENDING','CONFIRMED','CANCELLED','COMPLETED') DEFAULT NULL,
+  `order_status` enum('PENDING', 'REMINDED', 'CONFIRMED','CANCELLED','COMPLETED', 'ACCEPTED') DEFAULT NULL,
   `num_diners` int NOT NULL,
   `date_of_placing_order` date NOT NULL,
   PRIMARY KEY (`res_id`),
@@ -69,7 +69,8 @@ VALUES
 ('0501234567', 'tal@mail.com', 1, '12:30:00', '14:30:00', '2025-01-05', 'CONFIRMED', 2, '2024-12-30'),
 ('0549705492', 'ofir@mail.com', 10, '14:30:00', '16:30:00', '2025-01-05', 'CONFIRMED', 4, '2024-12-30'),
 ('0540540545', 'oshri@mail.com', 0, '10:30:00', '12:30:00', '2025-01-05', 'CONFIRMED', 4, '2024-12-30'),
-('0529876543', 'noam@mail.com', 2, '18:00:00', '20:00:00', '2025-01-06', 'CONFIRMED', 2, '2024-12-31');
+('0529876543', 'noam@mail.com', 2, '18:00:00', '20:00:00', '2025-01-06', 'CONFIRMED', 2, '2024-12-31'),
+('0526943286', 'test@mail.com', 5, '18:00:00', '20:00:00', '2025-01-06', 'CONFIRMED', 2, '2024-12-31');
 /*!40000 ALTER TABLE `reservations` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -97,7 +98,9 @@ CREATE TABLE `subscriber` (
 --
 -- Dumping data for table `subscriber`
 --
-
+/*
+  subscriber for test is: sub_id = 5, password = test
+*/
 LOCK TABLES `subscriber` WRITE;
 /*!40000 ALTER TABLE `subscriber` DISABLE KEYS */;
 INSERT INTO `subscriber` VALUES (1,'tal123','Tal','Levi','tal@mail.com','0501234567','$2a$10$talhash'),(2,'noam77','Noam','Cohen','noam@mail.com','0529876543','$2a$10$noamhash'),(3,'dana_k','Dana','Katz','dana@mail.com','0541112233','$2a$10$danahash'),(4,'amir90','Amir','Ben-David','amir@mail.com','0532223344','$2a$10$amirhash'),('5', 'test', 'test', 'test', 'test@mail.com', '0526948432', '$2a$10$zGVDSeVGYOhcShbBB9ZwF.73fM6B3yIR6xkm3atXzy69X0RHYDWMy');

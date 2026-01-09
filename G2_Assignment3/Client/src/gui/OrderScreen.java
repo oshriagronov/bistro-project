@@ -164,7 +164,7 @@ public class OrderScreen {
         // Get subscriber ID from LoggedUser
         int id = LoggedUser.getId();
 
-        BistroRequest request= new BistroRequest(BistroCommand.GET_SUB, id);
+        BistroRequest request= new BistroRequest(BistroCommand.GET_SUBSCRIBER_BY_ID, id);
         Main.client.accept(request);
         
         BistroResponse response= Main.client.getResponse();
