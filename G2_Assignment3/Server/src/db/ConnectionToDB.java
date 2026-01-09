@@ -735,6 +735,55 @@ public class ConnectionToDB {
 	}
 
 	/**
+	 * Retrieves a Subscriber object from the database using the subscriber's phone number.
+	 *
+	 * @param phone The phone number of the subscriber to search for.
+	 * @return A fully populated Subscriber object if found, otherwise null.
+	 */
+	public Subscriber SearchSubscriberByPhone(String phone) {
+		String sql = "SELECT sub_id, username, first_name, last_name, email, phone FROM subscriber WHERE phone = ?";
+		List<List<Object>> rows = executeReadQuery(sql, phone);
+		if (rows.isEmpty())
+			return null;
+		List<Object> row = rows.get(0);
+		if (row.isEmpty())
+			return null;
+		Integer subscriberId = (Integer) row.get(0);
+		String username = (String) row.get(1);
+		String firstName = (String) row.get(2);
+		String lastName = (String) row.get(3);
+		String email = (String) row.get(4);
+		String phoneNum = (String) row.get(5);
+		String passwordHash = "";
+		return new Subscriber(subscriberId, username, firstName, lastName, email, phoneNum, passwordHash);
+	}
+
+	/**
+	 * Retrieves a Subscriber object from the database using the subscriber's email.
+	 *
+	 * @param email The email of the subscriber to search for.
+	 * @return A fully populated Subscriber object if found, otherwise null.
+	 */
+	public Subscriber SearchSubscriberByEmail(String email) {
+		String sql = "SELECT sub_id, username, first_name, last_name, email, phone FROM subscriber WHERE email = ?";
+		List<List<Object>> rows = executeReadQuery(sql, email);
+		if (rows.isEmpty())
+			return null;
+		List<Object> row = rows.get(0);
+		if (row.isEmpty())
+			return null;
+		Integer subscriberId = (Integer) row.get(0);
+		String username = (String) row.get(1);
+		String firstName = (String) row.get(2);
+		String lastName = (String) row.get(3);
+		String emailAddr = (String) row.get(4);
+		String phone = (String) row.get(5);
+		String passwordHash = "";
+		return new Subscriber(subscriberId, username, firstName, lastName, emailAddr, phone, passwordHash);
+	}
+	
+
+	/**
 	 * Retrieves a worker object from the database using the worker ID. This method
 	 * executes a SQL query to fetch all worker fields.
 	 *

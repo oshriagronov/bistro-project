@@ -138,6 +138,26 @@ public class Server extends AbstractServer {
 					dbReturnedValue != null ? BistroResponseStatus.SUCCESS : BistroResponseStatus.FAILURE,
 					dbReturnedValue);
 			break;
+		case SEARCH_SUB_BY_PHONE:
+			if (data instanceof String) {
+				dbReturnedValue = db.SearchSubscriberByPhone((String) data);
+				response = new BistroResponse(
+						dbReturnedValue != null ? BistroResponseStatus.SUCCESS : BistroResponseStatus.FAILURE,
+						dbReturnedValue);
+			} else {
+				response = new BistroResponse(BistroResponseStatus.FAILURE, "Invalid phone format");
+			}
+			break;
+		case SEARCH_SUB_BY_EMAIL:
+			if (data instanceof String) {
+				dbReturnedValue = db.SearchSubscriberByEmail((String) data);
+				response = new BistroResponse(
+						dbReturnedValue != null ? BistroResponseStatus.SUCCESS : BistroResponseStatus.FAILURE,
+						dbReturnedValue);
+			} else {
+				response = new BistroResponse(BistroResponseStatus.FAILURE, "Invalid email format");
+			}
+			break;
 
 		case ADD_RESERVATION:
 			// Handle adding a new reservation to the database

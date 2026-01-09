@@ -19,7 +19,7 @@ public class Reservation implements Serializable {
 	private LocalTime start_time;
 	private LocalTime finish_time;
 	private String phone_number;
-	private Status status = Status.PENDING;
+	private Status status = Status.CONFIRMED;
 	private String email;
 
 	public Reservation(LocalDate order_date, int number_of_guests, int confirmation_code, int subscriber_id,
@@ -29,12 +29,13 @@ public class Reservation implements Serializable {
 		this.finish_time = start_time.plusHours(2);
 		this.date_of_placing_order = date_of_placing_order;
 		this.number_of_guests = number_of_guests;
-		this.confirmation_code = confirmation_code;
+		this.confirmation_code = confirmation_code; //TODO: remove, DB create based on res_id
 		this.subscriber_id = subscriber_id;
 		this.phone_number = phone_number;
 		this.email=email;
 	}
 
+	//TODO: check if this constructor is needed
 	public Reservation(LocalDate order_date, int number_of_guests, int confirmation_code, int subscriber_id,
 			LocalDate date_of_placing_order, LocalTime start_time, LocalTime finish_time, String phone_number,
 			Status status, String email) {

@@ -2,9 +2,14 @@ package gui;
 
 import javafx.scene.control.TextField;
 import javafx.scene.layout.VBox;
+
+import java.time.LocalDate;
+import java.time.LocalTime;
+
 import communication.BistroCommand;
 import communication.BistroRequest;
 import communication.BistroResponse;
+import communication.BistroResponseStatus;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
@@ -62,7 +67,7 @@ public class WaitingListScreen {
 		if (LoggedUser.getType()==UserType.SUBSCRIBER) {
         	this.sub = ScreenSetup.setupSubscriber(nonSubVbox, workerVbox, null);
         }
-        else if (LoggedUser.getType()==UserType.EMPLOYEE) {
+        else if (LoggedUser.getType()==UserType.EMPLOYEE || LoggedUser.getType()==UserType.MANAGER) {
         	this.worker = ScreenSetup.setupWorkerView(nonSubVbox, workerVbox, null);
         }
         else {
@@ -79,26 +84,77 @@ public class WaitingListScreen {
 
 	@FXML
 	void submit(ActionEvent event) {
-		StringBuilder str = new StringBuilder();
-		boolean check = true;
-		String phone_number,number_of_guests;
-        int num=0;
-		phone_number = prePhone.getValue() +phoneField.getText();
-		number_of_guests = (String) diners.getValue();
-		//Validate Diners Amount
-		if (number_of_guests == null) {
-			check = false;
-			str.append("Please choose the diners amount\n");
+		LocalDate today = LocalDate.now();
+		LocalTime now = LocalTime.now();
+		
+		if (diners.getValue() == null) {
+			showAlert("Error", "Please choose the diners amount");
+			return;
 		}
-		// Final Check: Display errors or process update
-		if (!check) {
-			showAlert("Please enter number of diners", str.toString());
+		int num_of_diners = Integer.parseInt(diners.getValue());
+		int con_code = new java.util.Random().nextInt(90000) + 10000; // TODO: just for now
+
+		if (sub != null){
+			Reservation r = new Reservation(today, num_of_diners, con_code, sub.getSubscriberId(), today, now, sub.getPhone(), sub.getEmail()) ;
+			Main.client.accept(new BistroRequest(BistroCommand.ADD_RESERVATION, r));
+			showAlert("Reservation Success", "Reservation successfully created.");
+			return;
+		}
+		
+		if (worker != null && subCheckBox.isSelected()){
+			String phone = "";
+			if (prePhone.getValue() != null) phone += prePhone.getValue();
+			if (phoneField.getText() != null) phone += phoneField.getText();
+			String email = emailField.getText();
+			
+			Subscriber foundSub = null;
+			
+			if (phone.length() ==  10) {
+				Main.client.accept(new BistroRequest(BistroCommand.SEARCH_SUB_BY_PHONE, phone));
+				BistroResponse response = Main.client.getResponse();
+				if (response.getStatus() == BistroResponseStatus.SUCCESS) {
+					foundSub = (Subscriber) response.getData();
+				}
+			} else if (email != null && !email.isEmpty()) {
+				Main.client.accept(new BistroRequest(BistroCommand.SEARCH_SUB_BY_EMAIL, email));
+				BistroResponse response = Main.client.getResponse();
+				if (response.getStatus() == BistroResponseStatus.SUCCESS) {
+					foundSub = (Subscriber) response.getData();
+				}
+			} else {
+				showAlert("Error", "Please enter phone or email to place the order.");
+				return;
+			}
+			
+			if (foundSub != null) {
+				Reservation r = new Reservation(today, num_of_diners, con_code, foundSub.getSubscriberId(), today, now, foundSub.getPhone(), foundSub.getEmail());
+				Main.client.accept(new BistroRequest(BistroCommand.ADD_RESERVATION, r));
+				showAlert("Reservation Success", "Reservation successfully created for " + foundSub.getFirstName());
+			} else {
+				showAlert("Error", "Subscriber not found. Please check details.");
+			}
+			return;
+		}
+		
+		String phone_number = "";
+		if (prePhone.getValue() != null) phone_number += prePhone.getValue();
+		if (phoneField.getText() != null) phone_number += phoneField.getText();
+		String email = emailField.getText();
+		int nonSub = 0;
+
+		if (phone_number.length() > 0 && phone_number.length() < 10) {
+			showAlert("Input Error", "Please enter a valid 10-digit phone number.");
+		} else if (phone_number.isEmpty() && (email == null || email.trim().isEmpty())) {
+			showAlert("Input Error", "Please enter identifying information (Phone or Email).");
 		} else {
-			showAlert("Reservasion Success", "Reservation successfully created.");
-			// Send the update command and new details to the server
-			//TODO: fix the constructor
-			//Reservation waitingList = new Reservation(Integer.parseInt(number_of_guests), num, phone_number);
-			//Main.client.accept(waitingList);
+			Reservation r = new Reservation(today, num_of_diners, con_code, nonSub, today, now, phone_number, email);
+			Main.client.accept(new BistroRequest(BistroCommand.ADD_RESERVATION, r));
+			BistroResponse response = Main.client.getResponse();
+			if (response != null && response.getStatus() == BistroResponseStatus.SUCCESS) {
+				showAlert("Reservation Success", "Reservation successfully created.");
+			} else {
+				showAlert("Error", "Failed to create reservation.");
+			}
 		}
     }
 
