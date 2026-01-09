@@ -42,7 +42,7 @@
             </HBox>
             <HBox prefHeight="35.0" prefWidth="260.0">
                <children>
-                  <Button fx:id="loginBtn" mnemonicParsing="false" onAction="#handleLogin" text="Login" />
+                  <Button fx:id="loginBtn" defaultButton="true" mnemonicParsing="false" onAction="#handleLogin" text="Login" />
                </children>
             </HBox>
          </children>

@@ -637,6 +637,73 @@ public class ConnectionToDB {
 		return reservations;
 	}
 
+	
+	/**
+	 * Updates subscriber details based on the provided subscriber fields. Only
+	 * non-null/non-blank values are updated.
+	 *
+	 * @param subscriber subscriber data to update
+	 * @return number of rows affected
+	 */
+	public int updateSubscriberInfo(Subscriber subscriber) {
+		if (subscriber == null || subscriber.getSubscriberId() == null) {
+			return 0;
+		}
+
+		List<String> assignments = new ArrayList<>();
+		List<Object> params = new ArrayList<>();
+
+		addIfPresent(subscriber.getPhone(), "phone = ?", assignments, params);
+		addIfPresent(subscriber.getEmail(), "email = ?", assignments, params);
+		addIfPresent(subscriber.getUsername(), "username = ?", assignments, params);
+		addIfPresent(subscriber.getPasswordHash(), "password_hash = ?", assignments, params);
+		addIfPresent(subscriber.getFirstName(), "first_name = ?", assignments, params);
+		addIfPresent(subscriber.getLastName(), "last_name = ?", assignments, params);
+
+		if (assignments.isEmpty()) {
+			return 0;
+		}
+
+		params.add(subscriber.getSubscriberId());
+		String sql = "UPDATE subscriber SET " + String.join(", ", assignments) + " WHERE sub_id = ?";
+		return executeWriteQuery(sql, params.toArray());
+	}
+
+	/**
+	 * Adds an assignment clause and parameter when the provided value contains text.
+	 *
+	 * @param value   candidate value to set
+	 * @param clause  SQL assignment fragment (e.g., "email = ?")
+	 * @param clauses target list for SQL fragments
+	 * @param params  target list for prepared statement parameters
+	 */
+	private static void addIfPresent(String value, String clause, List<String> clauses, List<Object> params) {
+		if (value != null && !value.trim().isEmpty()) {
+			clauses.add(clause);
+			params.add(value);
+		}
+	}
+
+	/**
+	 * Retrieves confirmation codes for all confirmed reservations of a subscriber.
+	 *
+	 * @param subscriberId subscriber identifier
+	 * @return list of confirmation codes as strings (empty if none found)
+	 */
+	public ArrayList<String> getConfirmedReservationCodesBySubscriber(int subscriberId) {
+		String sql = "SELECT confirmation_code FROM reservations WHERE sub_id = ? AND order_status = 'CONFIRMED'";
+		List<List<Object>> rows = executeReadQuery(sql, subscriberId);
+		ArrayList<String> codes = new ArrayList<>();
+		for (List<Object> row : rows) {
+			if (row.isEmpty())
+				continue;
+			Object codeObj = row.get(0);
+			if (codeObj != null) {
+				codes.add(codeObj.toString());
+			}
+		}
+		return codes;
+	}
 	/**
 	 * Retrieves a Subscriber object from the database using the subscriber ID. This
 	 * method executes a SQL query to fetch all subscriber fields.

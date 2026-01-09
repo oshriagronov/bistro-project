@@ -9,7 +9,8 @@ import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
 
-public class ServerLogIn {
+public class ServerLoginScreen {
+	public static final String fxmlPath = "/server/ServerLogin.fxml";
 
 	@FXML
 	private Button enterBTN;
@@ -21,7 +22,7 @@ public class ServerLogIn {
 	void clickEnter(ActionEvent event) {
         ConnectionToDB.setPassword(pwText.getText());
 		try {
-			FXMLLoader loader = new FXMLLoader(getClass().getResource("ServerScreen.fxml"));
+			FXMLLoader loader = new FXMLLoader(getClass().getResource(ServerScreen.fxmlPath));
 			Parent root = loader.load();
 			ServerScreen screen = loader.getController();
 

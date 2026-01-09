@@ -9,6 +9,7 @@ import javafx.scene.control.TextArea;
  * Simple JavaFX screen that boots the server and shows a rolling log.
  */
 public class ServerScreen  {
+    public static final String fxmlPath = "/server/ServerScreen.fxml";
     public static ServerScreen instance;
     private Server server;
     private String serverPort = "5555";

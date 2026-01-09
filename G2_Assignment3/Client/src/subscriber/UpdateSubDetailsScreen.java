@@ -1,12 +1,12 @@
-package gui;
+package subscriber;
 
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.ResourceBundle;
 import communication.BistroCommand;
 import communication.BistroRequest;
 import communication.BistroResponse;
 import communication.BistroResponseStatus;
+import gui.Main;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
@@ -16,12 +16,12 @@ import javafx.scene.control.TextField;
 import javafx.scene.layout.VBox;
 import logic.LoggedUser;
 import logic.Subscriber;
-import subscriber.SubscriberScreen;
+import org.mindrot.jbcrypt.BCrypt;
 
 
 public class UpdateSubDetailsScreen {
 
-    public static final String fxmlPath = "/gui/UpdateSubDetails.fxml";
+    public static final String fxmlPath = "/subscriber/UpdateSubDetails.fxml";
 
     private final Alert alert = new Alert(Alert.AlertType.INFORMATION);
 
@@ -108,27 +108,35 @@ public class UpdateSubDetailsScreen {
             return;
         }
 
-        ArrayList<String> updateDetails = new ArrayList<>();
+        Subscriber updatedSubscriber = new Subscriber(LoggedUser.getId(), (String) null);
         if (!phone.isBlank()) {
-            updateDetails.add(phone);
+            updatedSubscriber.setPhone(phone);
         }
         if (!email.isBlank()) {
-            updateDetails.add(email);
+            updatedSubscriber.setEmail(email);
         }
         if (!username.isBlank()) {
-            updateDetails.add(username);
+            updatedSubscriber.setUsername(username);
         }
         if (!password.isBlank()) {
-            updateDetails.add(password);
+            String hash = BCrypt.hashpw(password, BCrypt.gensalt());
+            updatedSubscriber.setPasswordHash(hash);
         }
         if (!firstName.isBlank()) {
-            updateDetails.add(firstName);
+            updatedSubscriber.setFirstName(firstName);
         }
         if (!lastName.isBlank()) {
-            updateDetails.add(lastName);
+            updatedSubscriber.setLastName(lastName);
         }
-        showAlert("Update Ready", "Details collected. You can now send them to the server.");
-        // TODO: send updateDetails to the server.
+        Main.client.accept(new BistroRequest(BistroCommand.UPDATE_SUBSCRIBER_INFO, updatedSubscriber));
+        boolean isSuccess = Main.client.getResponse().getStatus() == BistroResponseStatus.SUCCESS;
+        String title = isSuccess ? "Success" : "Error";
+        String message = isSuccess
+                ? "Information updated successfully."
+                : "Something went wrong with sending the request to the server.";
+        showAlert(title, message);
+
+
 
     }
 

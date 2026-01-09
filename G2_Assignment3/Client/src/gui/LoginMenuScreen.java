@@ -10,6 +10,7 @@ package gui;
 import employee.WorkersLogInScreen;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import logic.LoggedUser;
 import subscriber.SubscriberLoginScreen;
 public class LoginMenuScreen {
     public static final String fxmlPath = "/gui/LoginMenu.fxml";
@@ -58,6 +59,7 @@ public class LoginMenuScreen {
     @FXML
     void continueAsGuest(ActionEvent event) {
         try {
+            LoggedUser.setGuest();
             // Switch to the guest screen
             Main.changeRoot(MainMenuScreen.fxmlPath);
         } catch (Exception e) {

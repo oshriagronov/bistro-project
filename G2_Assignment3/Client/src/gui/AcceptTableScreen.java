@@ -6,17 +6,20 @@ import communication.BistroCommand;
 import communication.BistroRequest;
 import communication.BistroResponse;
 import communication.BistroResponseStatus;
-import communication.EventBus;
-import communication.EventType;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.scene.Node;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
+import logic.LoggedUser;
+import logic.UserType;
+import subscriber.SubscriberScreen;
 
 /**
  * Controller class for the AcceptTableScreen.fxml view.
@@ -33,16 +36,25 @@ public class AcceptTableScreen {
     private Button backBtn;
 
     @FXML
-    private TextField confirmationCode;
-
-    @FXML
     private HBox confirmationBox;
 
     @FXML
-    private Button forgotConfirmationBtn;
+    private TextField confirmationCode;
+
+    @FXML
+    private VBox detailsVbox;
+
+    @FXML
+    private TextField emailField;
+
+    @FXML
+    private CheckBox forgotCheckBox;
 
     @FXML
     private VBox infoVbox;
+
+    @FXML
+    private HBox phoneBox;
 
     @FXML
     private ComboBox<String> prePhone;
@@ -54,20 +66,40 @@ public class AcceptTableScreen {
     private Button submitBTN;
 
     @FXML
+    private HBox subscriberConfirmationBox;
+
+    @FXML
+    private ComboBox<String> subscriberConfirmationCodes;
+
+    @FXML
     private Text tableResultText;
 
+    @FXML
+    private Text identifyingDetailsText;
+
+
+
     private boolean usePhoneAsConfirmation = false;
+    private boolean isSubscriber = false;
+    private String subscriberPhone = null;
 
     /**
      * Restores the view to its default state after an error or reset.
      */
     private void resetToDefaultView() {
+        detailsVbox.setVisible(true);
         infoVbox.setVisible(true);
         tableResultText.setVisible(false);
-        confirmationBox.setVisible(true);
-        confirmationBox.setManaged(true);
-        forgotConfirmationBtn.setDisable(false);
         usePhoneAsConfirmation = false;
+        confirmationCode.clear();
+        restPhone.clear();
+        if (subscriberConfirmationCodes != null) {
+            subscriberConfirmationCodes.getSelectionModel().clearSelection();
+        }
+        if (!isSubscriber && forgotCheckBox != null) {
+            forgotCheckBox.setSelected(false);
+        }
+        applyUserView();
     }
 
     /**
@@ -104,6 +136,45 @@ public class AcceptTableScreen {
     }
 
     /**
+     * Toggles visibility and layout management for a node.
+     *
+     * @param node node to show or hide
+     * @param show true to show, false to hide
+     */
+    private void toggleNode(Node node, boolean show) {
+        if (node != null) {
+            node.setVisible(show);
+            node.setManaged(show);
+        }
+    }
+
+    /**
+     * Applies the correct UI elements depending on the logged-in user type.
+     */
+    private void applyUserView() {
+        if (isSubscriber) {
+            toggleNode(detailsVbox, false);
+            toggleNode(subscriberConfirmationBox, true);
+        } else {
+            toggleNode(detailsVbox, true);
+            toggleNode(subscriberConfirmationBox, false);
+            updateForgotUI();
+        }
+    }
+
+    /**
+     * Adjusts the UI based on the "forgot code" checkbox state.
+     */
+    private void updateForgotUI() {
+        if (isSubscriber) {
+            return;
+        }
+        boolean forgotSelected = forgotCheckBox != null && forgotCheckBox.isSelected();
+        toggleNode(confirmationBox, !forgotSelected);
+        toggleNode(identifyingDetailsText, forgotSelected);
+    }
+
+    /**
      * Sends a request to the server and returns the response.
      *
      * @param command server command to execute
@@ -122,10 +193,22 @@ public class AcceptTableScreen {
      */
     @FXML
     void initialize() {
-        // Initialize phone prefix options.
-		prePhone.getItems().clear();
-		prePhone.getItems().addAll("050", "052", "053", "054", "055", "058");
+        isSubscriber = LoggedUser.getType() == UserType.SUBSCRIBER;
+        tableResultText.setVisible(false);
 
+        if (isSubscriber) {
+            setupSubscriberView();
+        } else {
+            setupDefaultView();
+        }
+    }
+
+    /**
+     * Handles toggling of the forgot confirmation checkbox.
+     */
+    @FXML
+    void handleForgotCheckBox(ActionEvent event) {
+        updateForgotUI();
     }
 
     /**
@@ -140,6 +223,54 @@ public class AcceptTableScreen {
 		alert.showAndWait();
 	}
 
+    /**
+     * Configures the UI for a non-subscriber flow.
+     */
+    private void setupDefaultView() {
+        isSubscriber = false;
+        if (forgotCheckBox != null) {
+            forgotCheckBox.setSelected(false);
+        }
+        applyUserView();
+        prePhone.getItems().clear();
+        prePhone.getItems().addAll("050", "052", "053", "054", "055", "058");
+    }
+
+    /**
+     * Configures the UI for a subscriber and loads their confirmation codes.
+     */
+    private void setupSubscriberView() {
+        isSubscriber = true;
+        applyUserView();
+        populateSubscriberConfirmationCodes();
+    }
+
+    /**
+     * Populates the subscriber confirmation code combo box from active reservations.
+     */
+    private void populateSubscriberConfirmationCodes() {
+
+        if (subscriberConfirmationCodes == null) {
+            // Fallback to default flow if subscriber information is unavailable.
+            showAlert("Error", "Could not load subscriber confirmation codes.");
+            setupDefaultView();
+            return;
+        }
+        subscriberConfirmationCodes.getItems().clear();
+        BistroResponse response = sendRequest(BistroCommand.GET_SUBSCRIBER_CONFIRMATION_CODES, LoggedUser.getId());
+        if (response != null && response.getStatus() == BistroResponseStatus.SUCCESS && response.getData() instanceof ArrayList<?>) {
+            ArrayList<String> codes = new ArrayList<>();
+            for (Object obj : (ArrayList<?>) response.getData()) {
+                if (obj instanceof String) {
+                    codes.add(String.valueOf(obj));
+                }
+            }
+            subscriberConfirmationCodes.getItems().addAll(codes);
+            if (!codes.isEmpty()) {
+                subscriberConfirmationCodes.getSelectionModel().selectFirst();
+            }
+        }
+    }
 
     /**
      * Handles the submit button action.
@@ -151,12 +282,28 @@ public class AcceptTableScreen {
     @FXML
     void handleSubmit(ActionEvent event){
         StringBuilder errors = new StringBuilder();
-        boolean phoneValid = validatePhoneInputs(errors);
-        String code = usePhoneAsConfirmation ? (phoneValid ? restPhone.getText() : "") : confirmationCode.getText();
+        String code;
+        String phoneNumber;
 
-        if (!usePhoneAsConfirmation) {
+        if (isSubscriber) {
+            code = subscriberConfirmationCodes != null ? subscriberConfirmationCodes.getValue() : null;
+            phoneNumber = subscriberPhone;
+
             if (code == null || code.isBlank() || !code.matches("\\d+")) {
-                errors.append("Please enter a valid confirmation code\n");
+                errors.append("Please select a valid confirmation code\n");
+            }
+            if (phoneNumber == null || phoneNumber.isBlank()) {
+                errors.append("Missing subscriber phone number\n");
+            }
+        } else {
+            boolean phoneValid = validatePhoneInputs(errors);
+            phoneNumber = phoneValid ? buildPhoneNumber() : null;
+            code = usePhoneAsConfirmation ? (phoneValid ? restPhone.getText() : "") : confirmationCode.getText();
+
+            if (!usePhoneAsConfirmation) {
+                if (code == null || code.isBlank() || !code.matches("\\d+")) {
+                    errors.append("Please enter a valid confirmation code\n");
+                }
             }
         }
 
@@ -165,8 +312,13 @@ public class AcceptTableScreen {
             return;
         }
 
+        if (phoneNumber == null) {
+            showAlert("Input Error", "Phone number is missing.");
+            return;
+        }
+
         ArrayList <String> search = new ArrayList<>();
-        search.add(buildPhoneNumber());
+        search.add(phoneNumber);
         search.add(code);
         BistroResponse response = sendRequest(BistroCommand.GET_TABLE_BY_PHONE_AND_CODE, search);
         if (response != null && response.getStatus() == BistroResponseStatus.SUCCESS) {
@@ -218,6 +370,10 @@ public class AcceptTableScreen {
             message.append("Could not find a matching order.");
         }
         showAlert("Message", message.toString());
+        if (!isSubscriber && forgotCheckBox != null) {
+            forgotCheckBox.setSelected(false);
+            updateForgotUI();
+        }
     }
 
     /**
@@ -229,7 +385,7 @@ public class AcceptTableScreen {
 	void back(ActionEvent event) {
 		try {
 			// Use the static method in Main to switch the scene root
-			Main.changeRoot(MainMenuScreen.fxmlPath);
+			Main.changeRoot(isSubscriber ? SubscriberScreen.fxmlPath : MainMenuScreen.fxmlPath);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
