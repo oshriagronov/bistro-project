@@ -32,7 +32,7 @@ public class CancelReservationScreen {
 
 
     @FXML
-    private TextField ReservationIdField;
+    private TextField ConfirmationCodeField;
 
     @FXML
     private Label messageLabel;
@@ -48,43 +48,41 @@ public class CancelReservationScreen {
      */
     @FXML
     private void cancelReservation(ActionEvent event) {
-        String reservationId = ReservationIdField.getText().trim();
+        String confirmationCode = ConfirmationCodeField.getText().trim();
         String phone = phoneField.getText().trim();
         String email = emailField.getText().trim();
         
         if (phone.isEmpty() && email.isEmpty()) {
-            messageLabel.setText("Please fill in phone or email and reservation number.");
+            messageLabel.setText("Please fill in phone or email and Confirmation code.");
             messageLabel.setStyle("-fx-text-fill: red;");
             return;
         }
 
-        if (reservationId.isEmpty()) {
-            messageLabel.setText("Please enter reservation number.");
+        if (confirmationCode.isEmpty()) {
+            messageLabel.setText("Please enter Confirmation code.");
             messageLabel.setStyle("-fx-text-fill: red;");
             return;
         }
 
         int orderNumber;
         try {
-            orderNumber = Integer.parseInt(reservationId);
+            orderNumber = Integer.parseInt(confirmationCode);
         } catch (NumberFormatException e) {
-            messageLabel.setText("Reservation number must be numeric.");
+            messageLabel.setText("Confirmation code must be numeric.");
             messageLabel.setStyle("-fx-text-fill: red;");
             return;
         }
-        // Send cancellation request to the server, first if he entered phone else use email
-        if(phone.isEmpty()) {
-            Main.client.accept(new BistroRequest(BistroCommand.CHANGE_STATUS, new StatusUpdate(orderNumber,email, Status.CANCELLED)));
-            BistroResponse response = Main.client.getResponse();
-            handleCancelResponse(response);
-            return;
+        StatusUpdate update = buildCancelUpdate(orderNumber, phone, email);
+        Main.client.accept(new BistroRequest(BistroCommand.CANCEL_RESERVATION, update));
+        BistroResponse response = Main.client.getResponse();
+        handleCancelResponse(response);
+    }
+
+    private StatusUpdate buildCancelUpdate(int orderNumber, String phone, String email) {
+        if (!email.isEmpty()) {
+            return new StatusUpdate(orderNumber, email, Status.CANCELLED);
         }
-        else if(email.isEmpty()) {
-            Main.client.accept(new BistroRequest(BistroCommand.CHANGE_STATUS, new StatusUpdate(phone ,orderNumber, Status.CANCELLED)));
-            BistroResponse response = Main.client.getResponse();
-            handleCancelResponse(response);
-            return;
-        }
+        return new StatusUpdate(phone, orderNumber, Status.CANCELLED);
     }
 
     /**

@@ -151,9 +151,23 @@ public class Server extends AbstractServer {
 			break;
 
 		case CANCEL_RESERVATION:
-			// Expect Integer order number; delete reservation and return rows affected.
-			dbReturnedValue = db.deleteOrderByOrderNumber((int) data);
-			response = new BistroResponse(BistroResponseStatus.SUCCESS, dbReturnedValue);
+			// Expect StatusUpdate; update reservation status and return rows affected.
+
+			if (data instanceof StatusUpdate) {
+				StatusUpdate statusUpdate = (StatusUpdate) data;
+				if(statusUpdate.getEmail() == null && statusUpdate.getPhoneNumber() == null)
+					response = new BistroResponse(BistroResponseStatus.FAILURE, "invalid information.");
+				else{
+
+					int result = db.CancelReservation(statusUpdate.getOrderNumber(), statusUpdate.getEmail(), statusUpdate.getPhoneNumber());
+					if (result > 0)
+						response = new BistroResponse(BistroResponseStatus.SUCCESS, "Cancel succeeded.");
+					else
+						response = new BistroResponse(BistroResponseStatus.FAILURE, "Cancel failed."); 
+				}
+			}
+			else
+				response = new BistroResponse(BistroResponseStatus.FAILURE, "Cancel failed.");
 			break;
 		case CHANGE_STATUS:
 			// Expect StatusUpdate; update reservation status and return rows affected.

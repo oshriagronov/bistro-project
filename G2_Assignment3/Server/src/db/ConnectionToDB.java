@@ -96,6 +96,17 @@ public class ConnectionToDB {
 		return executeWriteQuery(sql, order_date, number_of_guests, order_number);
 	}
 
+	public int CancelReservation(int confirmationCode, String email, String phone) {
+		StringBuilder sql = new StringBuilder("UPDATE `reservations` SET order_status = 'CANCELLED' WHERE ");
+		if(email == null){
+			sql.append("confirmation_code = ? AND phone = ? limit 1");
+			return executeWriteQuery(sql.toString(), confirmationCode, phone);
+		}else{
+			sql.append("confirmation_code = ? AND email = ? limit 1");
+			return executeWriteQuery(sql.toString(), confirmationCode, email);
+		}
+	}
+
 	/**
 	 * Inserts a new reservation into the 'reservations' table. Uses a prepared SQL
 	 * statement with placeholders to safely insert all fields.
