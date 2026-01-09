@@ -1,13 +1,16 @@
+/**
+ * Controller class for the OrderScreen.fxml view.
+ * This class handles the user input for placing a new reservation, 
+ * including validating the date, time, contact information, and subscriber ID,
+ * and then sending the reservation request to the server.
+ */
 package gui;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
 
+import java.time.LocalDateTime;
+import java.util.Random;
+import java.time.LocalTime;
 import communication.BistroCommand;
 import communication.BistroRequest;
 import communication.BistroResponse;
@@ -29,229 +32,232 @@ import logic.Subscriber;
 import logic.UserType;
 import logic.Worker;
 
-/**
- * Controller for the Order.fxml view.
- * <p>
- * Handles user interaction for placing a new reservation, including:
- * <ul>
- * <li>Date and time selection</li>
- * <li>Diners amount selection</li>
- * <li>Guest / subscriber / worker flows</li>
- * <li>Input validation</li>
- * <li>Sending the reservation request to the server</li>
- * </ul>
- */
 public class OrderScreen {
-
-	/** FXML path for the order screen. */
 	public static final String fxmlPath = "/gui/Order.fxml";
-
 	/** Utility for generating a random confirmation code. */
-	private final Random random = new Random();
-
-	private Subscriber sub = null;
-	private Worker worker = null;
+	private Random random = new Random();
+	private Subscriber sub=null;
+	private Worker worker=null;
 
 	/** Alert object used to display success or failure messages to the user. */
-	private final Alert alert = new Alert(Alert.AlertType.INFORMATION);
+	Alert alert = new Alert(Alert.AlertType.INFORMATION);
 
 	@FXML
-	private Button backBtn;
+    private Button backBtn;
 
-	@FXML
-	private VBox btnVbox;
+    @FXML
+    private VBox btnVbox;
 
-	@FXML
-	private CheckBox checkBox;
+    @FXML
+    private CheckBox checkBox;
 
-	@FXML
-	private ComboBox<String> dinersAmmount;
+    @FXML
+    private ComboBox<String> dinersAmmount;
 
-	@FXML
-	private VBox nonSubVbox;
+    @FXML
+    private VBox nonSubVbox;
 
-	@FXML
-	private Button orderBtn;
+    @FXML
+    private Button orderBtn;
 
-	@FXML
-	private DatePicker orderDate;
+    @FXML
+    private DatePicker orderDate;
 
-	@FXML
-	private TextField orderEmail;
+    @FXML
+    private TextField orderEmail;
 
-	@FXML
-	private ComboBox<String> orderHours;
+    @FXML
+    private ComboBox<String> orderHours;
 
-	@FXML
-	private TextField phoneNumber;
+    @FXML
+    private ComboBox<String> orderMinutes;
 
-	@FXML
-	private ComboBox<String> phoneStart;
+    @FXML
+    private TextField phoneNumber;
 
-	@FXML
-	private HBox subHBOX;
+    @FXML
+    private ComboBox<String> phoneStart;
 
-	@FXML
-	private TextField subID;
+    @FXML
+    private HBox subHBOX;
 
-	@FXML
-	private VBox subVbox;
+    @FXML
+    private TextField subID;
 
-	@FXML
-	private VBox workerVbox;
+    @FXML
+    private VBox subVbox;
 
-	Map<LocalTime, List<Integer>> dinersByTime;
-	List<Integer> tablesSizes;
+    @FXML
+    private VBox workerVbox;
+
 
 	/**
-	 * Initializes the Order screen.
-	 * <p>
-	 * This method is called automatically after the FXML file is loaded. It
-	 * performs the following actions:
-	 * <ul>
-	 * <li>Configures the UI according to the logged-in user type</li>
-	 * <li>Restricts date selection to today through one month ahead</li>
-	 * <li>Initializes diners amount, phone prefixes, and default selections</li>
-	 * <li>Updates available reservation times when the date changes</li>
-	 * </ul>
+	 * Initializes the controller. This method is called automatically 
+	 * file has been loaded.
+	 * It sets up the available options for Comb
+	 * and configures the DatePicker to only allow future dates within the next month.
 	 */
-	@FXML
-	public void initialize() {
-		if (LoggedUser.getType() == UserType.SUBSCRIBER) {
-			setupSubscriber();
-		} else if (LoggedUser.getType() == UserType.EMPLOYEE || LoggedUser.getType() == UserType.MANAGER) {
-			setupWorkerView();
-		} else {
-			setupGuestView();
-		}
+    @FXML
+    public void initialize() {
+		
+        if (LoggedUser.getType()==UserType.SUBSCRIBER) {
+        	setupSubscriber();
+        }
+        else if (LoggedUser.getType()==UserType.EMPLOYEE || LoggedUser.getType()==UserType.MANAGER) {
+        	setupWorkerView();
+        }
+        else {
+            setupGuestView();
+        }
 
-		subHBOX.setVisible(false);
+        subHBOX.setVisible(false);
 
-		orderDate.setDayCellFactory(d -> new DateCell() {
-			@Override
-			public void updateItem(LocalDate item, boolean empty) {
-				super.updateItem(item, empty);
+        orderDate.setDayCellFactory(d -> new DateCell() {
+            @Override
+            public void updateItem(LocalDate item, boolean empty) {
+                super.updateItem(item, empty);
 
-				if (empty || item == null) {
-					setDisable(false);
-					setStyle("");
-					return;
-				}
+                if (empty || item == null) {
+                    setDisable(false);
+                    setStyle("");
+                    return;
+                }
 
-				LocalDate today = LocalDate.now();
-				LocalDate maxDate = today.plusMonths(1);
+                LocalDate today = LocalDate.now();
+                LocalDate maxDate = today.plusMonths(1);
 
-				if (item.isBefore(today) || item.isAfter(maxDate)) {
-					setDisable(true);
-					setStyle("-fx-background-color: #ccc;");
-				} else {
-					setDisable(false);
-					setStyle("");
-				}
-			}
-		});
+                if (item.isBefore(today) || item.isAfter(maxDate)) {
+                    setDisable(true);
+                    setStyle("-fx-background-color: #ccc;");
+                } else {
+                    setDisable(false);
+                    setStyle("");
+                }
+            }
+        });
+		
+        dinersAmmount.getItems().clear();
+        for (int i = 1; i <= 10; i++) {
+            dinersAmmount.getItems().add(String.valueOf(i));
+        }
+        
+        // Update times when date changes
+        orderDate.valueProperty().addListener((obs, oldDate, newDate) -> {
+            if (newDate != null) updateTimeOptions(newDate);
+        });
+        orderDate.setValue(LocalDate.now());
 
-		dinersAmmount.getItems().clear();
-		for (int i = 1; i <= 10; i++) {
-			dinersAmmount.getItems().add(String.valueOf(i));
-		}
+        phoneStart.getItems().clear();
+        phoneStart.getItems().addAll("050", "052", "053", "054", "055", "058");
+    }
 
-		orderDate.valueProperty().addListener((obs, oldDate, newDate) -> {
-			if (newDate != null) {
-				showOnlyAvailableTime(newDate);
-				orderHours.getSelectionModel().selectFirst();
-			}
-		});
+    private void updateTimeOptions(LocalDate date) {
+        orderHours.getItems().clear();
+        orderMinutes.getItems().clear();
 
-		orderDate.setValue(LocalDate.now());
-		showOnlyAvailableTime(LocalDate.now());
+        LocalTime start = LocalTime.of(12, 0);
+        LocalTime end = LocalTime.of(23, 0);
 
-		phoneStart.getItems().clear();
-		phoneStart.getItems().addAll("050", "052", "053", "054", "055", "058");
+        Main.client.accept(new BistroRequest(BistroCommand.GET_OPENING_HOURS, date));
+        BistroResponse res = Main.client.getResponse();
 
-		orderHours.getSelectionModel().selectFirst();
-		dinersAmmount.getSelectionModel().selectFirst();
-		phoneStart.getSelectionModel().selectFirst();
-	}
+        if (res.getStatus() == BistroResponseStatus.SUCCESS && res.getData() instanceof LocalTime[]) {
+            LocalTime[] times = (LocalTime[]) res.getData();
+            if (times != null && times.length >= 2) {
+                start = times[0];
+                end = times[1];
+            }
+        }
+
+        for (int i = start.getHour(); i < end.getHour(); i++) {
+            orderHours.getItems().add(String.format("%02d", i));
+        }
+
+        for (int i = 0; i < 60; i += 30) {
+            orderMinutes.getItems().add(String.format("%02d", i));
+        }
+    }
 
 	/**
-	 * Configures the screen for a logged-in subscriber.
-	 * <p>
-	 * Fetches the subscriber details from the server and automatically fills the
-	 * email, phone number, and subscriber ID fields. Guest-specific and
-	 * worker-specific UI elements are hidden.
-	 */
-	@FXML
-	public void setupSubscriber() {
-		int id = LoggedUser.getId();
+     * Configures the screen for a logged-in subscriber.
+     * Fetches subscriber details from the database and auto-fills the UI fields.
+     */
+    @FXML
+    public void setupSubscriber() {
 
-		BistroRequest request = new BistroRequest(BistroCommand.GET_SUB, id);
-		Main.client.accept(request);
+        // Get subscriber ID from LoggedUser
+        int id = LoggedUser.getId();
 
-		BistroResponse response = Main.client.getResponse();
-		if (response == null) {
-			setupGuestView();
-			return;
-		}
+        BistroRequest request= new BistroRequest(BistroCommand.GET_SUB, id);
+        Main.client.accept(request);
+        
+        BistroResponse response= Main.client.getResponse();
 
-		Object data = response.getData();
-		if (data != null) {
-			this.sub = (Subscriber) data;
-
+        if (response == null) {
+            // If something went wrong, fallback to guest mode
+            setupGuestView();
+            return;
+        }
+        Object data = response.getData();
+        if(data!= null) {
+        	this.sub=(Subscriber)data;
 			orderEmail.setText(sub.getEmail());
-
 			String p = sub.getPhone();
 			if (p != null && p.length() == 10) {
 				phoneStart.setValue(p.substring(0, 3));
 				phoneNumber.setText(p.substring(3));
 			}
-
 			subID.setText(String.valueOf(sub.getSubscriberId()));
-
-			nonSubVbox.setVisible(false);
-			workerVbox.setVisible(false);
-		}
-	}
+        	 // Hide fields that are not relevant for subscribers
+            nonSubVbox.setVisible(false);
+            workerVbox.setVisible(false);
+        }
+    }
 
 	/**
-	 * Configures the screen for a guest user.
+	 * Configures the screen for a non‑logged guest user.
 	 * <p>
-	 * Guest users must manually provide contact information (email and phone).
-	 * Subscriber-specific and worker-specific UI elements are hidden.
+	 * This mode is used when the user arrives from the main menu without logging in.
+	 * All contact fields (phone and email) remain visible because the guest must
+	 * manually provide this information in order to place a reservation.
+	 * Worker‑specific and subscriber‑specific fields are hidden.
 	 */
 	private void setupGuestView() {
-		nonSubVbox.setVisible(true);
-		workerVbox.setVisible(false);
+	    nonSubVbox.setVisible(true);  
+	    workerVbox.setVisible(false);  
 	}
-
 	/**
-	 * Configures the screen for a logged-in worker or manager.
+	 * Configures the screen for a logged‑in worker.
 	 * <p>
-	 * Workers can place reservations without entering personal contact details.
-	 * Guest fields remain visible while worker-related controls are enabled.
+	 * Workers do not need to enter personal contact information when placing
+	 * a reservation for a customer. Therefore, guest fields are hidden while
+	 * worker‑related controls remain visible.
 	 */
 	private void setupWorkerView() {
-		nonSubVbox.setVisible(true);
-		workerVbox.setVisible(true);
+            nonSubVbox.setVisible(true);
+            workerVbox.setVisible(true);
+        
 	}
 
+	
 	/**
-	 * Handles the subscriber CheckBox click event.
-	 * <p>
-	 * Toggles the visibility of the subscriber ID input field.
-	 *
-	 * @param e the ActionEvent triggered by clicking the CheckBox
+	 * Handles the action when the subscriber CheckBox is clicked.
+	 * Toggles the visibility of the subscriber ID input field (subHBOX).
+	 * * @param e The ActionEvent triggered by the CheckBox.
 	 */
+	
 	@FXML
 	public void checkClicked(ActionEvent e) {
-		subHBOX.setVisible(checkBox.isSelected());
+		if (checkBox.isSelected())
+			subHBOX.setVisible(true);
+		else
+			subHBOX.setVisible(false);
 	}
 
 	/**
-	 * Displays an informational alert dialog to the user.
-	 *
-	 * @param title the title of the alert window
-	 * @param body  the message displayed inside the alert
+	 * Utility method to display a modal alert to the user.
+	 * * @param title The title of the alert window.
+	 * @param body The main content text to be displayed in the alert.
 	 */
 	public void showAlert(String title, String body) {
 		alert.setTitle(title);
@@ -261,217 +267,117 @@ public class OrderScreen {
 	}
 
 	/**
-	 * Handles the "Order" button click event.
-	 * <p>
-	 * Validates all user inputs including:
-	 * <ul>
-	 * <li>Reservation date</li>
-	 * <li>Reservation time (must be at least one hour in advance)</li>
-	 * <li>Diners amount</li>
-	 * <li>Email and phone number (for guests)</li>
-	 * <li>Subscriber ID (if applicable)</li>
-	 * </ul>
-	 *
-	 * If validation fails, an error alert is displayed. If validation succeeds, a
-	 * reservation is created and sent to the server.
-	 *
-	 * @param event the ActionEvent triggered by clicking the Order button
+	 * Handles the action when the "Order" button is clicked.
+	 * It validates all input fields (Date, Time, Diners, Email, Subscriber ID, Phone Number).
+	 * If validation fails, an alert with error messages is shown.
+	 * If successful, a new Reservation object is created, a confirmation code is generated,
+	 * and the reservation is sent to the client controller for processing.
+	 * * @param event The ActionEvent triggered by the Order button.
 	 */
 	@FXML
 	public void clickOrder(ActionEvent event) {
 		LocalDateTime now = LocalDateTime.now();
-		LocalDateTime oneHourFromNow = LocalDateTime.now().plusHours(1);
-		;
-
-		int amount = 0;
-		String hours;
-		String phone;
-		String email;
-		String idStr;
-		String amountStr;
-
-		StringBuilder errors = new StringBuilder();
-		boolean valid = true;
-
-		LocalDate date = orderDate.getValue();
+		// Reservation must be at least one hour from the current time
+		LocalDateTime oneHourFromNow = now.plusHours(1); 
+		int amount=0, hours, minutes;
+		String phone, email, ID = null, amountStr = "1";
+		StringBuilder str = new StringBuilder();
+		boolean check = true;
+		LocalDate date;
 		LocalDate today = LocalDate.now();
-		LocalTime selected = null;
-
-		// 1) Validate date
+		LocalDateTime selected= null;
+		date = orderDate.getValue();
+		
+		// 1. Validate Date selection
 		if (date == null) {
-			errors.append("Please pick a reservation date\n");
-			valid = false;
-		}
-
-		// 2) Validate diners amount
-		amountStr = dinersAmmount.getValue();
-		if (amountStr == null || amountStr.isBlank()) {
-			errors.append("Please choose diners amount\n");
-			valid = false;
-		} else {
-			amount = Integer.parseInt(amountStr);
-		}
-
-		// 4) Subscriber ID (if checkbox selected)
-		if (!checkBox.isSelected() || subID.getText() == null || subID.getText().isBlank()) {
-			idStr = "0";
-		} else {
-			idStr = subID.getText();
-			if (!idStr.matches("\\d+")) {
-				errors.append("Please enter a valid subscriber ID\n");
-				valid = false;
-				idStr = "0";
-			}
-		}
-
-		// 5-6) Contact fields
-		if (LoggedUser.getType() == UserType.SUBSCRIBER) {
-			idStr = String.valueOf(LoggedUser.getId());
-			email = (sub != null) ? sub.getEmail() : "";
-			phone = (sub != null) ? sub.getPhone() : "";
-		} else {
-			email = orderEmail.getText();
-			if (email == null || !email.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$")) {
-				errors.append("Please enter a valid Email\n");
-				valid = false;
-			}
-
-			phone = (phoneStart.getValue() != null ? phoneStart.getValue() : "") + phoneNumber.getText();
-			if (phone == null || phone.length() != 10 || !phone.matches("\\d+")) {
-				errors.append("Please enter a valid 10-digit phone number\n");
-				valid = false;
-			}
-
-		}
-		String hourStr = orderHours.getValue();
-		if (hourStr == null) {
-			errors.append("Please select a time\n");
-			valid = false;
-		} else {
-			selected = LocalTime.parse(hourStr);
+			str.append("Please pick a reservation date\n");
+			check = false;
 		}
 		
-		List<Integer> diners = dinersByTime.get(selected);
-		diners.add(Integer.parseInt(amountStr));
-		StringBuilder suggestions = new StringBuilder();
-
-		if (!isAvailable(diners)) {
-			errors.append("Chosen time isn't available, please choose another\n");
-			valid = false;
-
-			int groupSize = Integer.parseInt(amountStr);
-
-			diners.remove(diners.size() - 1);
-
-			LocalTime plus = selected.plusMinutes(30);
-			diners = dinersByTime.get(plus);
-			if (!(date.equals(LocalDate.now()) && plus.isBefore(LocalTime.now().plusHours(1))) && diners != null) {
-				diners.add(groupSize);
-				if (isAvailable(diners)) {
-					suggestions.append("• ").append(plus).append("\n");
-				}
-				diners.remove(diners.size() - 1);
-			}
-
-			LocalTime minus = selected.minusMinutes(30);
-			diners = dinersByTime.get(minus);
-			if (!(date.equals(LocalDate.now()) && minus.isBefore(LocalTime.now().plusHours(1))) && diners != null) {
-				diners.add(groupSize);
-				if (isAvailable(diners)) {
-					suggestions.append("• ").append(minus).append("\n");
-				}
-				diners.remove(diners.size() - 1);
-			}
-
-			if (suggestions.length() > 0) {
-				errors.append("Suggested times:\n").append(suggestions);
+		// 2. Validate Diners Amount selection
+		amountStr = dinersAmmount.getValue();
+		if (amountStr == null || amountStr.isBlank()) {
+			str.append("Please choose diners amount\n");
+			check = false;
+		} else
+			amount = Integer.parseInt(amountStr); // safe now
+		
+		// 3. Validate Time selection and minimum time rule (1 hour ahead)
+		if (orderHours.getValue() == null || orderMinutes.getValue() == null) {
+			check = false;
+			str.append("Please select reservation time\n");
+		} else if (date != null) {
+			hours = Integer.parseInt(orderHours.getValue());
+			minutes = Integer.parseInt(orderMinutes.getValue());
+			selected = date.atTime(hours, minutes);
+			
+			// Check if selected time is less than one hour from now
+			if (date.equals(today) && selected.isBefore(oneHourFromNow)) {
+				check = false;
+				str.append("Please select a time that is at least one hour ahead of now\n");
 			}
 		}
-
-		if (!valid) {
-			showAlert("Reservation Failure", errors.toString());
-			return;
+		
+		
+		// 4. Validate Subscriber ID
+		if (!checkBox.isSelected() || subID.getText().equals(null)) {
+			ID = "0"; // Non-subscriber
+		} else {
+			ID = subID.getText();
+			// Check if subscriber ID is provided and is exactly 5 digits
+			if (ID == null || !ID.matches("\\d+")) {
+				ID = "0";
+				str.append("Please enter a valid subscriber ID\n");
+				check = false;
+			}
 		}
-		int confirmationCode = random.nextInt(90000) + 10000;
-
-		Reservation r = new Reservation(date, amount, confirmationCode, Integer.parseInt(idStr), today, selected, phone,
-				email);
-
-		BistroRequest req = new BistroRequest(BistroCommand.ADD_RESERVATION, r);
-		Main.client.accept(req);
-		BistroResponse response = Main.client.getResponse();
-		if ((response != null && response.getStatus() == BistroResponseStatus.SUCCESS)) {
+		// 5 & 6. Validate Email and Phone Number only for Guests
+		if( LoggedUser.getType()==UserType.SUBSCRIBER) {
+			ID= String.valueOf(LoggedUser.getId());
+			email = sub.getEmail();
+			phone = sub.getPhone();
+		}
+		else {
+			// 5. Validate Email format
+			email = orderEmail.getText();
+			if (!email.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$")) {
+				str.append("Please enter a valid Email\n");
+				check = false;
+			}
+			// 6. Validate Phone Number (must be 10 digits and contain only numbers)
+			phone = phoneStart.getValue() + phoneNumber.getText();
+			if (phone == null || phone.length() != 10 || !phone.matches("\\d+")) {
+				str.append("Please enter a valid 10-digit phone number\n");
+				check = false;
+			}
+		}
+		// Final Check: Display errors or process reservation
+		if (!check) {
+			showAlert("Reservation Failure", str.toString());
+		} else {
 			showAlert("Reservation Success", "Reservation successfully placed!");
-		}
-		else
-			showAlert("Error", "Failed placing the order");
-	}
+			
+			// Generate a 5-digit confirmation code (10000 to 99999)
+			int confirmation_code = random.nextInt(90000) + 10000;
+			
+			// Create Reservation object: date, amount, code, subscriber ID, today's date (for tracking)
+			Reservation r = new Reservation(date, amount, confirmation_code, Integer.parseInt(ID), today, selected.toLocalTime(), phone, email);
+			// Send the reservation object to the client controller for server communication
+			BistroRequest req = new BistroRequest(BistroCommand.ADD_RESERVATION, r);
+			Main.client.accept(req);
 
-	/**
-	 * Populates the time ComboBox with only times that have enough available
-	 * tables.
-	 *
-	 * @param date the reservation date for which to calculate available times
-	 */
-	private void showOnlyAvailableTime(LocalDate date) {
-		orderHours.getItems().clear();
-
-		dinersByTime = Restaurant.buildDinersByTime(date);
-		tablesSizes = Restaurant.getTableSizes();
-
-		for (LocalTime time : dinersByTime.keySet()) {
-			List<Integer> diners = dinersByTime.get(time);
-			if (!(date.equals(LocalDate.now()) && time.isBefore(LocalTime.now().plusHours(1))) && isAvailable(diners)) {
-				orderHours.getItems().add(time.toString());
-			}
 		}
 	}
 
 	/**
-	 * Checks whether the restaurant can accommodate a list of diner groups using
-	 * the available table sizes.
-	 *
-	 * @param diners     a list of diner group sizes already occupying that timeslot
-	 * @param tableSizes a list of available table sizes
-	 * @return {@code true} if the diners can be placed into the tables, otherwise
-	 *         {@code false}
-	 */
-	private boolean isAvailable(List<Integer> diners) {
-		int i = 0;
-
-		if (diners.size() > tablesSizes.size()) {
-			return false;
-		}
-
-		for (int num : diners) {
-			boolean found = false;
-
-			while (i < tablesSizes.size()) {
-				if (num <= tablesSizes.get(i)) {
-					found = true;
-					i++;
-					break;
-				}
-				i++;
-			}
-
-			if (i == tablesSizes.size() && !found) {
-				return false;
-			}
-		}
-
-		return true;
-	}
-
-	/**
-	 * Handles the action when the "Back to MainMenu" button is clicked. Navigates
-	 * the application back to the main menu screen.
-	 *
-	 * @param event the ActionEvent triggered by clicking the Back button
+	 * Handles the action when the "Back to MainMenu" button is clicked.
+	 * Navigates the application back to the main menu screen.
+	 * * @param event The ActionEvent triggered by the Back button.
 	 */
 	@FXML
 	void back(ActionEvent event) {
 		try {
+			// Use the static method in Main to switch the scene root
 			Main.changeRoot(MainMenuScreen.fxmlPath);
 		} catch (Exception e) {
 			e.printStackTrace();

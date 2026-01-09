@@ -12,7 +12,7 @@
 <?import javafx.scene.text.Font?>
 <?import javafx.scene.text.Text?>
 
-<Pane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="456.0" prefWidth="578.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="gui.OrderScreen">
+<Pane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="456.0" prefWidth="578.0" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="gui.OrderScreen">
    <children>
       <Text fill="#1673f6" layoutX="173.0" layoutY="46.0" strokeType="OUTSIDE" strokeWidth="0.0" style="-fx-font-size: 36;" text="New reservation">
          <font>
@@ -25,7 +25,7 @@
                <children>
                   <HBox prefHeight="36.0" prefWidth="249.0">
                      <children>
-                        <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Date:">
+                        <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Date">
                            <HBox.margin>
                               <Insets right="10.0" />
                            </HBox.margin>
@@ -38,7 +38,22 @@
                   </HBox>
                   <HBox prefHeight="36.0" prefWidth="249.0">
                      <children>
-                        <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Amount:">
+                        <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Time">
+                           <HBox.margin>
+                              <Insets right="10.0" />
+                           </HBox.margin>
+                        </Text>
+                        <ComboBox fx:id="orderHours" maxWidth="60.0" prefWidth="60.0">
+                           <HBox.margin>
+                              <Insets right="20.0" />
+                           </HBox.margin>
+                        </ComboBox>
+                        <ComboBox fx:id="orderMinutes" maxWidth="60.0" prefWidth="60.0" />
+                     </children>
+                  </HBox>
+                  <HBox prefHeight="36.0" prefWidth="249.0">
+                     <children>
+                        <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Amount">
                            <HBox.margin>
                               <Insets right="10.0" />
                            </HBox.margin>
@@ -46,30 +61,14 @@
                         <ComboBox fx:id="dinersAmmount" maxWidth="62.0" prefHeight="26.0" prefWidth="62.0" />
                      </children>
                   </HBox>
-                  <HBox prefHeight="42.0" prefWidth="200.0">
-                     <children>
-                        <HBox prefHeight="36.0" prefWidth="249.0">
-                           <children>
-                              <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Time:">
-                                 <HBox.margin>
-                                    <Insets right="10.0" />
-                                 </HBox.margin>
-                              </Text>
-                              <ComboBox fx:id="orderHours" maxWidth="88.0" prefHeight="25.0" prefWidth="88.0">
-                                 <HBox.margin>
-                                    <Insets right="20.0" />
-                                 </HBox.margin>
-                              </ComboBox>
-                           </children>
-                        </HBox>
-                     </children></HBox>
+                  <HBox prefHeight="42.0" prefWidth="200.0" />
                </children>
             </VBox>
             <VBox fx:id="nonSubVbox" prefHeight="72.0" prefWidth="212.0">
                <children>
                   <HBox prefHeight="32.0" prefWidth="212.0">
                      <children>
-                        <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Phone:">
+                        <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Phone">
                            <HBox.margin>
                               <Insets right="10.0" />
                            </HBox.margin>
@@ -84,7 +83,7 @@
                   </HBox>
                   <HBox prefHeight="31.0" prefWidth="200.0">
                      <children>
-                        <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Email:">
+                        <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Email">
                            <HBox.margin>
                               <Insets right="10.0" />
                            </HBox.margin>
@@ -108,7 +107,7 @@
                   </HBox>
                   <HBox fx:id="subHBOX" prefHeight="39.0" prefWidth="200.0">
                      <children>
-                        <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Subscriber ID:">
+                        <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Subscriber ID">
                            <HBox.margin>
                               <Insets right="20.0" />
                            </HBox.margin>
@@ -124,10 +123,7 @@
             </VBox>
             <VBox fx:id="btnVbox" prefHeight="57.0" prefWidth="175.0">
                <children>
-                  <Button fx:id="orderBtn" contentDisplay="TOP" mnemonicParsing="false" onAction="#clickOrder" text="Order">
-                     <VBox.margin>
-                        <Insets bottom="10.0" />
-                     </VBox.margin></Button>
+                  <Button fx:id="orderBtn" contentDisplay="TOP" mnemonicParsing="false" onAction="#clickOrder" text="Order" />
                   <Button fx:id="backBtn" mnemonicParsing="false" onAction="#back" prefHeight="25.0" prefWidth="60.0" text="Back" />
                </children>
             </VBox>

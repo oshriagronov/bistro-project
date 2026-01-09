@@ -30,12 +30,12 @@ public class OrdersManagementScreen {
 
 	@FXML
 	private Button clearBTN;
-
-	@FXML
-	private TableColumn<Reservation, String> phoneCol;
-
-	@FXML
-	private TableColumn<Reservation, String> emailCol;
+	
+    @FXML
+    private TableColumn<Reservation, String> phoneCol;
+	
+    @FXML
+    private TableColumn<Reservation, String> emailCol;
 
 	@FXML
 	private TableColumn<Reservation, String> dateCol;
@@ -72,9 +72,9 @@ public class OrdersManagementScreen {
 
 	@FXML
 	private TableColumn<Reservation, LocalTime> startTimeCol;
-
-	@FXML
-	private TableColumn<Reservation, LocalTime> finishTimeCol;
+	
+    @FXML
+    private TableColumn<Reservation, LocalTime> finishTimeCol;
 
 	@FXML
 	public void initialize() {
@@ -91,7 +91,7 @@ public class OrdersManagementScreen {
 		dateCol.setCellValueFactory(new PropertyValueFactory<>("orderDate"));
 
 		dinersCol.setCellValueFactory(new PropertyValueFactory<>("numberOfGuests"));
-
+		
 		emailCol.setCellValueFactory(new PropertyValueFactory<>("email"));
 
 		startTimeCol.setCellValueFactory(new PropertyValueFactory<>("start_time"));
@@ -99,7 +99,7 @@ public class OrdersManagementScreen {
 		finishTimeCol.setCellValueFactory(new PropertyValueFactory<>("finish_time"));
 
 		phoneCol.setCellValueFactory(new PropertyValueFactory<>("phone_number"));
-
+		
 		EventBus.getInstance().subscribe(EventType.ORDER_CHANGED, ordersListener);
 
 		ordersTable.getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, newSelection) -> {
@@ -119,7 +119,7 @@ public class OrdersManagementScreen {
 		Reservation selected = ordersTable.getSelectionModel().getSelectedItem();
 		selected.setStatus(statusCombo.getValue());
 		Main.client.accept(new BistroRequest(BistroCommand.CHANGE_STATUS,
-				new StatusUpdate(selected.getPhone_number(), selected.getOrderNumber(), statusCombo.getValue())));
+				new StatusUpdate(selected.getPhone_number(),selected.getOrderNumber(), statusCombo.getValue())));
 		ordersTable.refresh();
 
 	}
@@ -159,20 +159,20 @@ public class OrdersManagementScreen {
 	void clickSearch(ActionEvent event) {
 		loadResults();
 	}
-
+	
 	private void loadResults() {
-		String phone_number = phoneTXT.getText();
-		if (phone_number == null || phone_number.isBlank()) {
-			return;
-		}
-		Main.client.accept(new BistroRequest(BistroCommand.GET_ACTIVE_RESERVATIONS_BY_PHONE, phone_number));
-		Object data = Main.client.getResponse().getData();
-		ArrayList<Reservation> reservations = (ArrayList<Reservation>) data;
-		ordersTable.setItems(javafx.collections.FXCollections.observableArrayList(reservations));
+	    String phone_number = phoneTXT.getText();
+	    if (phone_number == null || phone_number.isBlank()) {
+	        return;
+	    }
+	    Main.client.accept(new BistroRequest(BistroCommand.GET_ACTIVE_RESERVATIONS_BY_PHONE, phone_number));
+	    Object data = Main.client.getResponse().getData();
+	    ArrayList<Reservation> reservations = (ArrayList<Reservation>) data;
+	    ordersTable.setItems(javafx.collections.FXCollections.observableArrayList(reservations));
 	}
-
+	
 	public void onClose() {
-		EventBus.getInstance().unsubscribe(EventType.ORDER_CHANGED, ordersListener);
+	    EventBus.getInstance().unsubscribe(EventType.ORDER_CHANGED, ordersListener);
 	}
 
 }

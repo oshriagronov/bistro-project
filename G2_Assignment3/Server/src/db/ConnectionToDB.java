@@ -42,31 +42,6 @@ public class ConnectionToDB {
 		return null;
 	}
 
-	private static Integer toInt(Object o) {
-		if (o == null)
-			return null;
-		if (o instanceof Integer i)
-			return i;
-		if (o instanceof Long l)
-			return Math.toIntExact(l);
-		if (o instanceof Number n)
-			return n.intValue(); // כולל BigDecimal
-		if (o instanceof String s && !s.isBlank())
-			return Integer.parseInt(s.trim());
-		throw new IllegalArgumentException("Cannot convert to Integer: " + o.getClass());
-	}
-
-	private static String toStr(Object o) {
-		return o == null ? null : o.toString();
-	}
-
-	private static Status toStatus(Object o) {
-		String s = toStr(o);
-		if (s == null || s.isBlank())
-			return null; // או Status.PENDING אם יש לך default
-		return Status.valueOf(s.trim().toUpperCase());
-	}
-
 	/**
 	 * Safely converts an object into a {@link LocalTime}, supporting both
 	 * {@link LocalTime} and {@link java.sql.Time} types.
@@ -117,22 +92,30 @@ public class ConnectionToDB {
 		String sql = "UPDATE `reservations` SET order_date = ?, num_of_diners = ? WHERE res_id = ?";
 		return executeWriteQuery(sql, order_date, number_of_guests, order_number);
 	}
-
+	
 	/**
-	 * Inserts a new reservation into the 'reservations' table. Uses a prepared SQL
-	 * statement with placeholders to safely insert all fields.
+	 * Inserts a new reservation into the 'reservations' table.
+	 * Uses a prepared SQL statement with placeholders to safely insert all fields.
 	 *
 	 * @param r the Reservation object containing all reservation details
 	 * @return number of affected rows (1 if insert succeeded, 0 if failed)
 	 */
 	public int insertReservation(Reservation r) {
-		String sql = "INSERT INTO reservations (phone, email, sub_id, start_time, finish_time, order_date, order_status, "
-				+ "num_diners, date_of_placing_order) " + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+	    String sql = "INSERT INTO reservations (phone, email, sub_id, start_time, finish_time, order_date, order_status, num_diners, date_of_placing_order, confirmation_code) "
+	               + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
-		return executeWriteQuery(sql, r.getPhone_number(), r.getEmail(), r.getSubscriberId(),
-				java.sql.Time.valueOf(r.getStart_time()), java.sql.Time.valueOf(r.getFinish_time()),
-				java.sql.Date.valueOf(r.getOrderDate()), r.getStatus().name(), r.getNumberOfGuests(),
-				java.sql.Date.valueOf(r.getDateOfPlacingOrder()));
+	    return executeWriteQuery(sql,
+	        r.getPhone_number(),         // String
+	        r.getEmail(),                // String
+	        r.getSubscriberId(),         // int
+	        r.getStart_time(),           // LocalTime
+	        r.getFinish_time(),          // LocalTime
+	        r.getOrderDate(),            // LocalDate
+	        r.getStatus().name(),        // Enum → String
+	        r.getNumberOfGuests(),       // int
+	        r.getDateOfPlacingOrder(),   // LocalDate
+	        null     // confirmation code    //TODO:maybe not needed
+	    );
 	}
 
 	/**
@@ -191,21 +174,19 @@ public class ConnectionToDB {
 		List<Reservation> list = new ArrayList<>();
 
 		for (List<Object> row : rows) {
-			Integer resId = toInt(row.get(0));
-			Integer confirmationCode = toInt(row.get(1));
-			String phoneNumber = toStr(row.get(2));
-			String email = toStr(row.get(3));
-			Integer subId = toInt(row.get(4));
+			Integer resId = (Integer) row.get(0);
+			Integer confirmationCode = (Integer) row.get(1);
+			String phoneNumber = (String) row.get(2);
+			String email = (String) row.get(3);
+			Integer subId = (Integer) row.get(4);
 
 			LocalTime startTime = toLocalTime(row.get(5));
 			LocalTime finishTime = toLocalTime(row.get(6));
 			LocalDate orderDate = toLocalDate(row.get(7));
 
-			Status status = toStatus(row.get(8));
-			if (status == null)
-				status = Status.CONFIRMED; // או מה שברירת המחדל אצלך
+			Status status = Status.valueOf(((String) row.get(8)).trim());
 
-			Integer diners = toInt(row.get(9));
+			Integer diners = (Integer) row.get(9);
 			LocalDate placingDate = toLocalDate(row.get(10));
 
 			Reservation res = new Reservation(orderDate, diners != null ? diners : 0,
@@ -789,15 +770,14 @@ public class ConnectionToDB {
 		return result;
 	}
 
-	// Notification service related methods
-	// ************************************************
+
+		// Notification service related methods ************************************************
 
 	/**
-	 * Retrieves upcoming confirmed reservations within the next two hours for
-	 * reminders.
+	 * Retrieves upcoming confirmed reservations within the next two hours for reminders.
 	 *
-	 * @return list of rows as strings (res_id, phone, email, start_time,
-	 *         confirmation_code), or null if none found
+	 * @return list of rows as strings (res_id, phone, email, start_time, confirmation_code),
+	 *         or null if none found
 	 */
 	public List<List<String>> getReservationToSendReminder() {
 		String sql = """
@@ -822,8 +802,7 @@ public class ConnectionToDB {
 	}
 
 	/**
-	 * Retrieves confirmed reservations that have finished and are past due for
-	 * payment reminders.
+	 * Retrieves confirmed reservations that have finished and are past due for payment reminders.
 	 *
 	 * @return list of rows as strings (res_id, phone, email), or null if none found
 	 */
@@ -850,26 +829,20 @@ public class ConnectionToDB {
 	}
 
 	public LocalTime[] getOpeningHours(LocalDate date) {
-
-		// 1. special days
+		// Check special days first
 		String sqlSpecial = "SELECT opening_time, closing_time FROM specialdates WHERE date = ?";
 		List<List<Object>> rows = executeReadQuery(sqlSpecial, date);
 		if (!rows.isEmpty()) {
 			return extractTimes(rows.get(0));
 		}
 
-		// 2. regular days
+		// Check regular hours
+		// Assuming regular_hours table has a column 'day_of_week' (1=Monday...7=Sunday)
 		String sqlRegular = "SELECT opening_time, closing_time FROM regulartimes WHERE day = ?";
-
-		String dayName = date.getDayOfWeek().name();
-		String dbDay = dayName.substring(0, 1) + dayName.substring(1).toLowerCase();
-
-		rows = executeReadQuery(sqlRegular, dbDay);
-
+		rows = executeReadQuery(sqlRegular, date.getDayOfWeek().getValue());
 		if (!rows.isEmpty()) {
 			return extractTimes(rows.get(0));
 		}
-
 		return null;
 	}
 
@@ -879,6 +852,7 @@ public class ConnectionToDB {
 		return new LocalTime[] { start, end };
 	}
 
+
 	/**
 	 * Executes a write query with positional parameters.
 	 *
@@ -887,65 +861,65 @@ public class ConnectionToDB {
 	 * @return number of rows affected
 	 */
 	private int executeWriteQuery(String sql, Object... params) {
-		MySQLConnectionPool pool = MySQLConnectionPool.getInstance();
-		PooledConnection pConn = null;
+	    MySQLConnectionPool pool = MySQLConnectionPool.getInstance();
+	    PooledConnection pConn = null;
 
-		pConn = pool.getConnection();
-		if (pConn == null)
-			return 0;
+	    pConn = pool.getConnection();
+	    if (pConn == null)
+	        return 0;
 
-		try {
-			// Disable auto-commit so we control the transaction
-			pConn.getConnection().setAutoCommit(false);
+	    try {
+	        // Disable auto-commit so we control the transaction
+	        pConn.getConnection().setAutoCommit(false);
 
-			PreparedStatement stmt = pConn.getConnection().prepareStatement(sql);
+	        PreparedStatement stmt = pConn.getConnection().prepareStatement(sql);
 
-			for (int i = 0; i < params.length; i++) {
-				Object p = params[i];
-				int idx = i + 1;
+	        for (int i = 0; i < params.length; i++) {
+	            Object p = params[i];
+	            int idx = i + 1;
 
-				if (p == null) {
-					stmt.setObject(idx, null);
-				} else if (p instanceof Integer) {
-					stmt.setInt(idx, (Integer) p);
-				} else if (p instanceof String) {
-					stmt.setString(idx, (String) p);
-				} else if (p instanceof LocalDate) {
-					stmt.setDate(idx, java.sql.Date.valueOf((LocalDate) p));
-				} else if (p instanceof java.sql.Date) {
-					stmt.setDate(idx, (java.sql.Date) p);
-				} else if (p instanceof java.sql.Time) {
-					stmt.setTime(idx, (java.sql.Time) p);
-				} else if (p instanceof LocalTime) {
-					stmt.setTime(idx, java.sql.Time.valueOf((LocalTime) p));
-				} else {
-					throw new SQLException("Unsupported parameter type");
-				}
-			}
+	            if (p == null) {
+	                stmt.setObject(idx, null);
+	            } else if (p instanceof Integer) {
+	                stmt.setInt(idx, (Integer) p);
+	            } else if (p instanceof String) {
+	                stmt.setString(idx, (String) p);
+	            } else if (p instanceof LocalDate) {
+	                stmt.setDate(idx, java.sql.Date.valueOf((LocalDate) p));
+	            } else if (p instanceof java.sql.Date) {
+	                stmt.setDate(idx, (java.sql.Date) p);
+	            } else if (p instanceof java.sql.Time) {
+	                stmt.setTime(idx, (java.sql.Time) p);
+	            } else if (p instanceof LocalTime) {
+	                stmt.setTime(idx, java.sql.Time.valueOf((LocalTime) p));
+	            } else {
+	                throw new SQLException("Unsupported parameter type");
+	            }
+	        }
 
-			int result = stmt.executeUpdate();
+	        int result = stmt.executeUpdate();
 
-			// IMPORTANT: commit the transaction
-			pConn.getConnection().commit();
+	        // IMPORTANT: commit the transaction
+	        pConn.getConnection().commit();
 
-			return result;
+	        return result;
 
-		} catch (SQLException e) {
-			System.out.println("SQLException: executeWriteQuery failed.");
+	    } catch (SQLException e) {
+	        System.out.println("SQLException: executeWriteQuery failed.");
 
-			try {
-				// Roll back changes if something went wrong
-				pConn.getConnection().rollback();
-			} catch (SQLException ex) {
-				System.out.println("Rollback failed.");
-			}
+	        try {
+	            // Roll back changes if something went wrong
+	            pConn.getConnection().rollback();
+	        } catch (SQLException ex) {
+	            System.out.println("Rollback failed.");
+	        }
 
-		} finally {
-			// Always return the connection to the pool
-			pool.releaseConnection(pConn);
-		}
+	    } finally {
+	        // Always return the connection to the pool
+	        pool.releaseConnection(pConn);
+	    }
 
-		return 0;
+	    return 0;
 	}
 
 	/**
@@ -1070,48 +1044,5 @@ public class ConnectionToDB {
 		return out;
 	}
 
-	/**
-	 * Returns a list of num_diners for all CONFIRMED reservations on the given date
-	 * that intersect the window [time-2h, time+2h].
-	 *
-	 * Window logic: existing.start_time < (time + 2h) AND existing.finish_time >
-	 * (time - 2h)
-	 *
-	 * @param orderDate the date to check (reservations.order_date)
-	 * @param time      the reference time (HH:mm or HH:mm:ss)
-	 * @return list of diners counts (num_diners) for matching reservations (empty
-	 *         if none)
-	 */
-	public List<Integer> getNumDinersInTwoHoursWindow(LocalDate orderDate, LocalTime time) {
-
-		String sql = "SELECT num_diners " + "FROM reservations " + "WHERE order_date = ? "
-				+ "  AND order_status = 'CONFIRMED' " + "  AND start_time < ADDTIME(TIME(?), '02:00:00') "
-				+ "  AND finish_time > SUBTIME(TIME(?), '02:00:00')";
-
-		// executeReadQuery supports LocalDate + String, so pass time as "HH:mm:ss"
-		String timeStr = time.toString(); // LocalTime -> "HH:mm" or "HH:mm:ss" (both OK for TIME(...))
-		List<List<Object>> rows = executeReadQuery(sql, orderDate, timeStr, timeStr);
-
-		List<Integer> diners = new ArrayList<>();
-		for (List<Object> row : rows) {
-			if (row == null || row.isEmpty())
-				continue;
-
-			Object v = row.get(0);
-			if (v instanceof Integer) {
-				diners.add((Integer) v);
-			} else if (v instanceof Number) {
-				diners.add(((Number) v).intValue());
-			} else if (v != null) {
-				// last-resort parse, just in case MySQL driver returns String
-				try {
-					diners.add(Integer.parseInt(v.toString()));
-				} catch (NumberFormatException ignore) {
-				}
-			}
-		}
-
-		return diners;
-	}
-
+	
 }
