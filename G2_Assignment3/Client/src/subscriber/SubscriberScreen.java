@@ -5,7 +5,7 @@ import communication.BistroRequest;
 import gui.AcceptTableScreen;
 import gui.CancelReservationScreen;
 import gui.Main;
-import gui.UpdateScreen;
+import gui.UpdateReservationScreen;
 import gui.WaitingListScreen;
 import gui.OrderScreen;
 import javafx.event.ActionEvent;
@@ -92,7 +92,7 @@ public class SubscriberScreen {
 	 */
 	void goToUpdateReservation(ActionEvent event) {
 		try {
-			Main.changeRoot(UpdateScreen.fxmlPath);
+			Main.changeRoot(UpdateReservationScreen.fxmlPath);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

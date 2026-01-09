@@ -7,13 +7,17 @@ import communication.BistroRequest;
 import communication.BistroResponse;
 import communication.BistroResponseStatus;
 import communication.StatusUpdate;
+import employee.employeeMenu;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+import logic.LoggedUser;
 import logic.Status;
+import logic.UserType;
+import subscriber.SubscriberScreen;
 
 /**
  * Controller for the Cancel Reservation screen.
@@ -48,7 +52,7 @@ public class CancelReservationScreen {
         String phone = phoneField.getText().trim();
         String email = emailField.getText().trim();
         
-        if (reservationId.isEmpty() || (phone.isEmpty() && email.isEmpty())) {
+        if (phone.isEmpty() && email.isEmpty()) {
             messageLabel.setText("Please fill in phone or email and reservation number.");
             messageLabel.setStyle("-fx-text-fill: red;");
             return;
@@ -104,12 +108,24 @@ public class CancelReservationScreen {
         /**
      * Navigates the application back to the main menu screen.
      */
-    @FXML
-    void back(ActionEvent event) {
-        try {
-            Main.changeRoot(MainMenuScreen.fxmlPath);
-        } catch (Exception e) {
-            e.printStackTrace();
+	@FXML
+	void back(ActionEvent event) {
+		try {
+			// Use the static method in Main to switch the scene root
+			Main.changeRoot(getBackFxmlPath());
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+    private String getBackFxmlPath() {
+        UserType type = LoggedUser.getType();
+        if (type == UserType.SUBSCRIBER) {
+            return SubscriberScreen.fxmlPath;
         }
+        else if (type == UserType.EMPLOYEE || type == UserType.MANAGER) {
+            return employeeMenu.fxmlPath;
+        }
+        return MainMenuScreen.fxmlPath;
     }
 }

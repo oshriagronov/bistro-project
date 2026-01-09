@@ -12,6 +12,7 @@ import communication.BistroCommand;
 import communication.BistroRequest;
 import communication.BistroResponse;
 import communication.BistroResponseStatus;
+import employee.employeeMenu;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.Scene;
@@ -27,10 +28,13 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+import logic.LoggedUser;
 import logic.Reservation;
+import logic.UserType;
+import subscriber.SubscriberScreen;
 
-public class UpdateScreen {
-	public static final String fxmlPath = "/gui/Update.fxml";
+public class UpdateReservationScreen {
+	public static final String fxmlPath = "/gui/UpdateReservation.fxml";
 	/** Alert object used to display success or failure messages to the user. */
 	Alert alert = new Alert(Alert.AlertType.INFORMATION);
 	
@@ -270,18 +274,24 @@ public class UpdateScreen {
 		}
 }
 
-	/**
-	 * Handles the action when the "Back to MainMenu" button is clicked.
-	 * Navigates the application back to the main menu screen.
-	 * * @param event The ActionEvent triggered by the Back button.
-	 */
 	@FXML
 	void back(ActionEvent event) {
 		try {
 			// Use the static method in Main to switch the scene root
-			Main.changeRoot(MainMenuScreen.fxmlPath);
+			Main.changeRoot(getBackFxmlPath());
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
+
+    private String getBackFxmlPath() {
+        UserType type = LoggedUser.getType();
+        if (type == UserType.SUBSCRIBER) {
+            return SubscriberScreen.fxmlPath;
+        }
+        else if (type == UserType.EMPLOYEE || type == UserType.MANAGER) {
+            return employeeMenu.fxmlPath;
+        }
+        return MainMenuScreen.fxmlPath;
+    }
 }

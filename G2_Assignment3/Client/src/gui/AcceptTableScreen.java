@@ -20,6 +20,7 @@ import javafx.scene.text.Text;
 import logic.LoggedUser;
 import logic.UserType;
 import subscriber.SubscriberScreen;
+import employee.employeeMenu;
 
 /**
  * Controller class for the AcceptTableScreen.fxml view.
@@ -385,10 +386,21 @@ public class AcceptTableScreen {
 	void back(ActionEvent event) {
 		try {
 			// Use the static method in Main to switch the scene root
-			Main.changeRoot(isSubscriber ? SubscriberScreen.fxmlPath : MainMenuScreen.fxmlPath);
+			Main.changeRoot(getBackFxmlPath());
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
+
+    private String getBackFxmlPath() {
+        UserType type = LoggedUser.getType();
+        if (type == UserType.SUBSCRIBER) {
+            return SubscriberScreen.fxmlPath;
+        }
+        else if (type == UserType.EMPLOYEE || type == UserType.MANAGER) {
+            return employeeMenu.fxmlPath;
+        }
+        return MainMenuScreen.fxmlPath;
+    }
 
 }

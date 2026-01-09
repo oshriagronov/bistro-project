@@ -46,10 +46,10 @@ public class MainMenuScreen {
      * * @param event The ActionEvent triggered by the button click.
      */
     @FXML
-    void updateScreen(ActionEvent event) {
+    void updateReservationScreen(ActionEvent event) {
         try {
             // Use the static method in Main to switch the scene root to the Update screen
-            Main.changeRoot(UpdateScreen.fxmlPath);
+            Main.changeRoot(UpdateReservationScreen.fxmlPath);
         } catch (Exception e) {
             // Log error if navigation fails (e.g., FXML file not found)
             e.printStackTrace();
