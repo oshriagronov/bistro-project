@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+
+<Pane prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="gui.LoginMenuScreen">
+
+    <children>
+          <!-- Title -->
+          <Label alignment="CENTER" contentDisplay="CENTER" prefHeight="95.0" prefWidth="600.0" style="-fx-font-size: 35px; -fx-font-weight: bold;" text="Login" textAlignment="JUSTIFY" textFill="#0e4c99" textOverrun="CENTER_ELLIPSIS">
+              <font>
+                  <Font size="24.0" />
+              </font>
+          </Label>
+
+          <!-- Buttons -->
+          <VBox alignment="CENTER" layoutX="50.0" layoutY="94.0" prefHeight="188.0" prefWidth="500.0" spacing="20.0">
+
+              <children>
+                  <Button id="LoginAsCustomerBtn" onAction="#loginAsSubscriber" prefHeight="29.0" prefWidth="129.0" text="Login as Subscriber" />
+
+                  <Button id="LoginAsEmplpyeeBtn" onAction="#loginAsEmployee" prefHeight="29.0" prefWidth="129.0" text="Login as Employee" />
+
+                  <Button id="ContinueAsGuestBtn" onAction="#continueAsGuest" prefHeight="29.0" prefWidth="129.0" text="Continue as Guest" />
+              </children>
+          </VBox>
+    </children>
+</Pane>

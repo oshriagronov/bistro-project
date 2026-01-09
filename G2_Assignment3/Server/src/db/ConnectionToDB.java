@@ -1,0 +1,1117 @@
+package db;
+
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.mindrot.jbcrypt.BCrypt;
+import logic.LoggedUser;
+import communication.AvgStayCounts;
+import communication.StatusCounts;
+import logic.CurrentDinerRow;
+import logic.Reservation;
+import logic.Status;
+import logic.Subscriber;
+import logic.Table;
+import logic.Worker;
+import logic.WorkerType;
+
+/**
+ * Provides database access helpers for reservations, tables, subscribers, and
+ * workers.
+ */
+public class ConnectionToDB {
+	/**
+	 * Safely converts an object into a {@link LocalDate}, supporting both
+	 * {@link LocalDate} and {@link java.sql.Date} types.
+	 *
+	 * @param o the object to convert (may be null)
+	 * @return a LocalDate if conversion is possible, otherwise null
+	 */
+	private static LocalDate toLocalDate(Object o) {
+		if (o == null)
+			return null;
+		if (o instanceof LocalDate)
+			return (LocalDate) o;
+		if (o instanceof java.sql.Date)
+			return ((java.sql.Date) o).toLocalDate();
+		return null;
+	}
+
+	private static Integer toInt(Object o) {
+		if (o == null)
+			return null;
+		if (o instanceof Integer i)
+			return i;
+		if (o instanceof Long l)
+			return Math.toIntExact(l);
+		if (o instanceof Number n)
+			return n.intValue(); // כולל BigDecimal
+		if (o instanceof String s && !s.isBlank())
+			return Integer.parseInt(s.trim());
+		throw new IllegalArgumentException("Cannot convert to Integer: " + o.getClass());
+	}
+
+	private static String toStr(Object o) {
+		return o == null ? null : o.toString();
+	}
+
+	private static Status toStatus(Object o) {
+		String s = toStr(o);
+		if (s == null || s.isBlank())
+			return null; // או Status.PENDING אם יש לך default
+		return Status.valueOf(s.trim().toUpperCase());
+	}
+
+	/**
+	 * Safely converts an object into a {@link LocalTime}, supporting both
+	 * {@link LocalTime} and {@link java.sql.Time} types.
+	 *
+	 * @param o the object to convert (may be null)
+	 * @return a LocalTime if conversion is possible, otherwise null
+	 */
+	private static LocalTime toLocalTime(Object o) {
+		if (o == null)
+			return null;
+		if (o instanceof LocalTime)
+			return (LocalTime) o;
+		if (o instanceof java.sql.Time)
+			return ((java.sql.Time) o).toLocalTime();
+		return null;
+	}
+
+	/**
+	 * Returns the database password currently stored in the connection pool.
+	 *
+	 * @return database password string
+	 */
+	public static String getDbPassword() {
+		return MySQLConnectionPool.getDbPassword();
+	}
+
+	/**
+	 * Updates the database password used by the connection pool.
+	 *
+	 * @param password new database password
+	 */
+	public static void setPassword(String password) {
+		MySQLConnectionPool.setPassword(password);
+	}
+
+	// ** Order related methods **
+	/**
+	 * Updates an existing order by order number (primary key). Fields updated:
+	 * order_date, number_of_guests.
+	 * 
+	 * @param order_number     int type
+	 * @param order_date       LocalDate type, need to use java.sql.Date.valueOf
+	 *                         method to get valid value for mySQL table
+	 * @param number_of_guests int type
+	 * @return number of rows affected (1 = success, 0 = not found)
+	 */
+	public int updateOrder(int order_number, LocalDate order_date, int number_of_guests) {
+		String sql = "UPDATE `reservations` SET order_date = ?, num_of_diners = ? WHERE res_id = ?";
+		return executeWriteQuery(sql, order_date, number_of_guests, order_number);
+	}
+
+	/**
+	 * Inserts a new reservation into the 'reservations' table. Uses a prepared SQL
+	 * statement with placeholders to safely insert all fields.
+	 *
+	 * @param r the Reservation object containing all reservation details
+	 * @return number of affected rows (1 if insert succeeded, 0 if failed)
+	 */
+	public int insertReservation(Reservation r) {
+		String sql = "INSERT INTO reservations (phone, email, sub_id, start_time, finish_time, order_date, order_status, "
+				+ "num_diners, date_of_placing_order) " + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+
+		return executeWriteQuery(sql, r.getPhone_number(), r.getEmail(), r.getSubscriberId(),
+				java.sql.Time.valueOf(r.getStart_time()), java.sql.Time.valueOf(r.getFinish_time()),
+				java.sql.Date.valueOf(r.getOrderDate()), r.getStatus().name(), r.getNumberOfGuests(),
+				java.sql.Date.valueOf(r.getDateOfPlacingOrder()));
+	}
+
+	/**
+	 * Searches for the latest order by phone number and returns the order details.
+	 * 
+	 * @param phone_number phone number to search by
+	 * @return Reservation containing the values returned from the DB, or null if
+	 *         not found
+	 */
+	public Reservation searchOrderByPhoneNumber(String phoneNumber) {
+		String sql = "SELECT res_id, confirmation_code, phone, email, sub_id, start_time, finish_time, "
+				+ "       order_date, order_status, num_diners, date_of_placing_order "
+				+ "FROM reservations WHERE phone = ? ORDER BY order_date DESC LIMIT 1";
+
+		List<List<Object>> rows = executeReadQuery(sql, phoneNumber);
+		if (rows.isEmpty())
+			return null;
+
+		List<Object> row = rows.get(0);
+
+		Integer resId = (Integer) row.get(0);
+		Integer confirmationCode = (Integer) row.get(1);
+		String phone = (String) row.get(2);
+		String email = (String) row.get(3);
+		Integer subId = (Integer) row.get(4);
+
+		LocalTime startTime = toLocalTime(row.get(5));
+		LocalTime finishTime = toLocalTime(row.get(6));
+		LocalDate orderDate = toLocalDate(row.get(7));
+		Status status = Status.valueOf(((String) row.get(8)).trim());
+
+		Integer diners = (Integer) row.get(9);
+		LocalDate placingDate = toLocalDate(row.get(10));
+
+		Reservation r = new Reservation(orderDate, diners != null ? diners : 0,
+				confirmationCode != null ? confirmationCode : 0, subId != null ? subId : 0, placingDate, startTime,
+				finishTime, phone, status, email);
+
+		if (resId != null)
+			r.setOrderNumber(resId);
+		return r;
+	}
+
+	/**
+	 * Searches for all orders by phone number and returns the order details list.
+	 * 
+	 * @param phone_number phone number to search by
+	 * @return list of reservations returned from the DB (empty if none found)
+	 */
+	public List<Reservation> searchOrdersByPhoneNumberList(String phone) {
+		String sql = "SELECT res_id, confirmation_code, phone, email, sub_id, start_time, finish_time, "
+				+ "       order_date, order_status, num_diners, date_of_placing_order "
+				+ "FROM reservations WHERE phone = ? ORDER BY order_date DESC";
+
+		List<List<Object>> rows = executeReadQuery(sql, phone);
+		List<Reservation> list = new ArrayList<>();
+
+		for (List<Object> row : rows) {
+			Integer resId = toInt(row.get(0));
+			Integer confirmationCode = toInt(row.get(1));
+			String phoneNumber = toStr(row.get(2));
+			String email = toStr(row.get(3));
+			Integer subId = toInt(row.get(4));
+
+			LocalTime startTime = toLocalTime(row.get(5));
+			LocalTime finishTime = toLocalTime(row.get(6));
+			LocalDate orderDate = toLocalDate(row.get(7));
+
+			Status status = toStatus(row.get(8));
+			if (status == null)
+				status = Status.CONFIRMED; // או מה שברירת המחדל אצלך
+
+			Integer diners = toInt(row.get(9));
+			LocalDate placingDate = toLocalDate(row.get(10));
+
+			Reservation res = new Reservation(orderDate, diners != null ? diners : 0,
+					confirmationCode != null ? confirmationCode : 0, subId != null ? subId : 0, placingDate, startTime,
+					finishTime, phoneNumber, status, email);
+
+			if (resId != null)
+				res.setOrderNumber(resId);
+			list.add(res);
+		}
+
+		return list;
+	}
+
+	/**
+	 * Searches for an order by order number (primary key) and returns the order
+	 * details.
+	 * 
+	 * @param order_number order number to search by
+	 * @return Reservation containing the values returned from the DB, or null if
+	 *         not found
+	 */
+	public Reservation searchOrderByOrderNumber(int order_number) {
+		String sql = "SELECT res_id, confirmation_code, phone, email, sub_id, start_time, finish_time, "
+				+ "       order_date, order_status, num_diners, date_of_placing_order "
+				+ "FROM reservations WHERE res_id = ?";
+
+		MySQLConnectionPool pool = MySQLConnectionPool.getInstance();
+		PooledConnection pConn = pool.getConnection();
+		if (pConn == null)
+			return null;
+
+		try (PreparedStatement stmt = pConn.getConnection().prepareStatement(sql)) {
+			stmt.setInt(1, order_number);
+
+			try (ResultSet rs = stmt.executeQuery()) {
+				if (rs.next()) {
+					LocalDate orderDate = rs.getObject("order_date", LocalDate.class);
+					LocalDate placingDate = rs.getObject("date_of_placing_order", LocalDate.class);
+
+					LocalTime startTime = rs.getObject("start_time", LocalTime.class);
+					LocalTime finishTime = rs.getObject("finish_time", LocalTime.class);
+
+					int diners = rs.getInt("num_diners");
+					int confirmationCode = rs.getInt("confirmation_code");
+					int subId = rs.getInt("sub_id");
+
+					Status status = Status.valueOf(rs.getString("order_status"));
+					String phone = rs.getString("phone");
+					String email = rs.getString("email");
+
+					Reservation r = new Reservation(orderDate, diners, confirmationCode, subId, placingDate, startTime,
+							finishTime, phone, status, email);
+
+					r.setOrderNumber(rs.getInt("res_id"));
+					return r;
+				}
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} finally {
+			pool.releaseConnection(pConn);
+		}
+
+		return null;
+	}
+
+	/**
+	 * Retrieves a reservation from the database using phone number and confirmation
+	 * code.
+	 *
+	 * @param phone            the phone number associated with the reservation
+	 * @param confirmationCode the confirmation code of the reservation
+	 * @return a Reservation object if found, otherwise null
+	 */
+	public Reservation getOrderByPhoneAndCode(String phone, int confirmationCode) {
+		String sql = "SELECT res_id, confirmation_code, phone, email, sub_id, start_time, finish_time, "
+				+ "       order_date, order_status, num_diners, date_of_placing_order "
+				+ "FROM reservations WHERE phone = ? AND confirmation_code = ?";
+
+		MySQLConnectionPool pool = MySQLConnectionPool.getInstance();
+		PooledConnection pConn = pool.getConnection();
+		if (pConn == null)
+			return null;
+
+		try (PreparedStatement stmt = pConn.getConnection().prepareStatement(sql)) {
+			stmt.setString(1, phone);
+			stmt.setInt(2, confirmationCode);
+
+			try (ResultSet rs = stmt.executeQuery()) {
+				if (rs.next()) {
+					LocalDate orderDate = rs.getObject("order_date", LocalDate.class);
+					LocalDate placingDate = rs.getObject("date_of_placing_order", LocalDate.class);
+
+					LocalTime startTime = rs.getObject("start_time", LocalTime.class);
+					LocalTime finishTime = rs.getObject("finish_time", LocalTime.class);
+
+					int diners = rs.getInt("num_diners");
+					int subId = rs.getInt("sub_id");
+
+					Status status = Status.valueOf(rs.getString("order_status"));
+					String email = rs.getString("email");
+
+					Reservation r = new Reservation(orderDate, diners, confirmationCode, subId, placingDate, startTime,
+							finishTime, phone, status, email);
+
+					r.setOrderNumber(rs.getInt("res_id"));
+					return r;
+				}
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} finally {
+			pool.releaseConnection(pConn);
+		}
+
+		return null;
+	}
+
+	/**
+	 * Retrieves the active order number (reservation ID) associated with a given
+	 * table number.
+	 * 
+	 * @param tableNumber the table number to check
+	 * @return the order number (reservation ID) currently assigned to the table, or
+	 *         0 if not found/empty
+	 */
+	public int getOrderNumberByTableNumber(int tableNumber) {
+		String sql = "SELECT res_id FROM `tablestable` WHERE table_number = ?";
+		int orderNumber = 0;
+		// the two line bellow are needed to use the pool connection
+		MySQLConnectionPool pool = MySQLConnectionPool.getInstance();
+		PooledConnection pConn = null;
+		// get connection from the pull
+		pConn = pool.getConnection();
+		if (pConn == null)
+			return orderNumber;
+		try {
+			PreparedStatement stmt = pConn.getConnection().prepareStatement(sql);
+			stmt.setInt(1, tableNumber);
+			ResultSet rs = stmt.executeQuery();
+			if (rs.next())
+				orderNumber = rs.getInt("res_id");
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} finally {
+			// Crucial: Return connection to the pool here!
+			pool.releaseConnection(pConn);
+		}
+		return orderNumber;
+	}
+
+	/**
+	 * Deletes an order from the DB by order number (primary key)
+	 * 
+	 * @param order_number order number to delete
+	 * @return number of rows affected (1 = success, 0 = not found)
+	 */
+	public int deleteOrderByOrderNumber(int order_number) {
+		String sql = "DELETE FROM `reservations` WHERE res_id = ?";
+		return executeWriteQuery(sql, order_number);
+	}
+
+	/**
+	 * Updates the status for an existing order.
+	 *
+	 * @param order_number order number to update
+	 * @param status       new order status
+	 * @return number of rows affected (1 = success, 0 = not found)
+	 */
+	public int changeOrderStatus(String phone, int order_number, Status status) {
+		String sql = "UPDATE `reservations` SET order_status = ? WHERE phone = ? AND res_id = ?";
+		return executeWriteQuery(sql, status.name(), phone, order_number);
+	}
+
+	// ** Tables related methods **
+	/**
+	 * Loads all tables and their current status from the DB.
+	 *
+	 * @return list of tables in the system (empty if none found)
+	 */
+	public List<Table> loadTables() {
+		String sql = "SELECT table_number, size, res_id FROM `tablestable`";
+		List<Table> tables = new ArrayList<>();
+
+		MySQLConnectionPool pool = MySQLConnectionPool.getInstance();
+		PooledConnection pConn = pool.getConnection();
+		if (pConn == null)
+			return new ArrayList<>();
+
+		try {
+			PreparedStatement stmt = pConn.getConnection().prepareStatement(sql);
+			ResultSet rs = stmt.executeQuery();
+
+			while (rs.next()) {
+				int tableNumber = rs.getInt("table_number");
+				int tableSize = rs.getInt("size"); // maps to table_size in your Java class
+				Integer resId = rs.getObject("res_id", Integer.class); // NULL-safe
+
+				tables.add(new Table(tableNumber, tableSize, resId));
+			}
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} finally {
+			pool.releaseConnection(pConn);
+		}
+
+		return tables;
+	}
+
+	/**
+	 * Searches for an available table that can accommodate the specified number of
+	 * guests.
+	 * 
+	 * @param number_of_guests the minimum number of seats required
+	 * @return the table number of a suitable table, or 0 if no such table is found
+	 */
+	public int searchAvailableTableBySize(int number_of_guests) {
+		String sql = "SELECT table_number, size FROM `tablestable` WHERE res_id IS NULL AND size >= ?";
+		int min = 10;
+		int table_number = 0;
+		// the two line bellow are needed to use the pool connection
+		MySQLConnectionPool pool = MySQLConnectionPool.getInstance();
+		PooledConnection pConn = null;
+		// get connection from the pull
+		pConn = pool.getConnection();
+		if (pConn == null)
+			return table_number; // TODO: numbers of tables start from 1
+		try {
+			PreparedStatement stmt = pConn.getConnection().prepareStatement(sql);
+			stmt.setInt(1, number_of_guests);
+			ResultSet rs = stmt.executeQuery();
+			while (rs.next()) {
+				int tableNumber = rs.getInt("table_number");
+				int tableSize = rs.getInt("size");
+				if (tableSize < min) {
+					table_number = tableNumber;
+				}
+
+			}
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} finally {
+			// Crucial: Return connection to the pool here!
+			pool.releaseConnection(pConn);
+		}
+		return table_number;
+	}
+
+	/**
+	 * Updates the size for a table by table number.
+	 *
+	 * @param table_number table number to update
+	 * @param table_size   new table size
+	 * @return number of rows affected (1 = success, 0 = not found)
+	 */
+	public int changeTableSize(int table_number, int table_size) {
+		String sql = "UPDATE `tablestable` SET size = ? WHERE table_number = ?";
+		return executeWriteQuery(sql, String.valueOf(table_size), table_number);
+	}
+
+	/**
+	 * Updates the reservation ID (res_id) of a table to 0, effectively clearing any
+	 * active reservation for that table.
+	 *
+	 * @param table_number the table number whose reservation ID should be reset
+	 * @return number of rows affected (1 = success, 0 = table not found)
+	 */
+	public int changeTableResId(int table_number) {
+		String sql = "UPDATE `tablestable` SET res_id=? WHERE table_number = ?";
+		return executeWriteQuery(sql, String.valueOf(0), table_number);
+	}
+
+	/**
+	 * Adds a new table to the tables table.
+	 *
+	 * @param tableSize number of seats
+	 * @return number of rows affected (1 = success, 0 = failure)
+	 */
+	public int addTable(int tableSize) {
+		String sql = "INSERT INTO tablestable (size) VALUES (?)";
+		return executeWriteQuery(sql, String.valueOf(tableSize));
+	}
+
+	/**
+	 * Deletes a table from the DB by table number.
+	 *
+	 * @param tableNumber the table number (primary key)
+	 * @return number of rows affected (1 = success, 0 = not found)
+	 */
+	public int deleteTable(int tableNumber) {
+		String sql = "DELETE FROM tablestable WHERE table_number = ?";
+		return executeWriteQuery(sql, tableNumber);
+	}
+
+	// ** Subscriber related methods **
+
+	/**
+	 * Adds a new subscriber to the DB and updates the subscriber ID in the object.
+	 *
+	 * @param subscriber subscriber details to insert
+	 * @throws SQLException when the insert fails or no pooled connection is
+	 *                      available
+	 */
+	public void addSubscriber(Subscriber subscriber) throws SQLException {
+
+		String sql = """
+				INSERT INTO subscriber
+				(username, first_name, last_name, email, phone, password_hash)
+				VALUES (?, ?, ?, ?, ?, ?)
+				""";
+		executeWriteQuery(sql, subscriber.getUsername(), subscriber.getFirstName(), subscriber.getLastName(),
+				subscriber.getEmail(), subscriber.getPhone(), subscriber.getPasswordHash());
+	}
+
+	/**
+	 * Checks subscriber credentials against the DB.
+	 *
+	 * @param subscriberId subscriber ID
+	 * @param rawPassword  subscriber raw password
+	 * @return list of reservations if credentials match, null otherwise
+	 */
+	public boolean subscriberLogin(int subscriberId, String rawPassword) {
+		String sql = "SELECT password_hash FROM subscriber WHERE sub_id = ?";
+		List<List<Object>> rows = executeReadQuery(sql, subscriberId);
+		if (rows.isEmpty())
+			return false;
+		List<Object> row = rows.get(0);
+		if (row.isEmpty())
+			return false;
+		Object hashObj = row.get(0);
+		if (!(hashObj instanceof String))
+			return false;
+		return BCrypt.checkpw(rawPassword, (String) hashObj);
+	}
+
+	public List<Reservation> getSubscriberHistory(int subscriberId) {
+		String sql = "SELECT confirmation_code, phone, start_time, finish_time, order_date, order_status, "
+				+ "num_diners, date_of_placing_order, email " + "FROM reservations WHERE sub_id = ?";
+		List<List<Object>> rows = executeReadQuery(sql, subscriberId);
+		if (rows.isEmpty())
+			return null;
+		List<Reservation> reservations = new ArrayList<>();
+		for (List<Object> row : rows) {
+			if (row.size() < 9)
+				continue;
+
+			Object confirmationObj = row.get(0);
+			Object phoneObj = row.get(1);
+			Object startObj = row.get(2);
+			Object finishObj = row.get(3);
+			Object orderDateObj = row.get(4);
+			Object statusObj = row.get(5);
+			Object numDinersObj = row.get(6);
+			Object placingDateObj = row.get(7);
+			Object emailObj = row.get(8);
+
+			if (!(confirmationObj instanceof Integer) || !(phoneObj instanceof String)
+					|| !(startObj instanceof java.sql.Time) || !(finishObj instanceof java.sql.Time)
+					|| !(orderDateObj instanceof java.sql.Date) || !(numDinersObj instanceof Integer)
+					|| !(placingDateObj instanceof java.sql.Date))
+				continue;
+
+			Status status = null;
+			if (statusObj instanceof String) {
+				String text = ((String) statusObj).trim();
+				if (!text.isEmpty()) {
+					try {
+						status = Status.valueOf(text);
+					} catch (IllegalArgumentException e) {
+						status = null;
+					}
+				}
+			}
+			if (status == null)
+				continue;
+
+			Integer confirmationCode = (Integer) confirmationObj;
+			String phoneNumber = (String) phoneObj;
+			LocalTime startTime = ((java.sql.Time) startObj).toLocalTime();
+			LocalTime finishTime = ((java.sql.Time) finishObj).toLocalTime();
+			LocalDate orderDate = ((java.sql.Date) orderDateObj).toLocalDate();
+			Integer numDiners = (Integer) numDinersObj;
+			LocalDate placingDate = ((java.sql.Date) placingDateObj).toLocalDate();
+			String email = (emailObj instanceof String) ? (String) emailObj : null;
+
+			reservations.add(new Reservation(orderDate, numDiners, confirmationCode, subscriberId, placingDate,
+					startTime, finishTime, phoneNumber, status, email));
+		}
+		return reservations;
+	}
+
+	/**
+	 * Retrieves a Subscriber object from the database using the subscriber ID. This
+	 * method executes a SQL query to fetch all subscriber fields.
+	 *
+	 * @param sub_id The ID of the subscriber to search for.
+	 * @return A fully populated Subscriber object if found, otherwise null.
+	 */
+	public Subscriber SearchSubscriberById(int sub_id) {
+		// SQL query to retrieve all subscriber fields
+		String sql = "SELECT sub_id, username, first_name, last_name, email, phone FROM subscriber WHERE sub_id = ?";
+		// Execute the query
+		List<List<Object>> rows = executeReadQuery(sql, sub_id);
+		// If no results found, return null
+		if (rows.isEmpty())
+			return null;
+		List<Object> row = rows.get(0);
+		if (row.isEmpty())
+			return null;
+		// Extract fields from the row
+		Integer subscriberId = (Integer) row.get(0);
+		String username = (String) row.get(1);
+		String firstName = (String) row.get(2);
+		String lastName = (String) row.get(3);
+		String email = (String) row.get(4);
+		String phone = (String) row.get(5);
+		String passwordHash = "";
+		// Create and return a Subscriber object
+		return new Subscriber(subscriberId, username, firstName, lastName, email, phone, passwordHash);
+	}
+
+	/**
+	 * Retrieves a worker object from the database using the worker ID. This method
+	 * executes a SQL query to fetch all worker fields.
+	 *
+	 * @param worker_id The ID of the worker to search for.
+	 * @return A fully populated Worker object if found, otherwise null.
+	 */
+	public Worker SearchWorkerById(int worker_id) {
+
+		// SQL query to retrieve all worker fields
+		String sql = "SELECT * FROM workers WHERE worker_id = ?";
+
+		// Execute the query
+		List<List<Object>> rows = executeReadQuery(sql, worker_id);
+
+		// If no results found, return null
+		if (rows.isEmpty())
+			return null;
+
+		List<Object> row = rows.get(0);
+
+		if (row.isEmpty())
+			return null;
+
+		// Extract fields from the row
+		Integer workerid = (Integer) row.get(0);
+		String username = (String) row.get(1);
+		// String passwordHash = (String) row.get(2);
+		Enum<WorkerType> workerType = WorkerType.valueOf(((String) row.get(3)).trim().toUpperCase());
+
+		// return new Worker(workerid, username, passwordHash, (WorkerType) workerType);
+		return new Worker(workerid, username, (WorkerType) workerType);
+	}
+
+	/**
+	 * Authenticates a worker by username and password.
+	 *
+	 * @param username    worker username
+	 * @param rawPassword worker raw password
+	 * @return a Worker on success, or null if authentication fails
+	 */
+	public Worker workerLogin(String username, String rawPassword) {
+		String sql = """
+				    SELECT worker_id, username, password_hash, worker_type
+				    FROM workers
+				    WHERE username = ?
+				""";
+
+		MySQLConnectionPool pool = MySQLConnectionPool.getInstance();
+		PooledConnection pConn = pool.getConnection();
+		if (pConn == null)
+			return null;
+
+		try {
+			PreparedStatement stmt = pConn.getConnection().prepareStatement(sql);
+			stmt.setString(1, username);
+
+			ResultSet rs = stmt.executeQuery();
+			if (!rs.next())
+				return null;
+
+			String storedHash = rs.getString("password_hash");
+
+			// optional sanity prints while debugging:
+			// System.out.println("stored len=" + (storedHash == null ? -1 :
+			// storedHash.length()));
+			// System.out.println("check=" + BCrypt.checkpw(rawPassword, storedHash));
+
+			if (!BCrypt.checkpw(rawPassword, storedHash))
+				return null;
+
+			return new Worker(rs.getInt("worker_id"), rs.getString("username"),
+					WorkerType.valueOf(rs.getString("worker_type").toUpperCase()));
+
+		} catch (SQLException e) {
+			System.out.println("SQLException: workerLogin failed.");
+			e.printStackTrace();
+			return null;
+		} finally {
+			pool.releaseConnection(pConn);
+		}
+	}
+
+	/**
+	 * Loads the current diners per table, including reservation details when
+	 * present.
+	 *
+	 * @return list of current diner rows (empty if none found)
+	 */
+	public List<CurrentDinerRow> loadCurrentDiners() {
+		String sql = """
+				    SELECT
+				        t.table_number,
+				        r.phone,
+				        r.email,
+				        r.sub_id,
+				        r.num_diners,
+				        r.res_id
+				    FROM tablestable t
+				    LEFT JOIN reservations r
+				        ON t.res_id = r.res_id
+				        ORDER BY t.table_number ASC;
+				""";
+
+		List<CurrentDinerRow> rows = new ArrayList<>();
+
+		MySQLConnectionPool pool = MySQLConnectionPool.getInstance();
+		PooledConnection pConn = pool.getConnection();
+		if (pConn == null)
+			return rows;
+
+		try {
+			PreparedStatement stmt = pConn.getConnection().prepareStatement(sql);
+			ResultSet rs = stmt.executeQuery();
+
+			while (rs.next()) {
+				rows.add(new CurrentDinerRow(rs.getInt("table_number"), rs.getString("phone"), rs.getString("email"),
+						rs.getObject("sub_id", Integer.class), rs.getObject("num_diners", Integer.class),
+						rs.getObject("res_id", Integer.class)));
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} finally {
+			pool.releaseConnection(pConn);
+		}
+
+		return rows;
+	}
+
+	/**
+	 * Fetches the most recent confirmation code and its start time for today's
+	 * confirmed reservation tied to the given phone, within the last 15 minutes.
+	 *
+	 * @param phone phone number to search by.
+	 * @return list with confirmation code and start time, or null if none found.
+	 */
+	public ArrayList<String> getForgotConfirmationCode(String phone) {
+		String sql = "SELECT confirmation_code, start_time FROM reservations WHERE phone = ? AND order_date = CURDATE() AND order_status = 'CONFIRMED' AND start_time >= DATE_SUB(CURTIME(), INTERVAL 15 MINUTE) ORDER BY start_time ASC LIMIT 1";
+		List<List<Object>> rows = executeReadQuery(sql, phone);
+		if (rows.isEmpty())
+			return null;
+		List<Object> row = rows.get(0);
+		Integer code = row.get(0) instanceof Integer ? (Integer) row.get(0) : null;
+		String startTime = null;
+		Object timeObj = row.get(1);
+		if (timeObj instanceof java.sql.Time)
+			startTime = ((java.sql.Time) timeObj).toLocalTime().toString();
+		else if (timeObj instanceof java.time.LocalTime)
+			startTime = ((java.time.LocalTime) timeObj).toString();
+		else if (timeObj instanceof String)
+			startTime = (String) timeObj;
+		if (code == null || startTime == null)
+			return null;
+		ArrayList<String> result = new ArrayList<>(2);
+		result.add(String.valueOf(code));
+		result.add(startTime);
+		return result;
+	}
+
+	// Notification service related methods
+	// ************************************************
+
+	/**
+	 * Retrieves upcoming confirmed reservations within the next two hours for
+	 * reminders.
+	 *
+	 * @return list of rows as strings (res_id, phone, email, start_time,
+	 *         confirmation_code), or null if none found
+	 */
+	public List<List<String>> getReservationToSendReminder() {
+		String sql = """
+				    SELECT res_id, phone, email, start_time, confirmation_code
+				    FROM reservations
+				    WHERE order_status = 'CONFIRMED'
+				      AND TIMESTAMP(order_date, start_time) >= NOW()
+				      AND TIMESTAMP(order_date, start_time) <= TIMESTAMPADD(MINUTE, 120, NOW())
+				""";
+		List<List<Object>> rows = executeReadQuery(sql);
+		if (rows.isEmpty())
+			return null;
+		List<List<String>> out = new ArrayList<>(rows.size());
+		for (List<Object> row : rows) {
+			List<String> outRow = new ArrayList<>(row.size());
+			for (Object cell : row) {
+				outRow.add(cell == null ? null : cell.toString());
+			}
+			out.add(outRow);
+		}
+		return out;
+	}
+
+	/**
+	 * Retrieves confirmed reservations that have finished and are past due for
+	 * payment reminders.
+	 *
+	 * @return list of rows as strings (res_id, phone, email), or null if none found
+	 */
+	public List<List<String>> getReservationToSendPaymentReminder() {
+		String sql = """
+				    SELECT res_id, phone, email
+				    FROM reservations
+				    WHERE order_status = 'CONFIRMED'
+				      AND finish_time IS NOT NULL
+				      AND TIMESTAMP(order_date, finish_time) < NOW()
+				""";
+		List<List<Object>> rows = executeReadQuery(sql);
+		if (rows.isEmpty())
+			return null;
+		List<List<String>> out = new ArrayList<>(rows.size());
+		for (List<Object> row : rows) {
+			List<String> outRow = new ArrayList<>(row.size());
+			for (Object cell : row) {
+				outRow.add(cell == null ? null : cell.toString());
+			}
+			out.add(outRow);
+		}
+		return out;
+	}
+
+	public LocalTime[] getOpeningHours(LocalDate date) {
+
+		// 1. special days
+		String sqlSpecial = "SELECT opening_time, closing_time FROM specialdates WHERE date = ?";
+		List<List<Object>> rows = executeReadQuery(sqlSpecial, date);
+		if (!rows.isEmpty()) {
+			return extractTimes(rows.get(0));
+		}
+
+		// 2. regular days
+		String sqlRegular = "SELECT opening_time, closing_time FROM regulartimes WHERE day = ?";
+
+		String dayName = date.getDayOfWeek().name();
+		String dbDay = dayName.substring(0, 1) + dayName.substring(1).toLowerCase();
+
+		rows = executeReadQuery(sqlRegular, dbDay);
+
+		if (!rows.isEmpty()) {
+			return extractTimes(rows.get(0));
+		}
+
+		return null;
+	}
+
+	private LocalTime[] extractTimes(List<Object> row) {
+		LocalTime start = toLocalTime(row.get(0));
+		LocalTime end = toLocalTime(row.get(1));
+		return new LocalTime[] { start, end };
+	}
+
+	/**
+	 * Executes a write query with positional parameters.
+	 *
+	 * @param sql    SQL string with placeholders
+	 * @param params parameters to bind in order
+	 * @return number of rows affected
+	 */
+	private int executeWriteQuery(String sql, Object... params) {
+		MySQLConnectionPool pool = MySQLConnectionPool.getInstance();
+		PooledConnection pConn = null;
+
+		pConn = pool.getConnection();
+		if (pConn == null)
+			return 0;
+
+		try {
+			// Disable auto-commit so we control the transaction
+			pConn.getConnection().setAutoCommit(false);
+
+			PreparedStatement stmt = pConn.getConnection().prepareStatement(sql);
+
+			for (int i = 0; i < params.length; i++) {
+				Object p = params[i];
+				int idx = i + 1;
+
+				if (p == null) {
+					stmt.setObject(idx, null);
+				} else if (p instanceof Integer) {
+					stmt.setInt(idx, (Integer) p);
+				} else if (p instanceof String) {
+					stmt.setString(idx, (String) p);
+				} else if (p instanceof LocalDate) {
+					stmt.setDate(idx, java.sql.Date.valueOf((LocalDate) p));
+				} else if (p instanceof java.sql.Date) {
+					stmt.setDate(idx, (java.sql.Date) p);
+				} else if (p instanceof java.sql.Time) {
+					stmt.setTime(idx, (java.sql.Time) p);
+				} else if (p instanceof LocalTime) {
+					stmt.setTime(idx, java.sql.Time.valueOf((LocalTime) p));
+				} else {
+					throw new SQLException("Unsupported parameter type");
+				}
+			}
+
+			int result = stmt.executeUpdate();
+
+			// IMPORTANT: commit the transaction
+			pConn.getConnection().commit();
+
+			return result;
+
+		} catch (SQLException e) {
+			System.out.println("SQLException: executeWriteQuery failed.");
+
+			try {
+				// Roll back changes if something went wrong
+				pConn.getConnection().rollback();
+			} catch (SQLException ex) {
+				System.out.println("Rollback failed.");
+			}
+
+		} finally {
+			// Always return the connection to the pool
+			pool.releaseConnection(pConn);
+		}
+
+		return 0;
+	}
+
+	/**
+	 * Executes a read-only SQL query and returns the results as a list of rows.
+	 * Each row is represented as a List<Object> in column. rs.getObject(c) is used
+	 * for all columns, so callers are responsible for casting each value to the
+	 * expected type. Supported parameter types: Integer, String, LocalDate. Example
+	 * usage: String sql = "SELECT res_id, phone FROM reservations WHERE phone = ?";
+	 * List<List<Object>> rows = executeReadQuery(sql, "0521234567"); for
+	 * (List<Object> row : rows) { int resId = (Integer) row.get(0); String phone =
+	 * (String) row.get(1); } Note: add safety checks when you casting!
+	 * 
+	 * @param sql    SQL query with positional {@code ?} parameters
+	 * @param params parameters to bind in order
+	 * @return list of rows; empty list when no results or on failure
+	 */
+	public List<List<Object>> executeReadQuery(String sql, Object... params) {
+		MySQLConnectionPool pool = MySQLConnectionPool.getInstance();
+		PooledConnection pConn = pool.getConnection();
+		if (pConn == null)
+			return new ArrayList<>();
+		List<List<Object>> rows = new ArrayList<>();
+		try (PreparedStatement stmt = pConn.getConnection().prepareStatement(sql)) {
+			for (int i = 0; i < params.length; i++) {
+				Object p = params[i];
+				int idx = i + 1;
+				if (p instanceof Integer)
+					stmt.setInt(idx, (Integer) p);
+				else if (p instanceof String)
+					stmt.setString(idx, (String) p);
+				else if (p instanceof LocalDate)
+					stmt.setDate(idx, java.sql.Date.valueOf((LocalDate) p));
+				else
+					throw new SQLException("Unsupported param type: " + p.getClass());
+			}
+
+			ResultSet rs = stmt.executeQuery();
+			int colCount = rs.getMetaData().getColumnCount();
+
+			while (rs.next()) {
+				List<Object> row = new ArrayList<>(colCount);
+				for (int c = 1; c <= colCount; c++) {
+					row.add(rs.getObject(c));
+				}
+				rows.add(row);
+			}
+		} catch (SQLException e) {
+			System.out.println("SQLException: executeReadQuery failed.");
+			e.printStackTrace();
+			return new ArrayList<>();
+		} finally {
+			pool.releaseConnection(pConn);
+		}
+		return rows;
+	}
+
+	public List<StatusCounts> getMonthlySlotStats(int year) {
+		String sql = "SELECT " + "  MONTH(order_date) AS mon, "
+				+ "  SUM(CASE WHEN order_status IN ('CONFIRMED','COMPLETED') "
+				+ "           AND MOD(MINUTE(start_time), 30) = 0 THEN 1 ELSE 0 END) AS on_time, "
+				+ "  SUM(CASE WHEN order_status IN ('CONFIRMED','COMPLETED') "
+				+ "           AND MOD(MINUTE(start_time), 30) <> 0 THEN 1 ELSE 0 END) AS late, "
+				+ "  SUM(CASE WHEN order_status = 'CANCELLED' "
+				+ "           AND MOD(MINUTE(start_time), 30) > 15 THEN 1 ELSE 0 END) AS cancelled "
+				+ "FROM reservations " + "WHERE YEAR(order_date) = ? " + "GROUP BY MONTH(order_date) "
+				+ "ORDER BY MONTH(order_date)";
+
+		List<StatusCounts> out = new ArrayList<>();
+
+		MySQLConnectionPool pool = MySQLConnectionPool.getInstance();
+		PooledConnection pConn = pool.getConnection();
+		if (pConn == null)
+			return out;
+
+		try (PreparedStatement stmt = pConn.getConnection().prepareStatement(sql)) {
+			stmt.setInt(1, year);
+
+			try (ResultSet rs = stmt.executeQuery()) {
+				while (rs.next()) {
+					out.add(new StatusCounts(year, rs.getInt("mon"), rs.getInt("on_time"), rs.getInt("late"),
+							rs.getInt("cancelled")));
+				}
+			}
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} finally {
+			pool.releaseConnection(pConn);
+		}
+
+		return out;
+	}
+
+	public List<AvgStayCounts> getMonthlyAverageStay(int year) {
+		String sql = "SELECT " + "  MONTH(order_date) AS mon,   AVG(TIMESTAMPDIFF( " + "    MINUTE, "
+				+ "    TIMESTAMP(order_date, start_time), TIMESTAMP(order_date, finish_time) "
+				+ "  )) AS avg_stay_minutes FROM reservations WHERE YEAR(order_date) = ? "
+				+ "  AND order_status = 'COMPLETED' AND start_time IS NOT NULL "
+				+ "  AND finish_time IS NOT NULL GROUP BY MONTH(order_date) " + "ORDER BY MONTH(order_date)";
+
+		List<AvgStayCounts> out = new ArrayList<>();
+
+		MySQLConnectionPool pool = MySQLConnectionPool.getInstance();
+		PooledConnection pConn = pool.getConnection();
+		if (pConn == null)
+			return out;
+
+		try (PreparedStatement stmt = pConn.getConnection().prepareStatement(sql)) {
+			stmt.setInt(1, year);
+
+			try (ResultSet rs = stmt.executeQuery()) {
+				while (rs.next()) {
+					out.add(new AvgStayCounts(year, rs.getInt("mon"), rs.getDouble("avg_stay_minutes")));
+				}
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} finally {
+			pool.releaseConnection(pConn);
+		}
+
+		return out;
+	}
+
+	/**
+	 * Returns a list of num_diners for all CONFIRMED reservations on the given date
+	 * that intersect the window [time-2h, time+2h].
+	 *
+	 * Window logic: existing.start_time < (time + 2h) AND existing.finish_time >
+	 * (time - 2h)
+	 *
+	 * @param orderDate the date to check (reservations.order_date)
+	 * @param time      the reference time (HH:mm or HH:mm:ss)
+	 * @return list of diners counts (num_diners) for matching reservations (empty
+	 *         if none)
+	 */
+	public List<Integer> getNumDinersInTwoHoursWindow(LocalDate orderDate, LocalTime time) {
+
+		String sql = "SELECT num_diners " + "FROM reservations " + "WHERE order_date = ? "
+				+ "  AND order_status = 'CONFIRMED' " + "  AND start_time < ADDTIME(TIME(?), '02:00:00') "
+				+ "  AND finish_time > SUBTIME(TIME(?), '02:00:00')";
+
+		// executeReadQuery supports LocalDate + String, so pass time as "HH:mm:ss"
+		String timeStr = time.toString(); // LocalTime -> "HH:mm" or "HH:mm:ss" (both OK for TIME(...))
+		List<List<Object>> rows = executeReadQuery(sql, orderDate, timeStr, timeStr);
+
+		List<Integer> diners = new ArrayList<>();
+		for (List<Object> row : rows) {
+			if (row == null || row.isEmpty())
+				continue;
+
+			Object v = row.get(0);
+			if (v instanceof Integer) {
+				diners.add((Integer) v);
+			} else if (v instanceof Number) {
+				diners.add(((Number) v).intValue());
+			} else if (v != null) {
+				// last-resort parse, just in case MySQL driver returns String
+				try {
+					diners.add(Integer.parseInt(v.toString()));
+				} catch (NumberFormatException ignore) {
+				}
+			}
+		}
+
+		return diners;
+	}
+
+}
