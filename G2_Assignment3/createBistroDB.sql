@@ -103,7 +103,12 @@ CREATE TABLE `subscriber` (
 */
 LOCK TABLES `subscriber` WRITE;
 /*!40000 ALTER TABLE `subscriber` DISABLE KEYS */;
-INSERT INTO `subscriber` VALUES (1,'tal123','Tal','Levi','tal@mail.com','0501234567','$2a$10$talhash'),(2,'noam77','Noam','Cohen','noam@mail.com','0529876543','$2a$10$noamhash'),(3,'dana_k','Dana','Katz','dana@mail.com','0541112233','$2a$10$danahash'),(4,'amir90','Amir','Ben-David','amir@mail.com','0532223344','$2a$10$amirhash'),('5', 'test', 'test', 'test', 'test@mail.com', '0526948432', '$2a$10$zGVDSeVGYOhcShbBB9ZwF.73fM6B3yIR6xkm3atXzy69X0RHYDWMy');
+INSERT INTO `subscriber` VALUES 
+(1,'tal123','Tal','Levi','tal@mail.com','0501234567','$2a$10$talhash'),
+(2,'noam77','Noam','Cohen','noam@mail.com','0529876543','$2a$10$noamhash'),
+(3,'dana_k','Dana','Katz','dana@mail.com','0541112233','$2a$10$danahash'),
+(4,'amir90','Amir','Ben-David','amir@mail.com','0532223344','$2a$10$amirhash'),
+('5', 'test', 'test', 'test', 'test@mail.com', '0526948432', '$2a$10$zGVDSeVGYOhcShbBB9ZwF.73fM6B3yIR6xkm3atXzy69X0RHYDWMy');
 /*!40000 ALTER TABLE `subscriber` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -130,7 +135,13 @@ CREATE TABLE `tablestable` (
 
 LOCK TABLES `tablestable` WRITE;
 /*!40000 ALTER TABLE `tablestable` DISABLE KEYS */;
-INSERT INTO `tablestable` VALUES (1,'2',NULL),(2,'4',NULL),(3,'6',NULL),(4,'8',NULL),(5,'10',NULL),(6,'6',NULL);
+INSERT INTO `tablestable` VALUES 
+(1,'2',NULL),
+(2,'4',NULL),
+(3,'6',NULL),
+(4,'8',NULL),
+(5,'10',NULL),
+(6,'6',NULL);
 /*!40000 ALTER TABLE `tablestable` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -162,8 +173,10 @@ INSERT INTO `workers` VALUES
 ('12345', 'test', '$2a$10$zGVDSeVGYOhcShbBB9ZwF.73fM6B3yIR6xkm3atXzy69X0RHYDWMy', 'employee'),
  (15357,'lior22','$2a$10$liorhash','manager'),
  (74839,'shira7','$2a$10$shirahash','employee'),
- (86096,'yael99','$2a$10$yaelhash','employee'),(90865,'omer_x','$2a$10$omerhash','employee'),
- (90866, 'talmetz100', '$2a$10$AkIaIxSA67DBz3KWKzFBWONifu9eYOXsXLpaeGSx7gUilCX3CE7jC', 'manager');
+ (86096,'yael99','$2a$10$yaelhash','employee'),
+ (90865,'omer_x','$2a$10$omerhash','employee'),
+ (90866, 'talmetz100', '$2a$10$AkIaIxSA67DBz3KWKzFBWONifu9eYOXsXLpaeGSx7gUilCX3CE7jC', 'manager'),
+ (54321, 'worker', '12345', 'employee');
 /*!40000 ALTER TABLE `workers` ENABLE KEYS */;
 UNLOCK TABLES;
 

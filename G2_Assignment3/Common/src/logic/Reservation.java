@@ -19,7 +19,7 @@ public class Reservation implements Serializable {
 	private LocalTime start_time;
 	private LocalTime finish_time;
 	private String phone_number;
-	private Status status = Status.PENDING;
+	private Status status = Status.CONFIRMED;
 	private String email;
 
 	public Reservation(LocalDate order_date, int number_of_guests, int subscriber_id,
@@ -34,6 +34,7 @@ public class Reservation implements Serializable {
 		this.email=email;
 	}
 
+	//TODO: check if this constructor is needed
 	public Reservation(LocalDate order_date, int number_of_guests, int confirmation_code, int subscriber_id,
 			LocalDate date_of_placing_order, LocalTime start_time, LocalTime finish_time, String phone_number,
 			Status status, String email) {

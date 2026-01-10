@@ -9,6 +9,10 @@
 	</classpathentry>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="lib" path="mysql-connector-j-9.5.0.jar"/>
+<<<<<<< HEAD
 	<classpathentry kind="lib" path="C:/Users/טל מצגר/Desktop/bistro-project-order-screen-branch/G2_Assignment3/jbcrypt-0.4.jar"/>
+=======
+	<classpathentry kind="lib" path="C:/Users/liraz/Documents/bistro-project/G2_Assignment3/jbcrypt-0.4.jar"/>
+>>>>>>> waitingList
 	<classpathentry kind="output" path="bin"/>
 </classpath>

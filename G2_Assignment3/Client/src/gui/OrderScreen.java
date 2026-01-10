@@ -130,14 +130,15 @@ public class OrderScreen {
 	 */
 	@FXML
 	public void initialize() {
-		if (LoggedUser.getType() == UserType.SUBSCRIBER) {
-			setupSubscriber();
-		} else if (LoggedUser.getType() == UserType.EMPLOYEE || LoggedUser.getType() == UserType.MANAGER) {
-			setupWorkerView();
-		} else {
-			setupGuestView();
-		}
-
+		 if (LoggedUser.getType()==UserType.SUBSCRIBER) {
+        	this.sub = ScreenSetup.setupSubscriber(nonSubVbox, workerVbox, subHBOX);
+        }
+        else if (LoggedUser.getType()==UserType.EMPLOYEE) {
+        	this.worker = ScreenSetup.setupWorkerView(nonSubVbox, workerVbox, subHBOX);
+        }
+        else {
+            ScreenSetup.setupGuestView(nonSubVbox, workerVbox, subHBOX);
+        }
 		subHBOX.setVisible(false);
 
 		orderDate.setDayCellFactory(d -> new DateCell() {
