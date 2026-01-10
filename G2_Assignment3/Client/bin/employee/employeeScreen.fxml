@@ -9,9 +9,9 @@
 
 <Pane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="employee.employeeMenu">
    <children>
-      <VBox layoutX="215.0" layoutY="77.0" prefHeight="235.0" prefWidth="200.0">
+      <VBox layoutX="215.0" layoutY="77.0" prefHeight="281.0" prefWidth="200.0">
          <children>
-            <Button fx:id="CostumerBtn" mnemonicParsing="false" onAction="#goToCostumerManu" prefHeight="40.0" prefWidth="170.0" text="Costumer actions">
+            <Button fx:id="CostumerBtn" mnemonicParsing="false" onAction="#goToCostumerManu" prefHeight="40.0" prefWidth="170.0" text="Customer actions">
                <VBox.margin>
                   <Insets bottom="10.0" />
                </VBox.margin>
@@ -26,11 +26,6 @@
                   <Insets bottom="10.0" />
                </VBox.margin>
             </Button>
-            <Button fx:id="scheduleBtn" mnemonicParsing="false" onAction="#manageSchedule" prefHeight="40.0" prefWidth="170.0" text="Manage schedule">
-               <VBox.margin>
-                  <Insets bottom="10.0" />
-               </VBox.margin>
-            </Button>
             <Button fx:id="dinersBtn" mnemonicParsing="false" onAction="#watchDiners" prefHeight="40.0" prefWidth="170.0" text="Current diners">
                <VBox.margin>
                   <Insets bottom="10.0" />
@@ -41,12 +36,17 @@
                   <Insets bottom="10.0" />
                </VBox.margin>
             </Button>
+            <Button fx:id="scheduleBtn" mnemonicParsing="false" onAction="#manageSchedule" prefHeight="40.0" prefWidth="170.0" text="Manage schedule">
+               <VBox.margin>
+                  <Insets bottom="10.0" />
+               </VBox.margin>
+            </Button>
             <Button fx:id="reportsBTN" mnemonicParsing="false" onAction="#watchReports" prefHeight="40.0" prefWidth="170.0" text="Watch reports">
                <VBox.margin>
                   <Insets bottom="10.0" />
                </VBox.margin>
             </Button>
-            <Button fx:id="backBtn" mnemonicParsing="false" onAction="#backToLoginMenu" prefHeight="25.0" prefWidth="169.0" text="Log out" />
+            <Button fx:id="backBtn" mnemonicParsing="false" onAction="#backToLoginMenu" prefHeight="40.0" prefWidth="170.0" text="Log out" />
          </children>
       </VBox>
       <Text fill="#0838bc" layoutX="215.0" layoutY="44.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Employee Menu">

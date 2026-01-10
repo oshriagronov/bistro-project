@@ -6,9 +6,12 @@
  */
 package gui;
 
+import employee.employeeMenu;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
+import logic.LoggedUser;
+import logic.UserType;
 
 public class MainMenuScreen {
     public static final String fxmlPath = "/gui/MainMenu.fxml";
@@ -118,6 +121,9 @@ public class MainMenuScreen {
     @FXML
     void backToLogin(ActionEvent event) {
         try {
+        	if(LoggedUser.getType()==UserType.MANAGER||LoggedUser.getType()==UserType.EMPLOYEE)
+        		Main.changeRoot(employeeMenu.fxmlPath);
+        	else
             Main.changeRoot(LoginMenuScreen.fxmlPath);
         } catch (Exception e) {
             e.printStackTrace();

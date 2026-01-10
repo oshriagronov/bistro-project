@@ -6,6 +6,8 @@ import gui.MainMenuScreen;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
+import logic.LoggedUser;
+import logic.UserType;
 
 public class employeeMenu {
 	public static final String fxmlPath = "/employee/employeeScreen.fxml";
@@ -32,10 +34,21 @@ public class employeeMenu {
 
 	@FXML
 	private Button CostumerBtn;
+	
+	@FXML
+	public void initialize() {
+		if(LoggedUser.getType()== UserType.EMPLOYEE)
+		{
+			reportsBTN.setManaged(false);
+			scheduleBtn.setManaged(false);
+		}
+	}
 
 	@FXML
 	void backToLoginMenu(ActionEvent event) {
 		try {
+			LoggedUser.setId(0);
+			LoggedUser.setGuest();
 			Main.changeRoot(LoginMenuScreen.fxmlPath);
 		} catch (Exception e) {
 			e.printStackTrace();

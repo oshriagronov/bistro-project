@@ -195,26 +195,28 @@ public class ConnectionToDB {
 	 * @param order_number reservation id to update
 	 * @return number of rows affected
 	 */
-	public int updateReservationTimesAfterAcceptation(int order_number){
+	public int updateReservationTimesAfterAcceptation(int order_number) {
 		String sql = "UPDATE `reservations` SET start_time = CURTIME(), "
 				+ "finish_time = ADDTIME(CURTIME(), '02:00:00'), " + "order_status = 'ACCEPTED' WHERE res_id = ?";
 		return executeWriteQuery(sql, order_number);
 	}
 
-		/**
+	/**
 	 * Sets the reservation start time to the current time and the finish time to
 	 * two hours after that for the given reservation id.
 	 *
 	 * @param order_number reservation id to update
 	 * @return number of rows affected
 	 */
-	public int updateReservationTimesAfterCompleting(int order_number){
+	public int updateReservationTimesAfterCompleting(int order_number) {
 		String sql = "UPDATE `reservations` SET finish_time = CURTIME() WHERE res_id = ?";
 		return executeWriteQuery(sql, order_number);
 	}
+
 	/**
-	 * Cancels a reservation by confirmation code and either email or phone.
-	 * Uses phone when email is null; otherwise uses email. Updates order_status to CANCELLED.
+	 * Cancels a reservation by confirmation code and either email or phone. Uses
+	 * phone when email is null; otherwise uses email. Updates order_status to
+	 * CANCELLED.
 	 *
 	 * @param confirmationCode reservation confirmation code
 	 * @param email            reservation email; if null, phone is used instead
@@ -239,80 +241,124 @@ public class ConnectionToDB {
 	 * @param r the Reservation object containing all reservation details
 	 * @return number of affected rows (1 if insert succeeded, 0 if failed)
 	 */
-	public int insertReservation(Reservation r) {
-		String sql = "INSERT INTO reservations (confirmation_code, phone, email, sub_id, start_time, finish_time, order_date, order_status, num_diners, date_of_placing_order) "
-				+ "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+	public Integer insertReservation(Reservation reservation) {
+		String insertSql = """
+				    INSERT INTO reservations
+				    (phone, email, sub_id, start_time, finish_time, order_date, order_status, num_diners, date_of_placing_order)
+				    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+				""";
 
-		return executeWriteQuery(sql, r.getConfirmationCode(), // int
-				r.getPhone_number(), // String
-				r.getEmail(), // String
-				r.getSubscriberId(), // int
-				r.getStart_time(), // LocalTime
-				r.getFinish_time(), // LocalTime
-				r.getOrderDate(), // LocalDate
-				r.getStatus().name(), // Enum → String
-				r.getNumberOfGuests(), // int
-				r.getDateOfPlacingOrder() // LocalDate
-		);
+		MySQLConnectionPool pool = MySQLConnectionPool.getInstance();
+		PooledConnection pConn = pool.getConnection();
+		if (pConn == null)
+			return null;
+
+		try {
+			PreparedStatement insertStmt = pConn.getConnection().prepareStatement(insertSql,
+					java.sql.Statement.RETURN_GENERATED_KEYS);
+
+			insertStmt.setString(1, reservation.getPhone_number());
+			insertStmt.setString(2, reservation.getEmail());
+			insertStmt.setInt(3, reservation.getSubscriberId());
+			insertStmt.setTime(4, java.sql.Time.valueOf(reservation.getStart_time()));
+			insertStmt.setTime(5, java.sql.Time.valueOf(reservation.getFinish_time()));
+			insertStmt.setDate(6, java.sql.Date.valueOf(reservation.getOrderDate()));
+			insertStmt.setString(7, reservation.getStatus().name());
+			insertStmt.setInt(8, reservation.getNumberOfGuests());
+			insertStmt.setDate(9, java.sql.Date.valueOf(reservation.getDateOfPlacingOrder()));
+
+			int affected = insertStmt.executeUpdate();
+			if (affected == 0)
+				return null;
+
+			Integer resId = null;
+			try (ResultSet keys = insertStmt.getGeneratedKeys()) {
+				if (keys.next()) {
+					resId = keys.getInt(1);
+				}
+			}
+			if (resId == null)
+				return null;
+			String selectSql = "SELECT confirmation_code FROM reservations WHERE res_id = ?";
+			try (PreparedStatement selectStmt = pConn.getConnection().prepareStatement(selectSql)) {
+				selectStmt.setInt(1, resId);
+				try (ResultSet rs = selectStmt.executeQuery()) {
+					if (rs.next()) {
+						int confirmationCode = rs.getInt("confirmation_code");
+						reservation.setOrderNumber(resId);
+						reservation.setConfirmation_code(confirmationCode);
+						return confirmationCode;
+					}
+				}
+			}
+
+			return null;
+
+		} catch (SQLException e) {
+			System.out.println("SQLException: insertReservationAndGetConfirmationCode failed.");
+			e.printStackTrace();
+			return null;
+		} finally {
+			pool.releaseConnection(pConn);
+		}
 	}
-	
+
 	/**
-	 * TODO: FIX LATER
-	 * Finds the first PENDING reservation that fits the table capacity,
-	 * confirms it, assigns it to the table, and returns the reservation.
+	 * TODO: FIX LATER Finds the first PENDING reservation that fits the table
+	 * capacity, confirms it, assigns it to the table, and returns the reservation.
 	 *
 	 * @param tableNumber the table that just became free
 	 * @return the assigned Reservation, or null if none matched
 	 */
 	// public Reservation assignPendingReservationToTable(int tableNumber) {
 
-	//     try {
-	//         int tableSeats = getTableSeats(tableNumber);
+	// try {
+	// int tableSeats = getTableSeats(tableNumber);
 
-	//         String sql = "SELECT * FROM reservations " +
-	//                      "WHERE order_status = 'PENDING' AND num_diners <= ? " +
-	//                      "ORDER BY date_of_placing_order ASC LIMIT 1";
+	// String sql = "SELECT * FROM reservations " +
+	// "WHERE order_status = 'PENDING' AND num_diners <= ? " +
+	// "ORDER BY date_of_placing_order ASC LIMIT 1";
 
-	//         PreparedStatement ps = conn.prepareStatement(sql);
-	//         ps.setInt(1, tableSeats);
-	//         ResultSet rs = ps.executeQuery();
+	// PreparedStatement ps = conn.prepareStatement(sql);
+	// ps.setInt(1, tableSeats);
+	// ResultSet rs = ps.executeQuery();
 
-	//         if (!rs.next()) {
-	//             return null;
-	//         }
-
-	//         Reservation pending = new Reservation(
-	//             rs.getString("phone"),
-	//             rs.getString("email"),
-	//             rs.getInt("sub_id"),
-	//             rs.getTime("start_time").toLocalTime(),
-	//             rs.getTime("finish_time").toLocalTime(),
-	//             rs.getDate("order_date").toLocalDate(),
-	//             ReservationStatus.valueOf(rs.getString("order_status")),
-	//             rs.getInt("num_diners"),
-	//             rs.getDate("date_of_placing_order").toLocalDate()
-	//         );
-
-	//         int resId = pending.getResId();
-	//         String updateStatus = "UPDATE reservations SET order_status = 'CONFIRMED' WHERE res_id = ?";
-	//         PreparedStatement ps2 = conn.prepareStatement(updateStatus);
-	//         ps2.setInt(1, resId);
-	//         ps2.executeUpdate();
-
-	//         String updateTable = "UPDATE tables SET res_id = ? WHERE table_number = ?";
-	//         PreparedStatement ps3 = conn.prepareStatement(updateTable);
-	//         ps3.setInt(1, resId);
-	//         ps3.setInt(2, tableNumber);
-	//         ps3.executeUpdate();
-
-	//         return pending;
-
-	//     } catch (SQLException e) {
-	//         e.printStackTrace();
-	//         return null;
-	//     }
+	// if (!rs.next()) {
+	// return null;
 	// }
 
+	// Reservation pending = new Reservation(
+	// rs.getString("phone"),
+	// rs.getString("email"),
+	// rs.getInt("sub_id"),
+	// rs.getTime("start_time").toLocalTime(),
+	// rs.getTime("finish_time").toLocalTime(),
+	// rs.getDate("order_date").toLocalDate(),
+	// ReservationStatus.valueOf(rs.getString("order_status")),
+	// rs.getInt("num_diners"),
+	// rs.getDate("date_of_placing_order").toLocalDate()
+	// );
+
+	// int resId = pending.getResId();
+	// String updateStatus = "UPDATE reservations SET order_status = 'CONFIRMED'
+	// WHERE res_id = ?";
+	// PreparedStatement ps2 = conn.prepareStatement(updateStatus);
+	// ps2.setInt(1, resId);
+	// ps2.executeUpdate();
+
+	// String updateTable = "UPDATE tables SET res_id = ? WHERE table_number = ?";
+	// PreparedStatement ps3 = conn.prepareStatement(updateTable);
+	// ps3.setInt(1, resId);
+	// ps3.setInt(2, tableNumber);
+	// ps3.executeUpdate();
+
+	// return pending;
+
+	// } catch (SQLException e) {
+	// e.printStackTrace();
+	// return null;
+	// }
+	// }
 
 	/**
 	 * Searches for the latest order by phone number and returns the order details.
@@ -515,8 +561,7 @@ public class ConnectionToDB {
 	public Reservation getOrderByPhoneAndCode(String phone, int confirmationCode, String status) {
 		String sql = "SELECT res_id, confirmation_code, phone, email, sub_id, start_time, finish_time, "
 				+ "       order_date, order_status, num_diners, date_of_placing_order "
-				+ "FROM reservations WHERE phone = ? AND confirmation_code = ? "
-				+ "AND order_status = ? "
+				+ "FROM reservations WHERE phone = ? AND confirmation_code = ? " + "AND order_status = ? "
 				+ "AND NOW() >= TIMESTAMP(order_date, start_time) "
 				+ "AND NOW() <= TIMESTAMPADD(MINUTE, 15, TIMESTAMP(order_date, start_time))";
 		List<List<Object>> rows = executeReadQuery(sql, phone, confirmationCode, status);
@@ -535,8 +580,7 @@ public class ConnectionToDB {
 	public Reservation getOrderByEmailAndCode(String email, int confirmationCode, String status) {
 		String sql = "SELECT res_id, confirmation_code, phone, email, sub_id, start_time, finish_time, "
 				+ "       order_date, order_status, num_diners, date_of_placing_order "
-				+ "FROM reservations WHERE email = ? AND confirmation_code = ? "
-				+ "AND order_status = ? "
+				+ "FROM reservations WHERE email = ? AND confirmation_code = ? " + "AND order_status = ? "
 				+ "AND NOW() >= TIMESTAMP(order_date, start_time) "
 				+ "AND NOW() <= TIMESTAMPADD(MINUTE, 15, TIMESTAMP(order_date, start_time))";
 		List<List<Object>> rows = executeReadQuery(sql, email, confirmationCode, status);
@@ -575,8 +619,7 @@ public class ConnectionToDB {
 		}
 		return orderNumber;
 	}
-	
-	
+
 	/**
 	 * Deletes an order from the DB by order number (primary key)
 	 * 
@@ -689,11 +732,10 @@ public class ConnectionToDB {
 	public List<Integer> getNumDinersInTwoHoursWindow(LocalDate orderDate, LocalTime time) {
 
 		String sql = "SELECT num_diners " + "FROM reservations " + "WHERE order_date = ? "
-				+ "  AND order_status = 'CONFIRMED' " + "  AND start_time < ADDTIME(TIME(?), '02:00:00') "
-				+ "  AND finish_time > SUBTIME(TIME(?), '02:00:00')";
+				+ "  AND order_status IN ('CONFIRMED','ACCEPTED') " + "  AND start_time < ADDTIME(TIME(?), '02:00:00') "
+				+ "  AND finish_time > TIME(?)";
 
-		// executeReadQuery supports LocalDate + String, so pass time as "HH:mm:ss"
-		String timeStr = time.toString(); // LocalTime -> "HH:mm" or "HH:mm:ss" (both OK for TIME(...))
+		String timeStr = time.toString();
 		List<List<Object>> rows = executeReadQuery(sql, orderDate, timeStr, timeStr);
 
 		List<Integer> diners = new ArrayList<>();
@@ -702,19 +744,17 @@ public class ConnectionToDB {
 				continue;
 
 			Object v = row.get(0);
-			if (v instanceof Integer) {
+			if (v instanceof Integer)
 				diners.add((Integer) v);
-			} else if (v instanceof Number) {
+			else if (v instanceof Number)
 				diners.add(((Number) v).intValue());
-			} else if (v != null) {
-				// last-resort parse, just in case MySQL driver returns String
+			else if (v != null) {
 				try {
 					diners.add(Integer.parseInt(v.toString()));
 				} catch (NumberFormatException ignore) {
 				}
 			}
 		}
-
 		return diners;
 	}
 
@@ -772,13 +812,12 @@ public class ConnectionToDB {
 		String sql = "UPDATE `tablestable` SET res_id=? WHERE table_number = ?";
 		return executeWriteQuery(sql, String.valueOf(0), table_number);
 	}
-	
+
 	// TODO: should be instead of changeTableResId
 	public int clearTableByResId(int resId) {
 		String sql = "UPDATE tablestable SET res_id = NULL WHERE res_id = ?";
 		return executeWriteQuery(sql, resId);
 	}
-
 
 	/**
 	 * Updates the reservation assignment for a specific table. TODO: check if we
@@ -966,10 +1005,8 @@ public class ConnectionToDB {
 	 * @return list of confirmation codes as strings (empty if none found)
 	 */
 	public ArrayList<String> getConfirmedReservationCodesBySubscriber(int subscriberId) {
-		String sql = "SELECT confirmation_code FROM reservations "
-				+ "WHERE sub_id = ? AND order_status = 'CONFIRMED' "
-				+ "AND NOW() >= TIMESTAMP(order_date, start_time) "
-				+ "AND NOW() <= TIMESTAMP(order_date, finish_time)";
+		String sql = "SELECT confirmation_code FROM reservations " + "WHERE sub_id = ? AND order_status = 'CONFIRMED' "
+				+ "AND NOW() >= TIMESTAMP(order_date, start_time) " + "AND NOW() <= TIMESTAMP(order_date, finish_time)";
 		List<List<Object>> rows = executeReadQuery(sql, subscriberId);
 		ArrayList<String> codes = new ArrayList<>();
 		for (List<Object> row : rows) {
@@ -984,8 +1021,7 @@ public class ConnectionToDB {
 	}
 
 	public ArrayList<String> getAcceptedReservationCodeBySubscriber(int subscriberId) {
-		String sql = "SELECT confirmation_code FROM reservations "
-				+ "WHERE sub_id = ? AND order_status = 'ACCEPTED' "
+		String sql = "SELECT confirmation_code FROM reservations " + "WHERE sub_id = ? AND order_status = 'ACCEPTED' "
 				+ "AND NOW() >= TIMESTAMP(order_date, start_time) "
 				+ "AND NOW() <= TIMESTAMPADD(MINUTE, 15, TIMESTAMP(order_date, start_time))";
 		List<List<Object>> rows = executeReadQuery(sql, subscriberId);
@@ -1000,8 +1036,6 @@ public class ConnectionToDB {
 		}
 		return codes;
 	}
-
-
 
 	/**
 	 * Retrieves a Subscriber object from the database using the subscriber ID. This
@@ -1034,7 +1068,8 @@ public class ConnectionToDB {
 	}
 
 	/**
-	 * Retrieves a Subscriber object from the database using the subscriber's phone number.
+	 * Retrieves a Subscriber object from the database using the subscriber's phone
+	 * number.
 	 *
 	 * @param phone The phone number of the subscriber to search for.
 	 * @return A fully populated Subscriber object if found, otherwise null.
@@ -1080,7 +1115,6 @@ public class ConnectionToDB {
 		String passwordHash = "";
 		return new Subscriber(subscriberId, username, firstName, lastName, emailAddr, phone, passwordHash);
 	}
-	
 
 	/**
 	 * Retrieves a worker object from the database using the worker ID. This method
@@ -1213,7 +1247,8 @@ public class ConnectionToDB {
 
 	/**
 	 * Fetches the most recent confirmation code and its start time for today's
-	 * confirmed reservation tied to the given phone or email, within the last 15 minutes.
+	 * confirmed reservation tied to the given phone or email, within the last 15
+	 * minutes.
 	 *
 	 * @param identifier phone number or email address to search by.
 	 * @return list with confirmation code and start time, or null if none found.
@@ -1227,11 +1262,11 @@ public class ConnectionToDB {
 		String sql = "SELECT confirmation_code, start_time FROM reservations WHERE " + field
 				+ " = ? AND order_date = CURDATE() AND order_status = 'CONFIRMED' AND start_time >= DATE_SUB(CURTIME(), INTERVAL 15 MINUTE) ORDER BY start_time ASC LIMIT 1";
 		List<List<Object>> rows = executeReadQuery(sql, value);
-		if (rows.isEmpty()){
+		if (rows.isEmpty()) {
 			return null;
 		}
 		List<Object> row = rows.get(0);
-		Integer code = row.get(0) instanceof String ?  toInteger(row.get(0)) : null;
+		Integer code = row.get(0) instanceof String ? toInteger(row.get(0)) : null;
 		String startTime = null;
 		Object timeObj = row.get(1);
 		if (timeObj instanceof java.sql.Time)
@@ -1551,7 +1586,6 @@ public class ConnectionToDB {
 				LIMIT ?
 				""";
 
-		
 		List<List<Object>> rows = executeReadQuery(sql, limit);
 
 		List<SpecialDay> out = new ArrayList<>();

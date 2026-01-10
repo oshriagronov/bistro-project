@@ -25,6 +25,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import logic.LoggedUser;
 import logic.Reservation;
+import logic.Status;
 import logic.Subscriber;
 import logic.UserType;
 import logic.Worker;
@@ -153,15 +154,13 @@ public class OrderScreen {
 	 */
 	@FXML
 	public void initialize() {
-		 if (LoggedUser.getType()==UserType.SUBSCRIBER) {
-        	this.sub = ScreenSetup.setupSubscriber(nonSubVbox, workerVbox, subHBOX);
-        }
-        else if (LoggedUser.getType()==UserType.EMPLOYEE) {
-        	this.worker = ScreenSetup.setupWorkerView(nonSubVbox, workerVbox, subHBOX);
-        }
-        else {
-            ScreenSetup.setupGuestView(nonSubVbox, workerVbox, subHBOX);
-        }
+		if (LoggedUser.getType() == UserType.SUBSCRIBER) {
+			this.sub = ScreenSetup.setupSubscriber(nonSubVbox, workerVbox, subHBOX);
+		} else if (LoggedUser.getType() == UserType.EMPLOYEE) {
+			this.worker = ScreenSetup.setupWorkerView(nonSubVbox, workerVbox, subHBOX);
+		} else {
+			ScreenSetup.setupGuestView(nonSubVbox, workerVbox, subHBOX);
+		}
 		subHBOX.setVisible(false);
 
 		orderDate.setDayCellFactory(d -> new DateCell() {
@@ -451,35 +450,36 @@ public class OrderScreen {
 
 		// 6) Availability check + suggestions
 		List<Integer> diners = dinersByTime.get(selected);
-		diners.add(Integer.parseInt(amountStr));
+		diners.add(amount);
+		diners.sort(Integer::compareTo);
 
 		StringBuilder suggestions = new StringBuilder();
 		if (!isAvailable(diners)) {
 			errors.append("Chosen time isn't available, please choose another\n");
 			valid = false;
 
-			int groupSize = Integer.parseInt(amountStr);
-
-			diners.remove(diners.size() - 1);
+			diners.remove(Integer.valueOf(amount));
 
 			LocalTime plus = selected.plusMinutes(30);
 			diners = dinersByTime.get(plus);
 			if (!(date.equals(LocalDate.now()) && plus.isBefore(LocalTime.now().plusHours(1))) && diners != null) {
-				diners.add(groupSize);
+				diners.add(amount);
+				diners.sort(Integer::compareTo);
 				if (isAvailable(diners)) {
 					suggestions.append("• ").append(plus).append("\n");
 				}
-				diners.remove(diners.size() - 1);
+				diners.remove(Integer.valueOf(amount));
 			}
 
 			LocalTime minus = selected.minusMinutes(30);
 			diners = dinersByTime.get(minus);
 			if (!(date.equals(LocalDate.now()) && minus.isBefore(LocalTime.now().plusHours(1))) && diners != null) {
-				diners.add(groupSize);
+				diners.add(amount);
+				diners.sort(Integer::compareTo);
 				if (isAvailable(diners)) {
 					suggestions.append("• ").append(minus).append("\n");
 				}
-				diners.remove(diners.size() - 1);
+				diners.remove(Integer.valueOf(amount));
 			}
 
 			if (suggestions.length() > 0) {
@@ -492,14 +492,15 @@ public class OrderScreen {
 			return;
 		}
 
-		Reservation r = new Reservation(date, amount, Integer.parseInt(idStr), today, selected, phone, email);
+		Reservation r = new Reservation(date, amount, Integer.parseInt(idStr), today, selected, phone, Status.CONFIRMED,
+				email);
 
 		BistroRequest req = new BistroRequest(BistroCommand.ADD_RESERVATION, r);
 		Main.client.accept(req);
 
 		BistroResponse response = Main.client.getResponse();
 		if (response != null && response.getStatus() == BistroResponseStatus.SUCCESS) {
-			showAlert("Reservation Success", "Reservation successfully placed!");
+			showAlert("Reservation Success", "Your confirmation code is : " + response.getData());
 		} else {
 			showAlert("Error", "Failed placing the order");
 		}
@@ -562,7 +563,7 @@ public class OrderScreen {
 	private boolean isAvailable(List<Integer> diners) {
 		int i = 0;
 
-		if (diners.size() > tablesSizes.size()) {
+		if (diners.size() >= tablesSizes.size()) {
 			return false;
 		}
 

@@ -207,7 +207,7 @@ public class Server extends AbstractServer {
 				int success = db.insertReservation((Reservation) data);
 				if(success>0)
 				{
-					response = new BistroResponse(BistroResponseStatus.SUCCESS, "Reservation saved");
+					response = new BistroResponse(BistroResponseStatus.SUCCESS, success);
 					sendToAllClients(new ServerEvent(EventType.ORDER_CHANGED));
 				}
 				else
