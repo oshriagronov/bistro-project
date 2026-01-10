@@ -1,60 +1,62 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.CheckBox?>
 <?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.HBox?>
-<?import javafx.scene.layout.Pane?>
 <?import javafx.scene.layout.VBox?>
-<?import javafx.scene.text.Font?>
 <?import javafx.scene.text.Text?>
+<?import javafx.scene.control.Label?>
 
-<Pane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="gui.WaitingListScreen">
-   <children>
-      <Text layoutX="148.0" layoutY="78.0" strokeType="OUTSIDE" strokeWidth="0.0" text="You must enter phone number or Email (or both)" wrappingWidth="304.896484375">
-         <font>
-            <Font size="14.0" />
-         </font>
-      </Text>
-      <Text fill="#2838ab" layoutX="220.0" layoutY="38.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Enter waiting list">
-         <font>
-            <Font size="22.0" />
-         </font>
-      </Text>
-      <VBox layoutX="155.0" layoutY="115.0" prefHeight="216.0" prefWidth="290.0">
-         <children>
-            <HBox prefHeight="46.0" prefWidth="290.0">
-               <children>
-                  <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Amount of diners" />
-                  <ComboBox fx:id="diners" prefHeight="25.0" prefWidth="64.0" />
-               </children>
-            </HBox>
-            <VBox fx:id="nonSubVbox" prefHeight="200.0" prefWidth="100.0">
-               <children>
-                  <HBox prefHeight="49.0" prefWidth="290.0">
-                     <children>
-                        <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Phone number" />
-                        <ComboBox fx:id="prePhone" prefHeight="25.0" prefWidth="44.0" />
-                        <TextField fx:id="phoneField" />
-                     </children>
-                  </HBox>
-                  <HBox prefHeight="100.0" prefWidth="200.0">
-                     <children>
-                        <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Email" />
-                        <TextField fx:id="emailField" prefHeight="20.0" prefWidth="255.0" />
-                     </children>
-                  </HBox>
-               </children>
-            </VBox>
-            <VBox fx:id="workerVbox" prefHeight="68.0" prefWidth="290.0">
-               <children>
-                  <CheckBox fx:id="subCheckBox" mnemonicParsing="false" text="is subscriber?" />
-               </children>
-            </VBox>
-         </children>
-      </VBox>
-      <Button fx:id="submit" layoutX="273.0" layoutY="340.0" mnemonicParsing="false" onAction="#submit" text="Submit" />
-      <Button fx:id="backBtn" layoutX="509.0" layoutY="352.0" mnemonicParsing="false" onAction="#back" text="Back" />
-   </children>
-</Pane>
+
+<VBox alignment="CENTER" prefHeight="500" prefWidth="600" spacing="30" styleClass="root" stylesheets="@../../../Css/style.css" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="gui.WaitingListScreen">
+
+    <padding>
+        <Insets bottom="40" left="40" right="40" top="40" />
+    </padding>
+
+    <!-- Title -->
+   <Label text="Enter waiting list" styleClass="title"/>
+
+
+   
+    <!-- Subtitle -->
+    <Text styleClass="subtitle" text="You must enter phone number or Email (or both)" />
+
+    <!-- Form card -->
+    <VBox alignment="CENTER_LEFT" prefWidth="420" spacing="20" styleClass="form-card">
+
+        <!-- Diners -->
+        <HBox alignment="CENTER_LEFT" spacing="15">
+            <Text text="Amount of diners:" />
+            <ComboBox fx:id="diners" prefWidth="101.0" />
+        </HBox>
+
+        <!-- Phone -->
+        <HBox alignment="CENTER_LEFT" spacing="10">
+            <Text text="Phone number:" />
+            <ComboBox fx:id="prePhone" prefWidth="93.0" />
+            <TextField fx:id="phoneField" prefWidth="160" />
+        </HBox>
+
+        <!-- Email -->
+        <HBox alignment="CENTER_LEFT" spacing="10">
+            <Text text="Email:" />
+            <TextField fx:id="emailField" prefWidth="235" />
+        </HBox>
+
+        <!-- Subscriber -->
+        <CheckBox fx:id="subCheckBox" text="Subscriber" />
+
+        <!-- Buttons -->
+        <HBox alignment="CENTER" spacing="20">
+            <Button fx:id="submit" onAction="#submit" styleClass="primary" text="Submit" />
+
+            <Button fx:id="backBtn" onAction="#back" styleClass="back" text="Back" />
+        </HBox>
+
+    </VBox>
+
+</VBox>
