@@ -6,6 +6,7 @@ import communication.BistroCommand;
 import communication.BistroRequest;
 import communication.BistroResponse;
 import communication.BistroResponseStatus;
+import communication.RequestFactory;
 import communication.WorkerLoginRequest;
 import gui.LoginMenuScreen;
 import gui.Main;
@@ -27,34 +28,38 @@ import logic.Worker;
  * employee management dashboard.
  */
 public class WorkersLogInScreen {
-	public static final String fxmlPath ="/employee/WorkersLogIn.fxml";
+	public static final String fxmlPath = "/employee/WorkersLogIn.fxml";
 
 	/** Alert object used to display success or failure messages to the user. */
 	Alert alert = new Alert(Alert.AlertType.INFORMATION);
 
 	/** Button to submit the login credentials. */
-	 @FXML
-    private ResourceBundle resources;
+	@FXML
+	private ResourceBundle resources;
 
-    @FXML
-    private Button backBtn;
+	@FXML
+	private Button backBtn;
 
-    @FXML
-    private Button loginBTN;
+	@FXML
+	private Button loginBTN;
 
-    @FXML
-    private PasswordField passwordTxt;
+	@FXML
+	private PasswordField passwordTxt;
 
-    @FXML
-    private Text statusText;
+	@FXML
+	private Text statusText;
 
-    @FXML
-    private TextField usernameTxt;
+	@FXML
+	private TextField usernameTxt;
 
-    @FXML
-    void back(ActionEvent event) {
-
-    }
+	@FXML
+	void back(ActionEvent event) {
+		try {
+			Main.changeRoot(LoginMenuScreen.fxmlPath);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
 
 	/**
 	 * Initializes the controller. This method is automatically called after the
@@ -102,12 +107,12 @@ public class WorkersLogInScreen {
 		if (!check) {
 			showAlert("Form error", error.toString());
 		} else {
-			Main.client.accept(new BistroRequest(BistroCommand.WORKER_LOGIN, new WorkerLoginRequest(username, pass)));
+			Main.client.accept(RequestFactory.workerLogin(username, pass));
 			BistroResponse response = Main.client.getResponse();
 			if ((response != null && response.getStatus() == BistroResponseStatus.SUCCESS)) {
 				showAlert("Success", "Login Successful");
-				Worker w=(Worker)response.getData();
-				new LoggedUser(w.getWorkerId(),UserType.valueOf(w.getWorkerType().name()));
+				Worker w = (Worker) response.getData();
+				new LoggedUser(w.getWorkerId(), UserType.valueOf(w.getWorkerType().name()));
 				try {
 					Main.changeRoot(employeeMenu.fxmlPath);
 				} catch (Exception e) {
@@ -119,8 +124,10 @@ public class WorkersLogInScreen {
 		}
 
 	}
+
 	/**
 	 * Handles the back button action. Navigates back to the previous screen.
+	 * 
 	 * @param event The ActionEvent triggered by the back button.
 	 */
 	@FXML

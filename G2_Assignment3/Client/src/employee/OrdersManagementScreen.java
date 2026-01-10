@@ -30,11 +30,12 @@ import logic.Status;
 public class OrdersManagementScreen {
 	public static final String fxmlPath = "/employee/OrdersManagement.fxml";
 	private final EventListener ordersListener = t -> loadResults();
-	@FXML
-	private Button applyStatusBTN;
 
 	@FXML
 	private Button clearBTN;
+	
+    @FXML
+    private TableColumn<Reservation, String> confirmationCodeCol;
 
 	@FXML
 	private ComboBox<String> inputChoiceCB;
@@ -47,9 +48,6 @@ public class OrdersManagementScreen {
 
 	@FXML
 	private TableColumn<Reservation, String> dateCol;
-
-	@FXML
-	private Button deleteBTN;
 
 	@FXML
 	private TableColumn<Reservation, Integer> dinersCol;
@@ -73,12 +71,6 @@ public class OrdersManagementScreen {
 	private TableColumn<Reservation, Status> statusCol;
 
 	@FXML
-	private ComboBox<Status> statusCombo;
-
-	@FXML
-	private Label statusLabel;
-
-	@FXML
 	private TableColumn<Reservation, LocalTime> startTimeCol;
 
 	@FXML
@@ -95,11 +87,6 @@ public class OrdersManagementScreen {
 
 	@FXML
 	public void initialize() {
-		applyStatusBTN.setDisable(true);
-		deleteBTN.setDisable(true);
-
-		statusCombo.getItems().setAll(Status.values());
-		statusCombo.setPromptText("Select status...");
 		
 		ordersTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
 
@@ -107,6 +94,8 @@ public class OrdersManagementScreen {
 		inputChoiceCB.getSelectionModel().selectFirst();
 
 		orderIdCol.setCellValueFactory(new PropertyValueFactory<>("orderNumber"));
+		
+		confirmationCodeCol.setCellValueFactory(new PropertyValueFactory<>("confirmationCode"));
 
 		statusCol.setCellValueFactory(new PropertyValueFactory<>("status"));
 
@@ -124,26 +113,6 @@ public class OrdersManagementScreen {
 
 		EventBus.getInstance().subscribe(EventType.ORDER_CHANGED, ordersListener);
 
-		ordersTable.getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, newSelection) -> {
-
-			if (newSelection != null) {
-				applyStatusBTN.setDisable(false);
-				deleteBTN.setDisable(false);
-			} else {
-				applyStatusBTN.setDisable(true);
-				deleteBTN.setDisable(true);
-			}
-		});
-	}
-
-	@FXML
-	void clickApplyStatus(ActionEvent event) {
-		Reservation selected = ordersTable.getSelectionModel().getSelectedItem();
-		selected.setStatus(statusCombo.getValue());
-		Main.client.accept(new BistroRequest(BistroCommand.CHANGE_STATUS,
-				new StatusUpdate(selected.getPhone_number(), selected.getOrderNumber(), statusCombo.getValue())));
-		ordersTable.refresh();
-
 	}
 
 	@FXML
@@ -151,22 +120,8 @@ public class OrdersManagementScreen {
 		inputTXT.setText("");
 		inputTXT.clear();
 		ordersTable.getItems().clear();
-		ordersTable.getSelectionModel().clearSelection();
-		applyStatusBTN.setDisable(true);
-		deleteBTN.setDisable(true);
 	}
 
-	@FXML
-	void clickDeleteSelected(ActionEvent event) {
-		Reservation selected = ordersTable.getSelectionModel().getSelectedItem();
-
-		if (selected == null) {
-			return;
-		}
-		System.out.print(selected.getOrderNumber());
-		Main.client.accept(new BistroRequest(BistroCommand.CANCEL_RESERVATION, selected.getOrderNumber()));
-		ordersTable.getItems().remove(selected);
-	}
 
 	@FXML
 	void clickMenu(ActionEvent event) {
@@ -196,7 +151,7 @@ public class OrdersManagementScreen {
 		} else {
 			String email = inputTXT.getText();
 			if (email == null || email.isBlank() || !email.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$")) {
-				showAlert("Error", "Please enter a valid phone number");
+				showAlert("Error", "Please enter a valid email");
 				return;
 			}
 			Main.client.accept(RequestFactory.getReservationsByEmail(email));

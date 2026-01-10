@@ -32,30 +32,33 @@ import logic.Worker;
 /**
  * Controller for the {@code Order.fxml} view.
  * <p>
- * This screen allows placing a new reservation by selecting a date, a time slot,
- * and the number of diners. It supports different flows depending on the logged-in
- * user type:
+ * This screen allows placing a new reservation by selecting a date, a time
+ * slot, and the number of diners. It supports different flows depending on the
+ * logged-in user type:
  * </p>
  * <ul>
- *   <li><b>Guest</b>: must enter email and phone number.</li>
- *   <li><b>Subscriber</b>: details are fetched from the server and the contact fields
- *       are auto-filled.</li>
- *   <li><b>Employee/Manager</b>: can place reservations with worker controls enabled
- *       (while guest fields may remain visible per UI design).</li>
+ * <li><b>Guest</b>: must enter email and phone number.</li>
+ * <li><b>Subscriber</b>: details are fetched from the server and the contact
+ * fields are auto-filled.</li>
+ * <li><b>Employee/Manager</b>: can place reservations with worker controls
+ * enabled (while guest fields may remain visible per UI design).</li>
  * </ul>
  *
  * <p>
  * Availability is calculated per 30-minute time slot by:
  * </p>
  * <ol>
- *   <li>Fetching opening/closing hours for the chosen date.</li>
- *   <li>Fetching existing reservations per slot (through {@link Restaurant#buildDinersByTime(LocalDate)}).</li>
- *   <li>Checking if the current tables configuration can accommodate the chosen group size.</li>
+ * <li>Fetching opening/closing hours for the chosen date.</li>
+ * <li>Fetching existing reservations per slot (through
+ * {@link Restaurant#buildDinersByTime(LocalDate)}).</li>
+ * <li>Checking if the current tables configuration can accommodate the chosen
+ * group size.</li>
  * </ol>
  *
  * <p>
- * The DatePicker disables dates that are out of range (today..today+1 month) and
- * dates where the restaurant is closed. Closed-day checks are cached for performance.
+ * The DatePicker disables dates that are out of range (today..today+1 month)
+ * and dates where the restaurant is closed. Closed-day checks are cached for
+ * performance.
  * </p>
  */
 public class OrderScreen {
@@ -69,31 +72,50 @@ public class OrderScreen {
 	/** Loaded subscriber data when the logged-in user is a subscriber. */
 	private Subscriber sub = null;
 
-	/** Loaded worker data when the logged-in user is an employee/manager (currently unused). */
+	/**
+	 * Loaded worker data when the logged-in user is an employee/manager (currently
+	 * unused).
+	 */
 	private Worker worker = null;
 
 	/** Alert dialog used to display information and error messages. */
 	private final Alert alert = new Alert(Alert.AlertType.INFORMATION);
 
-	@FXML private Button backBtn;
-	@FXML private VBox btnVbox;
-	@FXML private CheckBox checkBox;
-	@FXML private ComboBox<String> dinersAmmount;
-	@FXML private VBox nonSubVbox;
-	@FXML private Button orderBtn;
-	@FXML private DatePicker orderDate;
-	@FXML private TextField orderEmail;
-	@FXML private ComboBox<String> orderHours;
-	@FXML private TextField phoneNumber;
-	@FXML private ComboBox<String> phoneStart;
-	@FXML private HBox subHBOX;
-	@FXML private TextField subID;
-	@FXML private VBox subVbox;
-	@FXML private VBox workerVbox;
+	@FXML
+	private Button backBtn;
+	@FXML
+	private VBox btnVbox;
+	@FXML
+	private CheckBox checkBox;
+	@FXML
+	private ComboBox<String> dinersAmmount;
+	@FXML
+	private VBox nonSubVbox;
+	@FXML
+	private Button orderBtn;
+	@FXML
+	private DatePicker orderDate;
+	@FXML
+	private TextField orderEmail;
+	@FXML
+	private ComboBox<String> orderHours;
+	@FXML
+	private TextField phoneNumber;
+	@FXML
+	private ComboBox<String> phoneStart;
+	@FXML
+	private HBox subHBOX;
+	@FXML
+	private TextField subID;
+	@FXML
+	private VBox subVbox;
+	@FXML
+	private VBox workerVbox;
 
 	/**
 	 * Mapping from a reservation time slot to a sorted list of diner group sizes
-	 * already occupying that slot. Built by {@link Restaurant#buildDinersByTime(LocalDate)}.
+	 * already occupying that slot. Built by
+	 * {@link Restaurant#buildDinersByTime(LocalDate)}.
 	 */
 	private Map<LocalTime, List<Integer>> dinersByTime;
 
@@ -115,17 +137,18 @@ public class OrderScreen {
 	 * Called automatically after the FXML is loaded. This method:
 	 * </p>
 	 * <ul>
-	 *   <li>Configures the view according to the logged-in user type.</li>
-	 *   <li>Sets a DatePicker cell factory that disables:
-	 *     <ul>
-	 *       <li>Past dates</li>
-	 *       <li>Dates more than one month ahead</li>
-	 *       <li>Dates where the restaurant is closed</li>
-	 *     </ul>
-	 *   </li>
-	 *   <li>Initializes ComboBoxes (diners amount, phone prefix) and default selections.</li>
-	 *   <li>Updates available time slots whenever the date changes.</li>
-	 *   <li>Selects the first open day and first available time slot by default.</li>
+	 * <li>Configures the view according to the logged-in user type.</li>
+	 * <li>Sets a DatePicker cell factory that disables:
+	 * <ul>
+	 * <li>Past dates</li>
+	 * <li>Dates more than one month ahead</li>
+	 * <li>Dates where the restaurant is closed</li>
+	 * </ul>
+	 * </li>
+	 * <li>Initializes ComboBoxes (diners amount, phone prefix) and default
+	 * selections.</li>
+	 * <li>Updates available time slots whenever the date changes.</li>
+	 * <li>Selects the first open day and first available time slot by default.</li>
 	 * </ul>
 	 */
 	@FXML
@@ -211,11 +234,12 @@ public class OrderScreen {
 	}
 
 	/**
-	 * Finds the next open date starting from {@code start} (inclusive), scanning forward
-	 * up to one month ahead.
+	 * Finds the next open date starting from {@code start} (inclusive), scanning
+	 * forward up to one month ahead.
 	 *
 	 * @param start the first date to check
-	 * @return the first date that is not closed; {@code null} if none are open in the next month window
+	 * @return the first date that is not closed; {@code null} if none are open in
+	 *         the next month window
 	 */
 	private LocalDate findNextOpenDate(LocalDate start) {
 		LocalDate max = start.plusMonths(1);
@@ -233,13 +257,13 @@ public class OrderScreen {
 	 * Requests the subscriber object from the server and auto-fills:
 	 * </p>
 	 * <ul>
-	 *   <li>Email</li>
-	 *   <li>Phone prefix + number</li>
-	 *   <li>Subscriber ID</li>
+	 * <li>Email</li>
+	 * <li>Phone prefix + number</li>
+	 * <li>Subscriber ID</li>
 	 * </ul>
 	 * <p>
-	 * Guest-related and worker-related UI elements are hidden after a successful fetch.
-	 * If the request fails, the screen falls back to the guest flow.
+	 * Guest-related and worker-related UI elements are hidden after a successful
+	 * fetch. If the request fails, the screen falls back to the guest flow.
 	 * </p>
 	 */
 	@FXML
@@ -277,7 +301,8 @@ public class OrderScreen {
 	/**
 	 * Configures the screen for a guest user.
 	 * <p>
-	 * Guest users must manually enter email and phone number. Worker UI controls are hidden.
+	 * Guest users must manually enter email and phone number. Worker UI controls
+	 * are hidden.
 	 * </p>
 	 */
 	private void setupGuestView() {
@@ -288,7 +313,8 @@ public class OrderScreen {
 	/**
 	 * Configures the screen for an employee/manager.
 	 * <p>
-	 * Worker controls are enabled/visible. Guest fields remain visible according to the current UI design.
+	 * Worker controls are enabled/visible. Guest fields remain visible according to
+	 * the current UI design.
 	 * </p>
 	 */
 	private void setupWorkerView() {
@@ -328,18 +354,19 @@ public class OrderScreen {
 	 * Validates inputs:
 	 * </p>
 	 * <ul>
-	 *   <li>Date is selected</li>
-	 *   <li>Diners amount is selected</li>
-	 *   <li>Subscriber ID is numeric (if checkbox is selected)</li>
-	 *   <li>Email is valid (for non-subscribers)</li>
-	 *   <li>Phone is a valid 10-digit number (for non-subscribers)</li>
-	 *   <li>Time slot is selected</li>
-	 *   <li>Selected time slot has enough availability based on current table sizes</li>
+	 * <li>Date is selected</li>
+	 * <li>Diners amount is selected</li>
+	 * <li>Subscriber ID is numeric (if checkbox is selected)</li>
+	 * <li>Email is valid (for non-subscribers)</li>
+	 * <li>Phone is a valid 10-digit number (for non-subscribers)</li>
+	 * <li>Time slot is selected</li>
+	 * <li>Selected time slot has enough availability based on current table
+	 * sizes</li>
 	 * </ul>
 	 *
 	 * <p>
-	 * If the selected slot is not available, the method attempts to suggest the nearest
-	 * adjacent slots (+30/-30 minutes) when they are valid candidates.
+	 * If the selected slot is not available, the method attempts to suggest the
+	 * nearest adjacent slots (+30/-30 minutes) when they are valid candidates.
 	 * </p>
 	 *
 	 * <p>
@@ -484,19 +511,23 @@ public class OrderScreen {
 	 * The method fetches:
 	 * </p>
 	 * <ul>
-	 *   <li>The diners-per-time mapping via {@link Restaurant#buildDinersByTime(LocalDate)}</li>
-	 *   <li>The table capacities via {@link Restaurant#getTableSizes()}</li>
+	 * <li>The diners-per-time mapping via
+	 * {@link Restaurant#buildDinersByTime(LocalDate)}</li>
+	 * <li>The table capacities via {@link Restaurant#getTableSizes()}</li>
 	 * </ul>
 	 *
 	 * <p>
 	 * Only time slots that satisfy both conditions are shown:
 	 * </p>
 	 * <ul>
-	 *   <li>If {@code date} is today, the slot must be at least one hour from now</li>
-	 *   <li>The current diners list for that slot can be seated using {@link #isAvailable(List)}</li>
+	 * <li>If {@code date} is today, the slot must be at least one hour from
+	 * now</li>
+	 * <li>The current diners list for that slot can be seated using
+	 * {@link #isAvailable(List)}</li>
 	 * </ul>
 	 *
-	 * @param date the reservation date for which to compute and display available times
+	 * @param date the reservation date for which to compute and display available
+	 *             times
 	 */
 	private void showOnlyAvailableTime(LocalDate date) {
 		orderHours.getItems().clear();
@@ -519,9 +550,10 @@ public class OrderScreen {
 	 * The algorithm assumes:
 	 * </p>
 	 * <ul>
-	 *   <li>{@link #tablesSizes} is sorted in ascending order.</li>
-	 *   <li>Each diner group requires one table with capacity {@code >= group size}.</li>
-	 *   <li>Tables are used at most once per time slot.</li>
+	 * <li>{@link #tablesSizes} is sorted in ascending order.</li>
+	 * <li>Each diner group requires one table with capacity
+	 * {@code >= group size}.</li>
+	 * <li>Tables are used at most once per time slot.</li>
 	 * </ul>
 	 *
 	 * @param diners a sorted list of diner group sizes occupying that time slot
@@ -565,9 +597,9 @@ public class OrderScreen {
 	 * A day is considered closed when:
 	 * </p>
 	 * <ul>
-	 *   <li>Opening hours could not be fetched (null or invalid response), or</li>
-	 *   <li>Either opening or closing time is {@code null}, or</li>
-	 *   <li>Opening time equals closing time (meaning "no working hours").</li>
+	 * <li>Opening hours could not be fetched (null or invalid response), or</li>
+	 * <li>Either opening or closing time is {@code null}, or</li>
+	 * <li>Opening time equals closing time (meaning "no working hours").</li>
 	 * </ul>
 	 *
 	 * @param date the date to check

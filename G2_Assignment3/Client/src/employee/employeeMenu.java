@@ -2,6 +2,7 @@ package employee;
 
 import gui.LoginMenuScreen;
 import gui.Main;
+import gui.MainMenuScreen;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -30,9 +31,21 @@ public class employeeMenu {
 	private Button dinersBtn;
 
 	@FXML
+	private Button CostumerBtn;
+
+	@FXML
 	void backToLoginMenu(ActionEvent event) {
 		try {
 			Main.changeRoot(LoginMenuScreen.fxmlPath);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	@FXML
+	void goToCostumerManu(ActionEvent event) {
+		try {
+			Main.changeRoot(MainMenuScreen.fxmlPath);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

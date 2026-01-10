@@ -64,6 +64,24 @@ public final class RequestFactory {
 	}
 
 	// -------------------------------------------------------------------------
+	// Workers / employees
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Creates a request to authenticate a worker by username and password.
+	 * <p>
+	 * The payload is wrapped in {@link WorkerLoginRequest}.
+	 * </p>
+	 *
+	 * @param username worker username
+	 * @param password worker raw password
+	 * @return a {@link BistroRequest} for {@link BistroCommand#WORKER_LOGIN}
+	 */
+	public static BistroRequest workerLogin(String username, String password) {
+		return withPayload(BistroCommand.WORKER_LOGIN, new WorkerLoginRequest(username, password));
+	}
+
+	// -------------------------------------------------------------------------
 	// Tables
 	// -------------------------------------------------------------------------
 
@@ -292,11 +310,11 @@ public final class RequestFactory {
 	public static BistroRequest getWeeklySchedule() {
 		return noPayload(BistroCommand.LOAD_WEEKLY_SCHEDULE);
 	}
-	
-	public static BistroRequest getSpecialDates(int limit)
-	{
+
+	public static BistroRequest getSpecialDates(int limit) {
 		return new BistroRequest(BistroCommand.LOAD_SPECIAL_DATES, limit);
 	}
+
 	public static BistroRequest updateRegularDayTimes(DayOfWeek day, LocalTime open, LocalTime close) {
 		WeeklySchedule payload = new WeeklySchedule(day, open, close);
 		return new BistroRequest(BistroCommand.UPDATE_REGULAR_SCHEDULE, payload);
@@ -306,15 +324,14 @@ public final class RequestFactory {
 		SpecialDay payload = new SpecialDay(day, open, close);
 		return new BistroRequest(BistroCommand.UPDATE_SPECIAL_DAY, payload);
 	}
-	
+
 	public static BistroRequest getOpeningHours(LocalDate date) {
 
 		return withPayload(BistroCommand.GET_OPENING_HOURS, date);
 	}
-	
+
 	public static BistroRequest getOrderIn4HoursRange(LocalDate date, LocalTime time) {
 		return withPayload(BistroCommand.GET_ORDERS_IN_RANGE, new OrdersInRangeRequest(date, time));
 	}
-
 
 }

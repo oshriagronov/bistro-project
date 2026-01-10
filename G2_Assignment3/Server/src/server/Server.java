@@ -205,8 +205,13 @@ public class Server extends AbstractServer {
 			// Handle adding a new reservation to the database
 			if (data instanceof Reservation) {
 				int success = db.insertReservation((Reservation) data);
-				response = new BistroResponse(success > 0 ? BistroResponseStatus.SUCCESS : BistroResponseStatus.FAILURE,
-						success > 0 ? "Reservation saved" : "Reservation failed");
+				if(success>0)
+				{
+					response = new BistroResponse(BistroResponseStatus.SUCCESS, "Reservation saved");
+					sendToAllClients(new ServerEvent(EventType.ORDER_CHANGED));
+				}
+				else
+					response = new BistroResponse(BistroResponseStatus.FAILURE, "Reservation failed");
 			} else {
 				response = new BistroResponse(BistroResponseStatus.FAILURE, "Invalid reservation data");
 			}
