@@ -125,6 +125,31 @@ public class Restaurant {
 		return new ArrayList<>(tableSizes);
 	}
 
+	public static boolean isAvailable(List<Integer> diners, List<Integer> tablesSizes) {
+		int i = 0;
+		if (diners.size() > tablesSizes.size()) {
+			return false;
+		}
+
+		for (int num : diners) {
+			boolean found = false;
+
+			while (i < tablesSizes.size()) {
+				if (num <= tablesSizes.get(i)) {
+					found = true;
+					i++;
+					break;
+				}
+				i++;
+			}
+			if (i == tablesSizes.size() && !found) {
+				return false;
+			}
+		}
+
+		return true;
+	}
+
 	/**
 	 * Fetches the opening and closing times for a given date.
 	 *
