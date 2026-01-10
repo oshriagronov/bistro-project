@@ -1,0 +1,8 @@
+# Eclipse build output
+Client/bin/
+OCSF/bin/
+Common/bin/
+Server/bin/
+
+# OS
+.DS_Store
