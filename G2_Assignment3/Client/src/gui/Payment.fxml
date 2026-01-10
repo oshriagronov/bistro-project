@@ -19,19 +19,35 @@
       </Text>
       <VBox fx:id="infoVbox" layoutX="155.0" layoutY="105.0" prefHeight="233.0" prefWidth="290.0" spacing="15.0">
          <children>
-            <HBox fx:id="phoneHbox" alignment="CENTER_LEFT" prefHeight="100.0" prefWidth="200.0" spacing="10.0">
-               <children>
-                  <Text strokeType="OUTSIDE" strokeWidth="0.0" text="phone number" />
-                  <ComboBox fx:id="prePhone" prefHeight="25.0" prefWidth="65.0" />
-                  <TextField fx:id="restPhone" prefWidth="150.0" />
-               </children>
-            </HBox>
-            <HBox fx:id="codeHbox" alignment="CENTER_LEFT" prefHeight="100.0" prefWidth="200.0" spacing="10.0">
+            <HBox fx:id="subscriberConfirmationBox" alignment="CENTER_LEFT" managed="false" prefHeight="28.0" prefWidth="231.0" spacing="10.0" visible="false">
                <children>
                   <Text strokeType="OUTSIDE" strokeWidth="0.0" text="confirmation code" />
-                  <TextField fx:id="confirmationCode" prefWidth="150.0" />
+                  <ComboBox fx:id="subscriberConfirmationCodes" prefHeight="25.0" prefWidth="150.0" />
                </children>
             </HBox>
+            <VBox fx:id="detailsVbox" prefHeight="149.0" prefWidth="290.0" spacing="10.0">
+               <children>
+                  <HBox fx:id="codeHbox" alignment="CENTER_LEFT" prefHeight="28.0" prefWidth="200.0" spacing="10.0">
+                     <children>
+                        <Text strokeType="OUTSIDE" strokeWidth="0.0" text="confirmation code" />
+                        <TextField fx:id="confirmationCode" prefWidth="150.0" />
+                     </children>
+                  </HBox>
+                  <HBox fx:id="phoneHbox" alignment="CENTER_LEFT" prefHeight="28.0" prefWidth="200.0" spacing="10.0">
+                     <children>
+                        <Text strokeType="OUTSIDE" strokeWidth="0.0" text="phone number" />
+                        <ComboBox fx:id="prePhone" prefHeight="25.0" prefWidth="65.0" />
+                        <TextField fx:id="restPhone" prefWidth="150.0" />
+                     </children>
+                  </HBox>
+                  <HBox fx:id="emailHbox" alignment="CENTER_LEFT" prefHeight="28.0" prefWidth="200.0" spacing="10.0">
+                     <children>
+                        <Text strokeType="OUTSIDE" strokeWidth="0.0" text="email" />
+                        <TextField fx:id="emailField" prefWidth="200.0" />
+                     </children>
+                  </HBox>
+               </children>
+            </VBox>
             <HBox fx:id="submitHbox" alignment="CENTER" prefHeight="100.0" prefWidth="200.0">
                <children>
                   <Button fx:id="submitBTN" alignment="CENTER" mnemonicParsing="false" onAction="#handleSubmit" text="Get Bill" />
@@ -39,11 +55,15 @@
             </HBox>
          </children>
       </VBox>
-      <Text fx:id="total" layoutX="526.0" layoutY="196.0" strokeType="OUTSIDE" strokeWidth="0.0">
-         <font>
-            <Font size="36.0" />
-         </font>
-      </Text>
+      <HBox alignment="CENTER" layoutX="0.0" layoutY="190.0" mouseTransparent="true" pickOnBounds="false" prefWidth="600.0">
+         <children>
+            <Text fx:id="total" strokeType="OUTSIDE" strokeWidth="0.0">
+               <font>
+                  <Font size="36.0" />
+               </font>
+            </Text>
+         </children>
+      </HBox>
       <Button fx:id="backBtn" layoutX="520.0" layoutY="360.0" mnemonicParsing="false" onAction="#back" text="Back" />
    </children>
 </Pane>

@@ -13,11 +13,6 @@ import javafx.scene.control.Button;
 public class MainMenuScreen {
     public static final String fxmlPath = "/gui/MainMenu.fxml";
     /**
-     * Button used to navigate to the reservation update screen.
-     */
-    @FXML
-    private Button updateReservation;
-    /**
      * Button used to navigate to the waiting list screen.
      */
     @FXML
@@ -44,22 +39,6 @@ public class MainMenuScreen {
     @FXML
     private Button backBtn;
 
-    /**
-     * 
-     * Handles the action when the "Update Reservation" button is clicked.
-     * Changes the application's view to the {@code Update.fxml} screen.
-     * * @param event The ActionEvent triggered by the button click.
-     */
-    @FXML
-    void updateReservationScreen(ActionEvent event) {
-        try {
-            // Use the static method in Main to switch the scene root to the Update screen
-            Main.changeRoot(UpdateReservationScreen.fxmlPath);
-        } catch (Exception e) {
-            // Log error if navigation fails (e.g., FXML file not found)
-            e.printStackTrace();
-        }
-    }
     /**
      * Handles the action when the "New Reservation" button is clicked.
      * Changes the application's view to the {@code Order.fxml} screen.

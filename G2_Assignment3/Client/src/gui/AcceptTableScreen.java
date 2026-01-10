@@ -68,6 +68,9 @@ public class AcceptTableScreen {
     private Button submitBTN;
 
     @FXML
+    private Button getConfirmationBtn;
+
+    @FXML
     private HBox subscriberConfirmationBox;
 
     @FXML
@@ -156,6 +159,8 @@ public class AcceptTableScreen {
         if (isSubscriber) {
             toggleNode(detailsVbox, false);
             toggleNode(subscriberConfirmationBox, true);
+            toggleNode(getConfirmationBtn, false);
+            toggleNode(submitBTN, true);
             return;
         }
 
@@ -164,6 +169,8 @@ public class AcceptTableScreen {
         boolean forgotSelected = forgotCheckBox != null && forgotCheckBox.isSelected();
         toggleNode(confirmationBox, !forgotSelected);
         toggleNode(identifyingDetailsText, forgotSelected);
+        toggleNode(submitBTN, !forgotSelected);
+        toggleNode(getConfirmationBtn, forgotSelected);
     }
 
     /**
@@ -214,6 +221,36 @@ public class AcceptTableScreen {
     @FXML
     void handleForgotCheckBox(ActionEvent event) {
         applyUserView();
+    }
+
+    /**
+     * Handles the "Forgot Confirmation" action.
+     * Retrieves the confirmation code and start time for the provided phone or email.
+     *
+     * @param event The ActionEvent triggered by the forgot confirmation button.
+     */
+    @FXML
+    void handleGetConfirmationCode(ActionEvent event) {
+        String email = emailField != null ? emailField.getText().trim() : "";
+        String prefix = prePhone.getValue();
+        String rest = restPhone.getText();
+        String phone = null;
+        if (rest != null && !rest.trim().isEmpty()) {
+            String phonePrefix = prefix != null ? prefix : "";
+            phone = phonePrefix + rest.trim();
+        }
+        confirmationCode.clear();
+        ArrayList<String> contactDetails = new ArrayList<>(2);
+        contactDetails.add(phone);
+        contactDetails.add(email);
+        BistroResponse response = sendRequest(BistroCommand.FORGOT_CONFIRMATION_CODE, contactDetails);
+        StringBuilder message = new StringBuilder();
+        if (response != null && response.getStatus() == BistroResponseStatus.SUCCESS) {
+            message.append("Sent the confirmation code to your email and phone.");
+        } else {
+            message.append("Could not find a matching order.");
+        }
+        showAlert("Message", message.toString());
     }
 
     /**

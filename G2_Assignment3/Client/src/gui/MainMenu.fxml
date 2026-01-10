@@ -23,12 +23,6 @@
                </children>
             </HBox>
 
-            <HBox alignment="CENTER" prefHeight="47.0" prefWidth="224.0">
-               <children>
-                  <Button fx:id="updateReservation" contentDisplay="CENTER" mnemonicParsing="false" onAction="#updateReservationScreen" prefHeight="25.0" prefWidth="124.0" text="Update Reservation" />
-               </children>
-            </HBox>
-
             <HBox alignment="CENTER" prefHeight="45.0" prefWidth="224.0">
                <children>
                   <Button id="WaitingListBtn" mnemonicParsing="false" onAction="#openWaitingList" prefHeight="25.0" prefWidth="124.0" text="Waiting List" />

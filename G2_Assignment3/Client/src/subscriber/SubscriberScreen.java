@@ -5,7 +5,7 @@ import communication.BistroRequest;
 import gui.AcceptTableScreen;
 import gui.CancelReservationScreen;
 import gui.Main;
-import gui.UpdateReservationScreen;
+import gui.PaymentScreen;
 import gui.WaitingListScreen;
 import gui.OrderScreen;
 import javafx.event.ActionEvent;
@@ -34,10 +34,6 @@ public class SubscriberScreen {
 	private Button backBtn;
 
 	@FXML
-	/** Button to navigate to update reservation screen. */
-	private Button updateReservationBtn;
-
-	@FXML
 	/** Button to navigate to waiting list screen. */
 	private Button waitingListBtn;
 
@@ -56,6 +52,10 @@ public class SubscriberScreen {
 	@FXML
 	/** Button to navigate to cancel reservation screen. */
 	private Button cancelReservationBtn;
+
+	@FXML
+	/** Button to navigate to payment screen. */
+	private Button paymentBtn;
 
 
 	@FXML
@@ -85,18 +85,6 @@ public class SubscriberScreen {
 		}
 	}
 
-	@FXML
-	/**
-	 * Navigates to the update reservation screen.
-	 * @param event JavaFX action event
-	 */
-	void goToUpdateReservation(ActionEvent event) {
-		try {
-			Main.changeRoot(UpdateReservationScreen.fxmlPath);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
 
 	@FXML
 	/**
@@ -159,6 +147,19 @@ public class SubscriberScreen {
 		try {
 			Main.client.accept(new BistroRequest(BistroCommand.GET_SUBSCRIBER_HISTORY, LoggedUser.getId()));
 			Main.changeRoot(SubscriberHistoryScreen.fxmlPath);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	@FXML
+	/**
+	 * Navigates to the payment screen.
+	 * @param event JavaFX action event
+	 */
+	void goToPayment(ActionEvent event) {
+		try {
+			Main.changeRoot(PaymentScreen.fxmlPath);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

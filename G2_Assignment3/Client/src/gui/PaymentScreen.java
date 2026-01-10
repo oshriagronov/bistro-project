@@ -8,6 +8,7 @@ import communication.BistroResponse;
 import communication.BistroResponseStatus;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.scene.Node;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
@@ -17,6 +18,7 @@ import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import logic.LoggedUser;
 import logic.Reservation;
+import logic.Subscriber;
 import logic.UserType;
 import subscriber.SubscriberScreen;
 import employee.employeeMenu;
@@ -24,7 +26,7 @@ import employee.employeeMenu;
 /**
  * Controller class for the Payment.fxml view.
  * This class handles the logic for customers to view their bill
- * by entering their phone number and confirmation code.
+ * by entering their phone/email and confirmation code.
  */
 public class PaymentScreen {
 	public static final int PAYMENT_PER_DINER=100;
@@ -39,6 +41,12 @@ public class PaymentScreen {
     private TextField confirmationCode;
 
     @FXML
+    private VBox detailsVbox;
+
+    @FXML
+    private TextField emailField;
+
+    @FXML
     private VBox infoVbox;
 
     @FXML
@@ -49,6 +57,12 @@ public class PaymentScreen {
 
     @FXML
     private TextField restPhone;
+
+    @FXML
+    private HBox subscriberConfirmationBox;
+
+    @FXML
+    private ComboBox<String> subscriberConfirmationCodes;
 
     @FXML
     private Button submitBTN;
@@ -62,6 +76,9 @@ public class PaymentScreen {
     @FXML
     private Button backBtn;
 
+    private boolean isSubscriber = false;
+    private String subscriberIdentifier = null;
+
     /**
      * Initializes the controller.
      * This method is automatically called after the FXML file has been loaded.
@@ -69,9 +86,27 @@ public class PaymentScreen {
      */
     @FXML
     void initialize() {
-        prePhone.getItems().clear();
-        prePhone.getItems().addAll("050", "052", "053", "054", "055", "058");
         total.setVisible(false);
+        isSubscriber = LoggedUser.getType() == UserType.SUBSCRIBER;
+
+        if (isSubscriber) {
+            setupSubscriberView();
+            BistroResponse response = sendRequest(BistroCommand.GET_SUBSCRIBER_BY_ID, LoggedUser.getId());
+            if (response != null && response.getStatus() == BistroResponseStatus.SUCCESS
+                    && response.getData() instanceof Subscriber) {
+                Subscriber subscriber = (Subscriber) response.getData();
+                subscriberIdentifier = resolveSubscriberContact(subscriber.getPhone(), subscriber.getEmail());
+            } else {
+                showAlert("Error", "There was error getting your subscriber information.");
+                try {
+                    Main.changeRoot(SubscriberScreen.fxmlPath);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        } else {
+            setupDefaultView();
+        }
     }
 
     /**
@@ -88,55 +123,38 @@ public class PaymentScreen {
 
     /**
      * Handles the submit button action.
-     * Validates the phone number and confirmation code, sends them to the server,
+     * Validates the phone/email and confirmation code, sends them to the server,
      * and displays the total bill amount if found.
      * @param event The ActionEvent triggered by the submit button.
      */
     
     @FXML
     void handleSubmit(ActionEvent event) {
-        StringBuilder str = new StringBuilder();
-        boolean check = true;
-        ArrayList<String> search = new ArrayList<>();
+        StringBuilder errors = new StringBuilder();
+        String code = isSubscriber ? resolveSubscriberCode(errors) : resolveGuestCode(errors);
+        String identifier = isSubscriber ? resolveSubscriberIdentifier(errors) : resolveGuestIdentifier(errors);
 
-        String pre = prePhone.getValue();
-        String rest = restPhone.getText();
-
-        if (pre == null || rest == null || rest.length() != 7 || !rest.matches("\\d+")) {
-            str.append("Please enter a valid phone number\n");
-            check = false;
-        }
-
-        String code = confirmationCode.getText();
-        if (code == null || code.isEmpty()) {
-            str.append("Please enter confirmation code\n");
-            check = false;
-        }
-
-        if (!check) {
-            showAlert("Input Error", str.toString());
+        if (errors.length() > 0) {
+            showAlert("Input Error", errors.toString());
             return;
         }
 
-        String phoneNum = pre + rest;
-        search.add(phoneNum);
+        ArrayList<String> search = new ArrayList<>(2);
+        search.add(identifier);
         search.add(code);
-        BistroRequest request = new BistroRequest(BistroCommand.GET_BILL, search);
-        Main.client.accept(request);
-        
-        BistroResponse response = Main.client.getResponse();
+        BistroResponse response = sendRequest(BistroCommand.GET_BILL, search);
         if (response != null && response.getStatus() == BistroResponseStatus.SUCCESS) {
             Object data = response.getData();
-            if (data != null) {
-            	Reservation res=(Reservation)data;
+            if (data != null && data instanceof Reservation) {
+            	Reservation res = (Reservation) data;
             	int num_guests=res.getNumberOfGuests();
-            	int sub_id=res.getSubscriberId();
-            	double pay=PAYMENT_PER_DINER*num_guests;            	
-            	if(sub_id>0)
-            		pay=pay*0.9;
-                infoVbox.setVisible(false);
-                total.setText("Total to pay: " + pay + "₪");
-                total.setVisible(true);
+            	int sub_id = res.getSubscriberId();
+            	double pay = PAYMENT_PER_DINER * num_guests;            	
+            	if(sub_id > 0)
+            		pay = pay * 0.9;
+                toggleNode(infoVbox, false);
+                total.setText("Total to pay: " + pay);
+                toggleNode(total, true);
             }
         } else {
             showAlert("Error", "Could not find bill for these details.");
@@ -165,4 +183,145 @@ public class PaymentScreen {
         return MainMenuScreen.fxmlPath;
     }
 
+
+    private void setupDefaultView() {
+        isSubscriber = false;
+        applyUserView();
+        prePhone.getItems().clear();
+        prePhone.getItems().addAll("050", "052", "053", "054", "055", "058");
+    }
+
+    private void setupSubscriberView() {
+        isSubscriber = true;
+        applyUserView();
+        populateSubscriberConfirmationCodes();
+    }
+
+    private void populateSubscriberConfirmationCodes() {
+        if (subscriberConfirmationCodes == null) {
+            showAlert("Error", "Could not load subscriber confirmation codes.");
+            setupDefaultView();
+            return;
+        }
+        subscriberConfirmationCodes.getItems().clear();
+        BistroResponse response = sendRequest(BistroCommand.GET_SUBSCRIBER_CONFIRMATION_CODE_FOR_PAYMENT, LoggedUser.getId());
+        if (response != null && response.getStatus() == BistroResponseStatus.SUCCESS
+                && response.getData() instanceof ArrayList<?>) {
+            ArrayList<String> codes = new ArrayList<>();
+            for (Object obj : (ArrayList<?>) response.getData()) {
+                if (obj instanceof String) {
+                    codes.add(String.valueOf(obj));
+                }
+            }
+            subscriberConfirmationCodes.getItems().addAll(codes);
+            if (!codes.isEmpty()) {
+                subscriberConfirmationCodes.getSelectionModel().selectFirst();
+            }
+        }
+    }
+
+    private void applyUserView() {
+        if (isSubscriber) {
+            toggleNode(detailsVbox, false);
+            toggleNode(subscriberConfirmationBox, true);
+            return;
+        }
+        toggleNode(detailsVbox, true);
+        toggleNode(subscriberConfirmationBox, false);
+    }
+
+    private void toggleNode(Node node, boolean show) {
+        if (node != null) {
+            node.setVisible(show);
+            node.setManaged(show);
+        }
+    }
+
+    private BistroResponse sendRequest(BistroCommand command, Object data) {
+        BistroRequest request = new BistroRequest(command, data);
+        Main.client.accept(request);
+        return Main.client.getResponse();
+    }
+
+    private boolean validatePhoneInputs(StringBuilder errors) {
+        String prefix = prePhone.getValue();
+        String rest = restPhone.getText();
+        boolean valid = true;
+
+        if (prefix == null || prefix.isBlank()) {
+            errors.append("Please select a phone prefix\n");
+            valid = false;
+        }
+
+        if (rest == null || rest.length() != 7 || !rest.matches("\\d+")) {
+            errors.append("Please enter a valid phone number\n");
+            valid = false;
+        }
+
+        return valid;
+    }
+
+    private String buildPhoneNumber() {
+        return prePhone.getValue() + restPhone.getText();
+    }
+
+    private String resolveSubscriberContact(String phone, String email) {
+        if (phone != null && !phone.isBlank()) {
+            return phone;
+        }
+        if (email != null && !email.isBlank()) {
+            return email;
+        }
+        return null;
+    }
+
+    private String resolveSubscriberIdentifier(StringBuilder errors) {
+        if (subscriberIdentifier == null || subscriberIdentifier.isBlank()) {
+            errors.append("Missing subscriber contact details\n");
+            return null;
+        }
+        return subscriberIdentifier;
+    }
+
+    private String resolveSubscriberCode(StringBuilder errors) {
+        String code = subscriberConfirmationCodes != null ? subscriberConfirmationCodes.getValue() : null;
+        if (code == null || code.isBlank() || !code.matches("\\d+")) {
+            errors.append("Please select a valid confirmation code\n");
+        }
+        return code;
+    }
+
+    private String resolveGuestCode(StringBuilder errors) {
+        String code = confirmationCode != null ? confirmationCode.getText().trim() : null;
+        if (code == null || code.isBlank() || !code.matches("\\d+")) {
+            errors.append("Please enter a valid confirmation code\n");
+        }
+        return code;
+    }
+
+    private String resolveGuestIdentifier(StringBuilder errors) {
+        String email = emailField != null ? emailField.getText().trim() : "";
+        boolean hasEmail = !email.isEmpty();
+        String prefix = prePhone.getValue();
+        String rest = restPhone.getText();
+        boolean hasPhoneInput = (prefix != null && !prefix.isBlank()) || (rest != null && !rest.isBlank());
+
+        if (hasPhoneInput) {
+            StringBuilder phoneErrors = new StringBuilder();
+            boolean phoneValid = validatePhoneInputs(phoneErrors);
+            if (phoneValid) {
+                return buildPhoneNumber();
+            }
+            if (!hasEmail) {
+                errors.append(phoneErrors);
+            }
+        }
+
+        if (hasEmail) {
+            return email;
+        }
+
+        errors.append("Please enter a phone number or email\n");
+        return null;
+    }
 }
