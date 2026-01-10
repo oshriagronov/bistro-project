@@ -101,6 +101,24 @@ public class ConnectionToDB {
 		}
 	}
 
+	private static Integer toInt(Object o) {
+		if (o == null)
+			return null;
+		if (o instanceof Integer i)
+			return i;
+		if (o instanceof Long l)
+			return Math.toIntExact(l);
+		if (o instanceof Number n)
+			return n.intValue(); // כולל BigDecimal
+		if (o instanceof String s && !s.isBlank())
+			return Integer.parseInt(s.trim());
+		throw new IllegalArgumentException("Cannot convert to Integer: " + o.getClass());
+	}
+
+	private static String toStr(Object o) {
+		return o == null ? null : o.toString();
+	}
+
 	/**
 	 * Maps a raw row from {@link #executeReadQuery} into a {@link Reservation}.
 	 * Used by {@link #getOrderByPhoneAndCode(String, int)} and
@@ -177,28 +195,28 @@ public class ConnectionToDB {
 	 * @param order_number reservation id to update
 	 * @return number of rows affected
 	 */
-	public int updateReservationTimes(int order_number){
+	public int updateReservationTimes(int order_number) {
 		String sql = "UPDATE `reservations` SET start_time = CURTIME(), "
-				+ "finish_time = ADDTIME(CURTIME(), '02:00:00'), "
-				+ "order_status = 'ACCEPTED' WHERE res_id = ?";
+				+ "finish_time = ADDTIME(CURTIME(), '02:00:00'), " + "order_status = 'ACCEPTED' WHERE res_id = ?";
 		return executeWriteQuery(sql, order_number);
 	}
 
 	/**
-	 * Cancels a reservation by confirmation code and either email or phone.
-	 * Uses phone when email is null; otherwise uses email. Updates order_status to CANCELLED.
+	 * Cancels a reservation by confirmation code and either email or phone. Uses
+	 * phone when email is null; otherwise uses email. Updates order_status to
+	 * CANCELLED.
 	 *
 	 * @param confirmationCode reservation confirmation code
-	 * @param email reservation email; if null, phone is used instead
-	 * @param phone reservation phone; used only when email is null
+	 * @param email            reservation email; if null, phone is used instead
+	 * @param phone            reservation phone; used only when email is null
 	 * @return number of rows affected
 	 */
 	public int CancelReservation(int confirmationCode, String email, String phone) {
 		StringBuilder sql = new StringBuilder("UPDATE `reservations` SET order_status = 'CANCELLED' WHERE ");
-		if(email == null){
+		if (email == null) {
 			sql.append("confirmation_code = ? AND phone = ? limit 1");
 			return executeWriteQuery(sql.toString(), confirmationCode, phone);
-		}else{
+		} else {
 			sql.append("confirmation_code = ? AND email = ? limit 1");
 			return executeWriteQuery(sql.toString(), confirmationCode, email);
 		}
@@ -284,19 +302,18 @@ public class ConnectionToDB {
 		List<Reservation> list = new ArrayList<>();
 
 		for (List<Object> row : rows) {
-			Integer resId = (Integer) row.get(0);
-			Integer confirmationCode = (Integer) row.get(1);
-			String phoneNumber = (String) row.get(2);
-			String email = (String) row.get(3);
-			Integer subId = (Integer) row.get(4);
+			Integer resId = toInt(row.get(0));
+			Integer confirmationCode = toInt(row.get(1));
+			String phoneNumber = toStr(row.get(2));
+			String email = toStr(row.get(3));
+			Integer subId = toInt(row.get(4));
 
 			LocalTime startTime = toLocalTime(row.get(5));
 			LocalTime finishTime = toLocalTime(row.get(6));
 			LocalDate orderDate = toLocalDate(row.get(7));
 
-			Status status = Status.valueOf(((String) row.get(8)).trim());
-
-			Integer diners = (Integer) row.get(9);
+			Status status = toStatus(row.get(8));
+			Integer diners = toInt(row.get(9));
 			LocalDate placingDate = toLocalDate(row.get(10));
 
 			Reservation res = new Reservation(orderDate, diners != null ? diners : 0,
@@ -331,29 +348,29 @@ public class ConnectionToDB {
 
 	public List<Reservation> searchOrdersByEmail(String email) {
 		String sql = "SELECT res_id, confirmation_code, phone, email, sub_id, start_time, finish_time, "
-				+ "       order_date, order_status, num_diners, date_of_placing_order " + "FROM reservations "
-				+ "WHERE email = ? " + "ORDER BY order_date DESC";
+				+ "       order_date, order_status, num_diners, date_of_placing_order "
+				+ "FROM reservations WHERE email = ? ORDER BY order_date DESC";
 
 		List<List<Object>> rows = executeReadQuery(sql, email);
 		List<Reservation> list = new ArrayList<>();
 
 		for (List<Object> row : rows) {
-			Integer resId = (Integer) row.get(0);
-			Integer confirmationCode = (Integer) row.get(1);
-			String phoneNumber = (String) row.get(2);
-			String emailValue = (String) row.get(3);
-			Integer subId = (Integer) row.get(4);
+			Integer resId = toInt(row.get(0));
+			Integer confirmationCode = toInt(row.get(1));
+			String phoneNumber = toStr(row.get(2));
+			String emailValue = toStr(row.get(3));
+			Integer subId = toInt(row.get(4));
 
 			LocalTime startTime = toLocalTime(row.get(5));
 			LocalTime finishTime = toLocalTime(row.get(6));
 			LocalDate orderDate = toLocalDate(row.get(7));
 
-			Status status = Status.valueOf(((String) row.get(8)).trim());
-
-			Integer diners = (Integer) row.get(9);
+			Status status = toStatus(row.get(8));
+			Integer diners = toInt(row.get(9));
 			LocalDate placingDate = toLocalDate(row.get(10));
 
-			Reservation res = new Reservation(orderDate, diners, confirmationCode, subId, placingDate, startTime,
+			Reservation res = new Reservation(orderDate, diners != null ? diners : 0,
+					confirmationCode != null ? confirmationCode : 0, subId != null ? subId : 0, placingDate, startTime,
 					finishTime, phoneNumber, status, emailValue);
 
 			if (resId != null)
@@ -420,8 +437,7 @@ public class ConnectionToDB {
 
 	/**
 	 * Retrieves a reservation from the database using phone number and confirmation
-	 * code.
-	 * Uses {@link #executeReadQuery} and maps the first matching row into a
+	 * code. Uses {@link #executeReadQuery} and maps the first matching row into a
 	 * {@link Reservation}.
 	 *
 	 * @param phone            the phone number associated with the reservation
@@ -431,8 +447,7 @@ public class ConnectionToDB {
 	public Reservation getOrderByPhoneAndCode(String phone, int confirmationCode) {
 		String sql = "SELECT res_id, confirmation_code, phone, email, sub_id, start_time, finish_time, "
 				+ "       order_date, order_status, num_diners, date_of_placing_order "
-				+ "FROM reservations WHERE phone = ? AND confirmation_code = ? "
-				+ "AND order_status = 'CONFIRMED' "
+				+ "FROM reservations WHERE phone = ? AND confirmation_code = ? " + "AND order_status = 'CONFIRMED' "
 				+ "AND NOW() >= TIMESTAMP(order_date, start_time) "
 				+ "AND NOW() <= TIMESTAMPADD(MINUTE, 15, TIMESTAMP(order_date, start_time))";
 		List<List<Object>> rows = executeReadQuery(sql, phone, confirmationCode);
@@ -451,8 +466,7 @@ public class ConnectionToDB {
 	public Reservation getOrderByEmailAndCode(String email, int confirmationCode) {
 		String sql = "SELECT res_id, confirmation_code, phone, email, sub_id, start_time, finish_time, "
 				+ "       order_date, order_status, num_diners, date_of_placing_order "
-				+ "FROM reservations WHERE email = ? AND confirmation_code = ? "
-				+ "AND order_status = 'CONFIRMED' "
+				+ "FROM reservations WHERE email = ? AND confirmation_code = ? " + "AND order_status = 'CONFIRMED' "
 				+ "AND NOW() >= TIMESTAMP(order_date, start_time) "
 				+ "AND NOW() <= TIMESTAMPADD(MINUTE, 15, TIMESTAMP(order_date, start_time))";
 		List<List<Object>> rows = executeReadQuery(sql, email, confirmationCode);
@@ -515,6 +529,44 @@ public class ConnectionToDB {
 		return executeWriteQuery(sql, status.name(), phone, order_number);
 	}
 
+	public LocalTime[] getOpeningHours(LocalDate date) {
+
+		// 1. special days
+		String sqlSpecial = "SELECT opening_time, closing_time FROM specialdates WHERE date = ?";
+		List<List<Object>> rows = executeReadQuery(sqlSpecial, date);
+		if (!rows.isEmpty()) {
+			return extractTimes(rows.get(0));
+		}
+
+		// 2. regular days
+		String sqlRegular = "SELECT opening_time, closing_time FROM regulartimes WHERE day = ?";
+
+		String dayName = date.getDayOfWeek().name();
+		String dbDay = dayName.substring(0, 1) + dayName.substring(1).toLowerCase();
+
+		rows = executeReadQuery(sqlRegular, dbDay);
+
+		if (!rows.isEmpty()) {
+			return extractTimes(rows.get(0));
+		}
+
+		return null;
+	}
+
+	private LocalTime[] extractTimes(List<Object> row) {
+		LocalTime start = toLocalTime(row.get(0));
+		LocalTime end = toLocalTime(row.get(1));
+		return new LocalTime[] { start, end };
+	}
+
+	/**
+	 * Executes a write query with positional parameters.
+	 *
+	 * @param sql    SQL string with placeholders
+	 * @param params parameters to bind in order
+	 * @return number of rows affected
+	 */
+
 	// ** Tables related methods **
 	/**
 	 * Loads all tables and their current status from the DB.
@@ -551,36 +603,80 @@ public class ConnectionToDB {
 		return tables;
 	}
 
-    /**
-     * Searches for the smallest available table that can accommodate the specified
-     * number of guests.
-     *
-     * @param number_of_guests the minimum number of seats required
-     * @return the table number of the best-fitting table, or 0 if none found
-     */
-    public int searchAvailableTableBySize(int number_of_guests) {
-        String sql = "SELECT table_number FROM tablestable WHERE res_id IS NULL AND size >= ? "
-                + "ORDER BY size ASC, table_number ASC LIMIT 1";
-        List<List<Object>> rows = executeReadQuery(sql, number_of_guests);
-        if (rows.isEmpty() || rows.get(0).isEmpty()) {
-            return 0;
-        }
-        Object value = rows.get(0).get(0);
-        if (value instanceof Integer) {
-            return (Integer) value;
-        }
-        if (value instanceof Number) {
-            return ((Number) value).intValue();
-        }
-        if (value instanceof String) {
-            try {
-                return Integer.parseInt((String) value);
-            } catch (NumberFormatException e) {
-                return 0;
-            }
-        }
-        return 0;
-    }
+	/**
+	 * Returns a list of num_diners for all CONFIRMED reservations on the given date
+	 * that intersect the window [time-2h, time+2h].
+	 *
+	 * Window logic: existing.start_time < (time + 2h) AND existing.finish_time >
+	 * (time - 2h)
+	 *
+	 * @param orderDate the date to check (reservations.order_date)
+	 * @param time      the reference time (HH:mm or HH:mm:ss)
+	 * @return list of diners counts (num_diners) for matching reservations (empty
+	 *         if none)
+	 */
+	public List<Integer> getNumDinersInTwoHoursWindow(LocalDate orderDate, LocalTime time) {
+
+		String sql = "SELECT num_diners " + "FROM reservations " + "WHERE order_date = ? "
+				+ "  AND order_status = 'CONFIRMED' " + "  AND start_time < ADDTIME(TIME(?), '02:00:00') "
+				+ "  AND finish_time > SUBTIME(TIME(?), '02:00:00')";
+
+		// executeReadQuery supports LocalDate + String, so pass time as "HH:mm:ss"
+		String timeStr = time.toString(); // LocalTime -> "HH:mm" or "HH:mm:ss" (both OK for TIME(...))
+		List<List<Object>> rows = executeReadQuery(sql, orderDate, timeStr, timeStr);
+
+		List<Integer> diners = new ArrayList<>();
+		for (List<Object> row : rows) {
+			if (row == null || row.isEmpty())
+				continue;
+
+			Object v = row.get(0);
+			if (v instanceof Integer) {
+				diners.add((Integer) v);
+			} else if (v instanceof Number) {
+				diners.add(((Number) v).intValue());
+			} else if (v != null) {
+				// last-resort parse, just in case MySQL driver returns String
+				try {
+					diners.add(Integer.parseInt(v.toString()));
+				} catch (NumberFormatException ignore) {
+				}
+			}
+		}
+
+		return diners;
+	}
+
+	/**
+	 * Searches for the smallest available table that can accommodate the specified
+	 * number of guests.
+	 *
+	 * @param number_of_guests the minimum number of seats required
+	 * @return the table number of the best-fitting table, or 0 if none found
+	 */
+	public int searchAvailableTableBySize(int number_of_guests) {
+		String sql = "SELECT table_number FROM tablestable WHERE res_id IS NULL AND size >= ? "
+				+ "ORDER BY size ASC, table_number ASC LIMIT 1";
+		List<List<Object>> rows = executeReadQuery(sql, number_of_guests);
+		if (rows.isEmpty() || rows.get(0).isEmpty()) {
+			return 0;
+		}
+		Object value = rows.get(0).get(0);
+		if (value instanceof Integer) {
+			return (Integer) value;
+		}
+		if (value instanceof Number) {
+			return ((Number) value).intValue();
+		}
+		if (value instanceof String) {
+			try {
+				return Integer.parseInt((String) value);
+			} catch (NumberFormatException e) {
+				return 0;
+			}
+		}
+		return 0;
+	}
 
 	/**
 	 * Updates the size for a table by table number.
@@ -605,17 +701,20 @@ public class ConnectionToDB {
 		String sql = "UPDATE `tablestable` SET res_id=? WHERE table_number = ?";
 		return executeWriteQuery(sql, String.valueOf(0), table_number);
 	}
+
 	/**
-	 * Updates the reservation assignment for a specific table.
-	 * TODO: check if we can use only changeTableResId instead
+	 * Updates the reservation assignment for a specific table. TODO: check if we
+	 * can use only changeTableResId instead
+	 * 
 	 * @param table_number table whose reservation id should be set
 	 * @param res_id       new reservation id (0 clears the table)
 	 * @return number of rows affected
 	 */
-	public int updateTableResId(int table_number, int res_id){
+	public int updateTableResId(int table_number, int res_id) {
 		String sql = "UPDATE `tablestable` SET res_id=? WHERE table_number = ?";
 		return executeWriteQuery(sql, String.valueOf(res_id), table_number);
 	}
+
 	/**
 	 * Adds a new table to the tables table.
 	 *
@@ -735,7 +834,6 @@ public class ConnectionToDB {
 		return reservations;
 	}
 
-	
 	/**
 	 * Updates subscriber details based on the provided subscriber fields. Only
 	 * non-null/non-blank values are updated.
@@ -768,7 +866,8 @@ public class ConnectionToDB {
 	}
 
 	/**
-	 * Adds an assignment clause and parameter when the provided value contains text.
+	 * Adds an assignment clause and parameter when the provided value contains
+	 * text.
 	 *
 	 * @param value   candidate value to set
 	 * @param clause  SQL assignment fragment (e.g., "email = ?")
@@ -789,8 +888,7 @@ public class ConnectionToDB {
 	 * @return list of confirmation codes as strings (empty if none found)
 	 */
 	public ArrayList<String> getConfirmedReservationCodesBySubscriber(int subscriberId) {
-		String sql = "SELECT confirmation_code FROM reservations "
-				+ "WHERE sub_id = ? AND order_status = 'CONFIRMED' "
+		String sql = "SELECT confirmation_code FROM reservations " + "WHERE sub_id = ? AND order_status = 'CONFIRMED' "
 				+ "AND NOW() >= TIMESTAMP(order_date, start_time) "
 				+ "AND NOW() <= TIMESTAMPADD(MINUTE, 15, TIMESTAMP(order_date, start_time))";
 		List<List<Object>> rows = executeReadQuery(sql, subscriberId);
@@ -805,6 +903,7 @@ public class ConnectionToDB {
 		}
 		return codes;
 	}
+
 	/**
 	 * Retrieves a Subscriber object from the database using the subscriber ID. This
 	 * method executes a SQL query to fetch all subscriber fields.

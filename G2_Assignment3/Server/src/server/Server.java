@@ -4,6 +4,8 @@ import java.io.*;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.sql.SQLException;
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.time.YearMonth;
 import java.util.ArrayList;
 import java.util.List;
@@ -18,6 +20,7 @@ import communication.BistroResponseStatus;
 import communication.EventBus;
 import communication.EventType;
 import communication.NewSubscriberInfo;
+import communication.OrdersInRangeRequest;
 import communication.ServerEvent;
 import communication.StatusUpdate;
 import communication.TableSizeUpdate;
@@ -382,6 +385,26 @@ public class Server extends AbstractServer {
 				response = new BistroResponse(BistroResponseStatus.SUCCESS, dbReturnedValue);
 			} else
 				response = new BistroResponse(BistroResponseStatus.FAILURE, "Failed to update the chosen date");
+			break;
+			case GET_OPENING_HOURS:
+			if (data instanceof LocalDate) {
+				LocalTime[] times = db.getOpeningHours((LocalDate) data);
+				response = new BistroResponse(BistroResponseStatus.SUCCESS, times);
+			} else {
+				response = new BistroResponse(BistroResponseStatus.FAILURE, null);
+			}
+			break;
+		case GET_ORDERS_IN_RANGE:
+			if (data instanceof OrdersInRangeRequest) {
+				OrdersInRangeRequest req = (OrdersInRangeRequest) data;
+
+				LocalDate date = req.getDate();
+				LocalTime time = req.getTime();
+				dbReturnedValue = db.getNumDinersInTwoHoursWindow(date, time);
+				response = new BistroResponse(BistroResponseStatus.SUCCESS, dbReturnedValue);
+			} else {
+				response = new BistroResponse(BistroResponseStatus.FAILURE, null);
+			}
 			break;
 		default:
 			// Expect unknown/unsupported command; return INVALID_REQUEST.

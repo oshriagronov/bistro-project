@@ -22,14 +22,13 @@ public class Reservation implements Serializable {
 	private Status status = Status.PENDING;
 	private String email;
 
-	public Reservation(LocalDate order_date, int number_of_guests, int confirmation_code, int subscriber_id,
+	public Reservation(LocalDate order_date, int number_of_guests, int subscriber_id,
 			LocalDate date_of_placing_order, LocalTime start_time, String phone_number, String email) {
 		this.order_date = order_date;
 		this.start_time = start_time;
 		this.finish_time = start_time.plusHours(2);
 		this.date_of_placing_order = date_of_placing_order;
 		this.number_of_guests = number_of_guests;
-		this.confirmation_code = confirmation_code;
 		this.subscriber_id = subscriber_id;
 		this.phone_number = phone_number;
 		this.email=email;

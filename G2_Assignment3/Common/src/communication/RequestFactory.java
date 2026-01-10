@@ -306,5 +306,15 @@ public final class RequestFactory {
 		SpecialDay payload = new SpecialDay(day, open, close);
 		return new BistroRequest(BistroCommand.UPDATE_SPECIAL_DAY, payload);
 	}
+	
+	public static BistroRequest getOpeningHours(LocalDate date) {
+
+		return withPayload(BistroCommand.GET_OPENING_HOURS, date);
+	}
+	
+	public static BistroRequest getOrderIn4HoursRange(LocalDate date, LocalTime time) {
+		return withPayload(BistroCommand.GET_ORDERS_IN_RANGE, new OrdersInRangeRequest(date, time));
+	}
+
 
 }
