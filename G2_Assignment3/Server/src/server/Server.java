@@ -222,27 +222,47 @@ public class Server extends AbstractServer {
 				response = new BistroResponse(BistroResponseStatus.FAILURE, "update failed.");
 			break;
 		case GET_BILL:
-			// Expect Integer table number; resolve active reservation, clear table, return
-			// reservation.
-			if (data instanceof Integer) {
-				int tableNumber = (int) data;
-				int order_number = db.getOrderNumberByTableNumber(tableNumber);
-				if (order_number > 0) {
-					Reservation res = db.searchOrderByOrderNumber(order_number);
-					if (res != null) {
-						db.changeTableResId(tableNumber);
-						response = new BistroResponse(BistroResponseStatus.SUCCESS, res);
-						sendToAllClients(new ServerEvent(EventType.TABLE_CHANGED));
-						sendToAllClients(new ServerEvent(EventType.ORDER_CHANGED));
-					} else {
-						response = new BistroResponse(BistroResponseStatus.FAILURE, "Order not found.");
-					}
-				} else {
-					response = new BistroResponse(BistroResponseStatus.FAILURE, "No active order for this table.");
-				}
-			} else
-				response = new BistroResponse(BistroResponseStatus.INVALID_REQUEST, null);
-			break;
+		    // Expect Integer table number; resolve active reservation, clear table, return reservation.
+		    if (data instanceof Integer) {
+		        int tableNumber = (int) data;
+		        int order_number = db.getOrderNumberByTableNumber(tableNumber);
+
+		        if (order_number > 0) {
+		            Reservation res = db.searchOrderByOrderNumber(order_number);
+
+		            if (res != null) {
+
+		                // Clear the table (mark it as free)
+		                db.changeTableResId(tableNumber);
+
+		                // Try to assign a pending reservation to this now-free table
+		                Reservation assigned = db.assignPendingReservationToTable(tableNumber);
+
+		                // Return the bill for the finished reservation
+		                response = new BistroResponse(BistroResponseStatus.SUCCESS, res);
+
+		                // Notify all clients that table and orders changed
+		                sendToAllClients(new ServerEvent(EventType.TABLE_CHANGED));
+		                sendToAllClients(new ServerEvent(EventType.ORDER_CHANGED));
+
+		                // If someone from the waiting list was assigned, notify clients
+		                if (assigned != null) {
+		                    sendToAllClients(new ServerEvent(EventType.WAITLIST_CHANGED));
+		                }
+
+		            } else {
+		                response = new BistroResponse(BistroResponseStatus.FAILURE, "Order not found.");
+		            }
+
+		        } else {
+		            response = new BistroResponse(BistroResponseStatus.FAILURE, "No active order for this table.");
+		        }
+
+		    } else {
+		        response = new BistroResponse(BistroResponseStatus.INVALID_REQUEST, null);
+		    }
+		    break;
+
 		case SUBSCRIBER_LOGIN:
 			// Expect Subscriber with id+raw password; verify and return reservations list.
 			if (data instanceof Subscriber) {
