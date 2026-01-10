@@ -257,60 +257,61 @@ public class ConnectionToDB {
 	}
 	
 	/**
+	 * TODO: FIX LATER
 	 * Finds the first PENDING reservation that fits the table capacity,
 	 * confirms it, assigns it to the table, and returns the reservation.
 	 *
 	 * @param tableNumber the table that just became free
 	 * @return the assigned Reservation, or null if none matched
 	 */
-	public Reservation assignPendingReservationToTable(int tableNumber) {
+	// public Reservation assignPendingReservationToTable(int tableNumber) {
 
-	    try {
-	        int tableSeats = getTableSeats(tableNumber);
+	//     try {
+	//         int tableSeats = getTableSeats(tableNumber);
 
-	        String sql = "SELECT * FROM reservations " +
-	                     "WHERE order_status = 'PENDING' AND num_diners <= ? " +
-	                     "ORDER BY date_of_placing_order ASC LIMIT 1";
+	//         String sql = "SELECT * FROM reservations " +
+	//                      "WHERE order_status = 'PENDING' AND num_diners <= ? " +
+	//                      "ORDER BY date_of_placing_order ASC LIMIT 1";
 
-	        PreparedStatement ps = conn.prepareStatement(sql);
-	        ps.setInt(1, tableSeats);
-	        ResultSet rs = ps.executeQuery();
+	//         PreparedStatement ps = conn.prepareStatement(sql);
+	//         ps.setInt(1, tableSeats);
+	//         ResultSet rs = ps.executeQuery();
 
-	        if (!rs.next()) {
-	            return null;
-	        }
+	//         if (!rs.next()) {
+	//             return null;
+	//         }
 
-	        Reservation pending = new Reservation(
-	            rs.getString("phone"),
-	            rs.getString("email"),
-	            rs.getInt("sub_id"),
-	            rs.getTime("start_time").toLocalTime(),
-	            rs.getTime("finish_time").toLocalTime(),
-	            rs.getDate("order_date").toLocalDate(),
-	            ReservationStatus.valueOf(rs.getString("order_status")),
-	            rs.getInt("num_diners"),
-	            rs.getDate("date_of_placing_order").toLocalDate()
-	        );
+	//         Reservation pending = new Reservation(
+	//             rs.getString("phone"),
+	//             rs.getString("email"),
+	//             rs.getInt("sub_id"),
+	//             rs.getTime("start_time").toLocalTime(),
+	//             rs.getTime("finish_time").toLocalTime(),
+	//             rs.getDate("order_date").toLocalDate(),
+	//             ReservationStatus.valueOf(rs.getString("order_status")),
+	//             rs.getInt("num_diners"),
+	//             rs.getDate("date_of_placing_order").toLocalDate()
+	//         );
 
-	        int resId = pending.getResId();
-	        String updateStatus = "UPDATE reservations SET order_status = 'CONFIRMED' WHERE res_id = ?";
-	        PreparedStatement ps2 = conn.prepareStatement(updateStatus);
-	        ps2.setInt(1, resId);
-	        ps2.executeUpdate();
+	//         int resId = pending.getResId();
+	//         String updateStatus = "UPDATE reservations SET order_status = 'CONFIRMED' WHERE res_id = ?";
+	//         PreparedStatement ps2 = conn.prepareStatement(updateStatus);
+	//         ps2.setInt(1, resId);
+	//         ps2.executeUpdate();
 
-	        String updateTable = "UPDATE tables SET res_id = ? WHERE table_number = ?";
-	        PreparedStatement ps3 = conn.prepareStatement(updateTable);
-	        ps3.setInt(1, resId);
-	        ps3.setInt(2, tableNumber);
-	        ps3.executeUpdate();
+	//         String updateTable = "UPDATE tables SET res_id = ? WHERE table_number = ?";
+	//         PreparedStatement ps3 = conn.prepareStatement(updateTable);
+	//         ps3.setInt(1, resId);
+	//         ps3.setInt(2, tableNumber);
+	//         ps3.executeUpdate();
 
-	        return pending;
+	//         return pending;
 
-	    } catch (SQLException e) {
-	        e.printStackTrace();
-	        return null;
-	    }
-	}
+	//     } catch (SQLException e) {
+	//         e.printStackTrace();
+	//         return null;
+	//     }
+	// }
 
 
 	/**

@@ -1,0 +1,6 @@
+# Eclipse build output
+bin/
+**/bin/
+
+# OS
+.DS_Store
