@@ -73,7 +73,6 @@ public class WaitingListScreen {
         else {
             ScreenSetup.setupGuestView(nonSubVbox, workerVbox, null);
         }
-		
         diners.getItems().clear();
 		for (int i = 1; i <= 10; i++) {
 			diners.getItems().add(String.valueOf(i));

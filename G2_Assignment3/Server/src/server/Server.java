@@ -169,7 +169,7 @@ public class Server extends AbstractServer {
 				response = new BistroResponse(BistroResponseStatus.FAILURE, "Invalid reservation data");
 			}
 			break;
-
+			
 		case CANCEL_RESERVATION:
 			// Expect Integer order number; delete reservation and return rows affected.
 			dbReturnedValue = db.deleteOrderByOrderNumber((int) data);

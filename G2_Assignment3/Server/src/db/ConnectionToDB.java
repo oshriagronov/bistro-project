@@ -394,7 +394,8 @@ public class ConnectionToDB {
 		}
 		return orderNumber;
 	}
-
+	
+	
 	/**
 	 * Deletes an order from the DB by order number (primary key)
 	 * 
@@ -417,7 +418,10 @@ public class ConnectionToDB {
 		String sql = "UPDATE `reservations` SET order_status = ? WHERE phone = ? AND res_id = ?";
 		return executeWriteQuery(sql, status.name(), phone, order_number);
 	}
-
+	
+	
+	
+	
 	// ** Tables related methods **
 	/**
 	 * Loads all tables and their current status from the DB.
