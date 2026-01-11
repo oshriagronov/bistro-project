@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.chart.PieChart?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+
+<VBox prefHeight="650" prefWidth="980" spacing="14" style="-fx-background-color: #F6F7FB;" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="employee.SubscribersReportController">
+
+    <padding>
+        <Insets bottom="18" left="18" right="18" top="18" />
+    </padding>
+
+    <!-- Header card -->
+    <VBox spacing="6" style="-fx-background-color: white; -fx-background-radius: 14; -fx-padding: 16;                  -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 18, 0.2, 0, 6);">
+
+        <Label fx:id="reportTitleLabel" style="-fx-font-size: 20px; -fx-font-weight: 700;" text="Subscribers Report" textFill="#023fed">
+         <font>
+            <Font name="Calibri" size="12.0" />
+         </font></Label>
+
+        <Label fx:id="reportSubtitleLabel" style="-fx-font-size: 12.5px; -fx-text-fill: #6B7280;" text="Monthly overview: subscriber orders vs non-subscriber orders." />
+
+        <Separator opacity="0.35" />
+
+        <!-- Filters row -->
+        <HBox alignment="CENTER_LEFT" spacing="10">
+            <Label style="-fx-font-size: 13px; -fx-text-fill: #374151;" text="Year:" />
+            <ComboBox fx:id="yearCB" prefWidth="140" style="-fx-background-radius: 10; -fx-font-size: 13px;" />
+
+            <Label style="-fx-font-size: 13px; -fx-text-fill: #374151;" text="Month:" />
+            <ComboBox fx:id="monthCB" prefWidth="140" style="-fx-background-radius: 10; -fx-font-size: 13px;" />
+         <Label style="-fx-font-size: 13px; -fx-text-fill: #374151;" text="Report: " />
+         <ComboBox fx:id="reportsCB" prefWidth="140" style="-fx-background-radius: 10; -fx-font-size: 13px;" />
+
+            <Region HBox.hgrow="ALWAYS" />
+
+            <Button fx:id="backBtn" onAction="#backToMenu" style="-fx-background-color: #111827; -fx-text-fill: white; -fx-background-radius: 10;                            -fx-padding: 8 14; -fx-font-weight: 600;" text="Back" />
+        </HBox>
+    </VBox>
+
+    <!-- Chart card -->
+    <VBox spacing="10" style="-fx-background-color: white; -fx-background-radius: 14; -fx-padding: 16;                  -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 18, 0.2, 0, 6);">
+
+        <HBox alignment="CENTER_LEFT">
+            <Label style="-fx-font-size: 14px; -fx-font-weight: 700; -fx-text-fill: #111827;" text="Orders split" />
+            <Region HBox.hgrow="ALWAYS" />
+        </HBox>
+
+        <PieChart fx:id="ordersSplitPieChart" animated="false" legendVisible="true" prefHeight="460" />
+    </VBox>
+
+</VBox>

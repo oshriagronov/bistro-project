@@ -12,7 +12,7 @@ public class Reservation implements Serializable {
 	// private String time; check if to delete this.
 	private LocalDate order_date;
 	private int number_of_guests;
-	private int confirmation_code;
+	private String confirmation_code;
 	private int subscriber_id;
 	private int orderNumber;
 	private LocalDate date_of_placing_order;
@@ -36,7 +36,7 @@ public class Reservation implements Serializable {
 		this.email=email;
 	}
 
-	public Reservation(LocalDate order_date, int number_of_guests, int confirmation_code, int subscriber_id,
+	public Reservation(LocalDate order_date, int number_of_guests, String confirmation_code, int subscriber_id,
 			LocalDate date_of_placing_order, LocalTime start_time, LocalTime finish_time, String phone_number,
 			Status status, String email) {
 		this.order_date = order_date;
@@ -71,7 +71,7 @@ public class Reservation implements Serializable {
 		return number_of_guests;
 	}
 
-	public int getConfirmationCode() {
+	public String getConfirmationCode() {
 		return confirmation_code;
 	}
 
@@ -101,7 +101,7 @@ public class Reservation implements Serializable {
 		this.number_of_guests = number_of_guests;
 	}
 
-	public void setConfirmation_code(int confirmation_code) {
+	public void setConfirmation_code(String confirmation_code) {
 		this.confirmation_code = confirmation_code;
 	}
 

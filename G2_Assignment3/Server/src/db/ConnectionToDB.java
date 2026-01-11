@@ -132,7 +132,7 @@ public class ConnectionToDB {
 			return null;
 
 		Integer resId = toInteger(row.get(0));
-		Integer confirmationCode = toInteger(row.get(1));
+		String confirmationCode = toStr(row.get(1));
 		String phone = row.get(2) == null ? null : row.get(2).toString();
 		String email = row.get(3) == null ? null : row.get(3).toString();
 		Integer subId = toInteger(row.get(4));
@@ -146,9 +146,8 @@ public class ConnectionToDB {
 		if (status == null)
 			return null;
 
-		Reservation r = new Reservation(orderDate, diners != null ? diners : 0,
-				confirmationCode != null ? confirmationCode : 0, subId != null ? subId : 0, placingDate, startTime,
-				finishTime, phone, status, email);
+		Reservation r = new Reservation(orderDate, diners != null ? diners : 0, confirmationCode,
+				subId != null ? subId : 0, placingDate, startTime, finishTime, phone, status, email);
 		if (resId != null)
 			r.setOrderNumber(resId);
 		return r;
@@ -241,7 +240,7 @@ public class ConnectionToDB {
 	 * @param r the Reservation object containing all reservation details
 	 * @return number of affected rows (1 if insert succeeded, 0 if failed)
 	 */
-	public Integer insertReservation(Reservation reservation) {
+	public String insertReservation(Reservation reservation) {
 		String insertSql = """
 				    INSERT INTO reservations
 				    (phone, email, sub_id, start_time, finish_time, order_date, order_status, num_diners, date_of_placing_order)
@@ -284,7 +283,7 @@ public class ConnectionToDB {
 				selectStmt.setInt(1, resId);
 				try (ResultSet rs = selectStmt.executeQuery()) {
 					if (rs.next()) {
-						int confirmationCode = rs.getInt("confirmation_code");
+						String confirmationCode = rs.getString("confirmation_code");
 						reservation.setOrderNumber(resId);
 						reservation.setConfirmation_code(confirmationCode);
 						return confirmationCode;
@@ -379,7 +378,7 @@ public class ConnectionToDB {
 		List<Object> row = rows.get(0);
 
 		Integer resId = (Integer) row.get(0);
-		Integer confirmationCode = (Integer) row.get(1);
+		String confirmationCode = (String) row.get(1);
 		String phone = (String) row.get(2);
 		String email = (String) row.get(3);
 		Integer subId = (Integer) row.get(4);
@@ -392,9 +391,8 @@ public class ConnectionToDB {
 		Integer diners = (Integer) row.get(9);
 		LocalDate placingDate = toLocalDate(row.get(10));
 
-		Reservation r = new Reservation(orderDate, diners != null ? diners : 0,
-				confirmationCode != null ? confirmationCode : 0, subId != null ? subId : 0, placingDate, startTime,
-				finishTime, phone, status, email);
+		Reservation r = new Reservation(orderDate, diners != null ? diners : 0, confirmationCode,
+				subId != null ? subId : 0, placingDate, startTime, finishTime, phone, status, email);
 
 		if (resId != null)
 			r.setOrderNumber(resId);
@@ -417,7 +415,7 @@ public class ConnectionToDB {
 
 		for (List<Object> row : rows) {
 			Integer resId = toInt(row.get(0));
-			Integer confirmationCode = toInt(row.get(1));
+			String confirmationCode = toStr(row.get(1));
 			String phoneNumber = toStr(row.get(2));
 			String email = toStr(row.get(3));
 			Integer subId = toInt(row.get(4));
@@ -430,13 +428,12 @@ public class ConnectionToDB {
 			Integer diners = toInt(row.get(9));
 			LocalDate placingDate = toLocalDate(row.get(10));
 
-			Reservation res = new Reservation(orderDate, diners != null ? diners : 0,
-					confirmationCode != null ? confirmationCode : 0, subId != null ? subId : 0, placingDate, startTime,
-					finishTime, phoneNumber, status, email);
+			Reservation r = new Reservation(orderDate, diners != null ? diners : 0, confirmationCode,
+					subId != null ? subId : 0, placingDate, startTime, finishTime, phone, status, email);
 
 			if (resId != null)
-				res.setOrderNumber(resId);
-			list.add(res);
+				r.setOrderNumber(resId);
+			list.add(r);
 		}
 
 		return list;
@@ -470,7 +467,7 @@ public class ConnectionToDB {
 
 		for (List<Object> row : rows) {
 			Integer resId = toInt(row.get(0));
-			Integer confirmationCode = toInt(row.get(1));
+			String confirmationCode = toStr(row.get(1));
 			String phoneNumber = toStr(row.get(2));
 			String emailValue = toStr(row.get(3));
 			Integer subId = toInt(row.get(4));
@@ -484,7 +481,7 @@ public class ConnectionToDB {
 			LocalDate placingDate = toLocalDate(row.get(10));
 
 			Reservation res = new Reservation(orderDate, diners != null ? diners : 0,
-					confirmationCode != null ? confirmationCode : 0, subId != null ? subId : 0, placingDate, startTime,
+					confirmationCode, subId != null ? subId : 0, placingDate, startTime,
 					finishTime, phoneNumber, status, emailValue);
 
 			if (resId != null)
@@ -526,7 +523,7 @@ public class ConnectionToDB {
 					LocalTime finishTime = rs.getObject("finish_time", LocalTime.class);
 
 					int diners = rs.getInt("num_diners");
-					int confirmationCode = rs.getInt("confirmation_code");
+					String confirmationCode = rs.getString("confirmation_code");
 					int subId = rs.getInt("sub_id");
 
 					Status status = Status.valueOf(rs.getString("order_status"));
@@ -936,7 +933,7 @@ public class ConnectionToDB {
 			if (status == null)
 				continue;
 
-			Integer confirmationCode = toInteger(confirmationObj);
+			String confirmationCode = toStr(confirmationObj);
 			String phoneNumber = (String) phoneObj;
 			LocalTime startTime = ((java.sql.Time) startObj).toLocalTime();
 			LocalTime finishTime = ((java.sql.Time) finishObj).toLocalTime();
@@ -1446,9 +1443,9 @@ public class ConnectionToDB {
 
 	public List<StatusCounts> getDailySlotStats(int year, int month) {
 		String sql = "SELECT " + "DAY(order_date) AS day_in_month, "
-				+ "  SUM(CASE WHEN order_status IN ('CONFIRMED','COMPLETED') "
+				+ "  SUM(CASE WHEN order_status IN ('ACCEPTED','COMPLETED') "
 				+ "           AND MOD(MINUTE(start_time), 30) = 0 THEN 1 ELSE 0 END) AS on_time, "
-				+ "  SUM(CASE WHEN order_status IN ('CONFIRMED','COMPLETED') "
+				+ "  SUM(CASE WHEN order_status IN ('ACCEPTED','COMPLETED') "
 				+ "           AND MOD(MINUTE(start_time), 30) <> 0 THEN 1 ELSE 0 END) AS late, "
 				+ "  SUM(CASE WHEN order_status = 'CANCELLED' "
 				+ "           AND MOD(MINUTE(start_time), 30) > 15 THEN 1 ELSE 0 END) AS cancelled "

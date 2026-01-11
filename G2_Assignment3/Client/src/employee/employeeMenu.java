@@ -40,7 +40,6 @@ public class employeeMenu {
 		if(LoggedUser.getType()== UserType.EMPLOYEE)
 		{
 			reportsBTN.setManaged(false);
-			scheduleBtn.setManaged(false);
 		}
 	}
 

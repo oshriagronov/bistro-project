@@ -204,8 +204,8 @@ public class Server extends AbstractServer {
 		case ADD_RESERVATION:
 			// Handle adding a new reservation to the database
 			if (data instanceof Reservation) {
-				int success = db.insertReservation((Reservation) data);
-				if(success>0)
+				String success = db.insertReservation((Reservation) data);
+				if(success!=null)
 				{
 					response = new BistroResponse(BistroResponseStatus.SUCCESS, success);
 					sendToAllClients(new ServerEvent(EventType.ORDER_CHANGED));

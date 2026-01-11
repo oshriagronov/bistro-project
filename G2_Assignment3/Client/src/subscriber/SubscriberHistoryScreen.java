@@ -81,7 +81,7 @@ public class SubscriberHistoryScreen {
 		guestsCol.setCellValueFactory(data -> new SimpleStringProperty(
 			Integer.toString(data.getValue().getNumberOfGuests())));
 		confirmationCodeCol.setCellValueFactory(data -> new SimpleStringProperty(
-			Integer.toString(data.getValue().getConfirmationCode())));
+			(data.getValue().getConfirmationCode())));
 		placedCol.setCellValueFactory(data -> new SimpleStringProperty(
 			formatDate(data.getValue().getDateOfPlacingOrder())));
 		statusCol.setCellValueFactory(data -> new SimpleStringProperty(formatStatus(data.getValue().getStatus())));

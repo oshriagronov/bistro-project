@@ -12,8 +12,7 @@
 <?import javafx.scene.text.Font?>
 <?import javafx.scene.text.Text?>
 
-<Pane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="456.0" prefWidth="578.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="gui.OrderScreen"
-stylesheets="@../../../Css/style.css">
+<Pane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="456.0" prefWidth="578.0" stylesheets="@../../../Css/style.css" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="gui.OrderScreen">
    <children>
       <Text fill="#1673f6" layoutX="173.0" layoutY="46.0" strokeType="OUTSIDE" strokeWidth="0.0" style="-fx-font-size: 36;" text="New reservation">
          <font>
@@ -44,7 +43,7 @@ stylesheets="@../../../Css/style.css">
                               <Insets right="10.0" />
                            </HBox.margin>
                         </Text>
-                        <ComboBox fx:id="dinersAmmount" maxWidth="62.0" prefHeight="26.0" prefWidth="62.0" />
+                        <ComboBox fx:id="dinersAmmount" maxWidth="94.0" prefHeight="39.0" prefWidth="94.0" />
                      </children>
                   </HBox>
                   <HBox prefHeight="42.0" prefWidth="200.0">
@@ -56,7 +55,7 @@ stylesheets="@../../../Css/style.css">
                                     <Insets right="10.0" />
                                  </HBox.margin>
                               </Text>
-                              <ComboBox fx:id="orderHours" maxWidth="88.0" prefHeight="25.0" prefWidth="88.0">
+                              <ComboBox fx:id="orderHours" maxWidth="133.0" prefHeight="39.0" prefWidth="133.0">
                                  <HBox.margin>
                                     <Insets right="20.0" />
                                  </HBox.margin>
@@ -75,8 +74,8 @@ stylesheets="@../../../Css/style.css">
                               <Insets right="10.0" />
                            </HBox.margin>
                         </Text>
-                        <ComboBox fx:id="phoneStart" maxWidth="140.0" prefHeight="26.0" prefWidth="84.0" />
-                        <TextField fx:id="phoneNumber">
+                        <ComboBox fx:id="phoneStart" maxWidth="140.0" prefHeight="39.0" prefWidth="139.0" />
+                        <TextField fx:id="phoneNumber" prefWidth="131.0">
                            <HBox.margin>
                               <Insets left="10.0" />
                            </HBox.margin>
@@ -129,7 +128,7 @@ stylesheets="@../../../Css/style.css">
                      <VBox.margin>
                         <Insets bottom="10.0" />
                      </VBox.margin></Button>
-                  <Button fx:id="backBtn" mnemonicParsing="false" onAction="#back" prefHeight="25.0" prefWidth="60.0" text="Back" />
+                  <Button fx:id="backBtn" mnemonicParsing="false" onAction="#back" prefHeight="34.0" prefWidth="92.0" text="Back" />
                </children>
             </VBox>
          </children>

@@ -156,13 +156,15 @@ public class OrderScreen {
 	 */
 	@FXML
 	public void initialize() {
-		if (LoggedUser.getType() == UserType.SUBSCRIBER) {
-			this.sub = ScreenSetup.setupSubscriber(nonSubVbox, workerVbox, subHBOX);
-		} else if (LoggedUser.getType() == UserType.EMPLOYEE) {
-			this.worker = ScreenSetup.setupWorkerView(nonSubVbox, workerVbox, subHBOX);
-		} else {
-			ScreenSetup.setupGuestView(nonSubVbox, workerVbox, subHBOX);
-		}
+		if (LoggedUser.getType()==UserType.SUBSCRIBER) {
+        	this.sub = ScreenSetup.setupSubscriber(nonSubVbox, workerVbox, null);
+        }
+        else if (LoggedUser.getType()==UserType.EMPLOYEE || LoggedUser.getType()==UserType.MANAGER) {
+        	this.worker = ScreenSetup.setupWorkerView(nonSubVbox, workerVbox, null);
+        }
+        else {
+            ScreenSetup.setupGuestView(nonSubVbox, workerVbox, null);
+        }
 		subHBOX.setVisible(false);
 
 		orderDate.setDayCellFactory(d -> new DateCell() {
@@ -252,76 +254,6 @@ public class OrderScreen {
 		return null;
 	}
 
-	/**
-	 * Configures the screen for a logged-in subscriber.
-	 * <p>
-	 * Requests the subscriber object from the server and auto-fills:
-	 * </p>
-	 * <ul>
-	 * <li>Email</li>
-	 * <li>Phone prefix + number</li>
-	 * <li>Subscriber ID</li>
-	 * </ul>
-	 * <p>
-	 * Guest-related and worker-related UI elements are hidden after a successful
-	 * fetch. If the request fails, the screen falls back to the guest flow.
-	 * </p>
-	 */
-	@FXML
-	public void setupSubscriber() {
-		int id = LoggedUser.getId();
-
-		BistroRequest request = RequestFactory.getSubscriberById(id);
-		Main.client.accept(request);
-
-		BistroResponse response = Main.client.getResponse();
-		if (response == null) {
-			setupGuestView();
-			return;
-		}
-
-		Object data = response.getData();
-		if (data != null) {
-			this.sub = (Subscriber) data;
-
-			orderEmail.setText(sub.getEmail());
-
-			String p = sub.getPhone();
-			if (p != null && p.length() == 10) {
-				phoneStart.setValue(p.substring(0, 3));
-				phoneNumber.setText(p.substring(3));
-			}
-
-			subID.setText(String.valueOf(sub.getSubscriberId()));
-
-			nonSubVbox.setVisible(false);
-			workerVbox.setVisible(false);
-		}
-	}
-
-	/**
-	 * Configures the screen for a guest user.
-	 * <p>
-	 * Guest users must manually enter email and phone number. Worker UI controls
-	 * are hidden.
-	 * </p>
-	 */
-	private void setupGuestView() {
-		nonSubVbox.setVisible(true);
-		workerVbox.setVisible(false);
-	}
-
-	/**
-	 * Configures the screen for an employee/manager.
-	 * <p>
-	 * Worker controls are enabled/visible. Guest fields remain visible according to
-	 * the current UI design.
-	 * </p>
-	 */
-	private void setupWorkerView() {
-		nonSubVbox.setVisible(true);
-		workerVbox.setVisible(true);
-	}
 
 	/**
 	 * Handles the subscriber CheckBox click event.
