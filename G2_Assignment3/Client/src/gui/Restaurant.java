@@ -87,6 +87,49 @@ public class Restaurant {
 	}
 
 	/**
+	 * Determines whether the restaurant can accommodate the given diner groups in a
+	 * single time slot using the currently loaded {@link #tablesSizes}.
+	 * <p>
+	 * The algorithm assumes:
+	 * </p>
+	 * <ul>
+	 * <li>{@link #tablesSizes} is sorted in ascending order.</li>
+	 * <li>Each diner group requires one table with capacity
+	 * {@code >= group size}.</li>
+	 * <li>Tables are used at most once per time slot.</li>
+	 * </ul>
+	 *
+	 * @param diners a sorted list of diner group sizes occupying that time slot
+	 * @return {@code true} if all groups can be seated; otherwise {@code false}
+	 */
+	public static boolean isAvailable(List<Integer> diners, List<Integer> tablesSizes) {
+		int i = 0;
+
+		if (diners.size() > tablesSizes.size()) {
+			return false;
+		}
+
+		for (int num : diners) {
+			boolean found = false;
+
+			while (i < tablesSizes.size()) {
+				if (num <= tablesSizes.get(i)) {
+					found = true;
+					i++;
+					break;
+				}
+				i++;
+			}
+
+			if (i == tablesSizes.size() && !found) {
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	/**
 	 * Loads the restaurant tables from the server and refreshes the cached list of
 	 * table sizes.
 	 * <p>

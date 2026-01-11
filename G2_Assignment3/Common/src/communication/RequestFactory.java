@@ -223,6 +223,14 @@ public final class RequestFactory {
 		}
 		return withPayload(BistroCommand.GET_RESERVATIONS_BY_EMAIL, email.trim());
 	}
+	
+	// -------------------------------------------------------------------------
+	// Subscribers
+	// -------------------------------------------------------------------------
+	public static BistroRequest getSubscriberById(int id) {
+		return withPayload(BistroCommand.GET_SUB, id);
+	}
+	
 
 	// -------------------------------------------------------------------------
 	// Accept table

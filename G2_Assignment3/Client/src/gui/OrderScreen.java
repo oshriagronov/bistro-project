@@ -3,16 +3,17 @@ package gui;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
-import gui.Restaurant;
 
 import communication.BistroCommand;
 import communication.BistroRequest;
 import communication.BistroResponse;
 import communication.BistroResponseStatus;
+import communication.RequestFactory;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
@@ -30,7 +31,6 @@ import logic.Status;
 import logic.Subscriber;
 import logic.UserType;
 import logic.Worker;
-;
 
 /**
  * Controller for the {@code Order.fxml} view.
@@ -156,17 +156,13 @@ public class OrderScreen {
 	 */
 	@FXML
 	public void initialize() {
-
-		if (LoggedUser.getType()==UserType.SUBSCRIBER) {
-        	this.sub = ScreenSetup.setupSubscriber(nonSubVbox, workerVbox, null);
-        }
-        else if (LoggedUser.getType()==UserType.EMPLOYEE || LoggedUser.getType()==UserType.MANAGER) {
-        	this.worker = ScreenSetup.setupWorkerView(nonSubVbox, workerVbox, null);
-        }
-        else {
-            ScreenSetup.setupGuestView(nonSubVbox, workerVbox, null);
-        }
-
+		if (LoggedUser.getType() == UserType.SUBSCRIBER) {
+			this.sub = ScreenSetup.setupSubscriber(nonSubVbox, workerVbox, subHBOX);
+		} else if (LoggedUser.getType() == UserType.EMPLOYEE) {
+			this.worker = ScreenSetup.setupWorkerView(nonSubVbox, workerVbox, subHBOX);
+		} else {
+			ScreenSetup.setupGuestView(nonSubVbox, workerVbox, subHBOX);
+		}
 		subHBOX.setVisible(false);
 
 		orderDate.setDayCellFactory(d -> new DateCell() {
@@ -254,6 +250,77 @@ public class OrderScreen {
 			}
 		}
 		return null;
+	}
+
+	/**
+	 * Configures the screen for a logged-in subscriber.
+	 * <p>
+	 * Requests the subscriber object from the server and auto-fills:
+	 * </p>
+	 * <ul>
+	 * <li>Email</li>
+	 * <li>Phone prefix + number</li>
+	 * <li>Subscriber ID</li>
+	 * </ul>
+	 * <p>
+	 * Guest-related and worker-related UI elements are hidden after a successful
+	 * fetch. If the request fails, the screen falls back to the guest flow.
+	 * </p>
+	 */
+	@FXML
+	public void setupSubscriber() {
+		int id = LoggedUser.getId();
+
+		BistroRequest request = RequestFactory.getSubscriberById(id);
+		Main.client.accept(request);
+
+		BistroResponse response = Main.client.getResponse();
+		if (response == null) {
+			setupGuestView();
+			return;
+		}
+
+		Object data = response.getData();
+		if (data != null) {
+			this.sub = (Subscriber) data;
+
+			orderEmail.setText(sub.getEmail());
+
+			String p = sub.getPhone();
+			if (p != null && p.length() == 10) {
+				phoneStart.setValue(p.substring(0, 3));
+				phoneNumber.setText(p.substring(3));
+			}
+
+			subID.setText(String.valueOf(sub.getSubscriberId()));
+
+			nonSubVbox.setVisible(false);
+			workerVbox.setVisible(false);
+		}
+	}
+
+	/**
+	 * Configures the screen for a guest user.
+	 * <p>
+	 * Guest users must manually enter email and phone number. Worker UI controls
+	 * are hidden.
+	 * </p>
+	 */
+	private void setupGuestView() {
+		nonSubVbox.setVisible(true);
+		workerVbox.setVisible(false);
+	}
+
+	/**
+	 * Configures the screen for an employee/manager.
+	 * <p>
+	 * Worker controls are enabled/visible. Guest fields remain visible according to
+	 * the current UI design.
+	 * </p>
+	 */
+	private void setupWorkerView() {
+		nonSubVbox.setVisible(true);
+		workerVbox.setVisible(true);
 	}
 
 	/**
@@ -362,15 +429,31 @@ public class OrderScreen {
 			phone = (sub != null) ? sub.getPhone() : "";
 		} else {
 			email = orderEmail.getText();
-			if (email == null || !email.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$")) {
+			String phonePrefix = phoneStart.getValue() != null ? phoneStart.getValue() : "";
+			String phoneNumberText = phoneNumber.getText();
+			phone = phonePrefix + phoneNumberText;
+
+			boolean emailProvided = email != null && !email.isBlank();
+			boolean phoneProvided = phone != null && !phone.isBlank();
+
+			// חייב להיות לפחות אחד
+			if (!emailProvided && !phoneProvided) {
+				errors.append("Please enter at least an Email or a Phone number\n");
+				valid = false;
+			}
+
+			// אם הוזן אימייל – לבדוק תקינות
+			if (emailProvided && !email.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$")) {
 				errors.append("Please enter a valid Email\n");
 				valid = false;
 			}
 
-			phone = (phoneStart.getValue() != null ? phoneStart.getValue() : "") + phoneNumber.getText();
-			if (phone == null || phone.length() != 10 || !phone.matches("\\d+")) {
-				errors.append("Please enter a valid 10-digit phone number\n");
-				valid = false;
+			// אם הוזן טלפון – לבדוק תקינות
+			if (phoneProvided) {
+				if (phone.length() != 10 || !phone.matches("\\d+")) {
+					errors.append("Please enter a valid 10-digit phone number\n");
+					valid = false;
+				}
 			}
 		}
 
@@ -385,49 +468,65 @@ public class OrderScreen {
 
 		// 6) Availability check + suggestions
 		List<Integer> diners = dinersByTime.get(selected);
-
-		diners.add(amount);
-		diners.sort(Integer::compareTo);
+		if (diners == null) {
+			diners = new ArrayList<>();
+		}
+		List<Integer> test = new ArrayList<>(diners);
+		test.add(amount);
+		test.sort(Integer::compareTo);
 		StringBuilder suggestions = new StringBuilder();
-		if (!isAvailable(diners)) {
+		if (!Restaurant.isAvailable(test,tablesSizes)) {
 			errors.append("Chosen time isn't available, please choose another\n");
 			valid = false;
-			diners.remove(Integer.valueOf(amount));
 			LocalTime plus = selected.plusMinutes(30);
 			diners = dinersByTime.get(plus);
-			if (!(date.equals(LocalDate.now()) && plus.isBefore(LocalTime.now().plusHours(1))) && diners != null) {
-				diners.add(amount);
-				diners.sort(Integer::compareTo);
-				if (isAvailable(diners)) {
-					suggestions.append("• ").append(plus).append("\n");
+			if (diners != null) {
+				test = new ArrayList<>(diners);
+				if (!(date.equals(LocalDate.now()) && plus.isBefore(LocalTime.now().plusHours(1))) && diners != null) {
+					test.add(amount);
+					test.sort(Integer::compareTo);
+					System.out.println("plus:" + tablesSizes.toString());
+					System.out.println(test.toString());
+					if (Restaurant.isAvailable(test,tablesSizes)) {
+						suggestions.append("• ").append(plus).append("\n");
+					}
 				}
-				diners.remove(Integer.valueOf(amount));
 			}
+
 			LocalTime minus = selected.minusMinutes(30);
 			diners = dinersByTime.get(minus);
-			if (!(date.equals(LocalDate.now()) && minus.isBefore(LocalTime.now().plusHours(1))) && diners != null) {
-				diners.add(amount);
-				diners.sort(Integer::compareTo);
-				if (isAvailable(diners)) {
-					suggestions.append("• ").append(minus).append("\n");
+			if (diners != null) {
+				test = new ArrayList<>(diners);
+				if (!(date.equals(LocalDate.now()) && minus.isBefore(LocalTime.now().plusHours(1))) && diners != null) {
+					test.add(amount);
+					test.sort(Integer::compareTo);
+					System.out.println("minus:" + tablesSizes.toString());
+					System.out.println(test.toString());
+					if (Restaurant.isAvailable(test,tablesSizes)) {
+						suggestions.append("• ").append(minus).append("\n");
+					}
 				}
-				diners.remove(Integer.valueOf(amount));
 			}
 
 			if (suggestions.length() > 0) {
 				errors.append("Suggested times:\n").append(suggestions);
 			}
 		}
+
 		if (!valid) {
 			showAlert("Reservation Failure", errors.toString());
 			return;
 		}
 
-		Reservation r = new Reservation(date, amount, Integer.parseInt(idStr), today, selected, phone, Status.CONFIRMED, email);
+		Reservation r = new Reservation(date, amount, Integer.parseInt(idStr), today, selected, phone, Status.CONFIRMED,
+				email);
+
 		BistroRequest req = new BistroRequest(BistroCommand.ADD_RESERVATION, r);
 		Main.client.accept(req);
+
 		BistroResponse response = Main.client.getResponse();
 		if (response != null && response.getStatus() == BistroResponseStatus.SUCCESS) {
+			dinersByTime = Restaurant.buildDinersByTime(date);
 			showAlert("Reservation Success", "Your confirmation code is : " + response.getData());
 		} else {
 			showAlert("Error", "Failed placing the order");
@@ -460,59 +559,30 @@ public class OrderScreen {
 	 */
 	private void showOnlyAvailableTime(LocalDate date) {
 		orderHours.getItems().clear();
+
 		dinersByTime = Restaurant.buildDinersByTime(date);
 		tablesSizes = Restaurant.getTableSizes();
 
 		for (LocalTime time : dinersByTime.keySet()) {
 			List<Integer> diners = dinersByTime.get(time);
-			if (!(date.equals(LocalDate.now()) && time.isBefore(LocalTime.now().plusHours(1))) && isAvailable(diners)) {
+			if (!(date.equals(LocalDate.now()) && time.isBefore(LocalTime.now().plusHours(1)))
+					&& diners.size() < tablesSizes.size() && Restaurant.isAvailable(diners,tablesSizes)) {
 				orderHours.getItems().add(time.toString());
 			}
 		}
+		
+	    boolean hasTimes = !orderHours.getItems().isEmpty();
+
+	    orderHours.setDisable(!hasTimes);
+	    orderBtn.setDisable(!hasTimes);
+
+	    if (hasTimes) {
+	        orderHours.getSelectionModel().selectFirst();
+	    } else {
+	        orderHours.getSelectionModel().clearSelection();
+	    }
 	}
 
-	/**
-	 * Determines whether the restaurant can accommodate the given diner groups in a
-	 * single time slot using the currently loaded {@link #tablesSizes}.
-	 * <p>
-	 * The algorithm assumes:
-	 * </p>
-	 * <ul>
-	 * <li>{@link #tablesSizes} is sorted in ascending order.</li>
-	 * <li>Each diner group requires one table with capacity
-	 * {@code >= group size}.</li>
-	 * <li>Tables are used at most once per time slot.</li>
-	 * </ul>
-	 *
-	 * @param diners a sorted list of diner group sizes occupying that time slot
-	 * @return {@code true} if all groups can be seated; otherwise {@code false}
-	 */
-	private boolean isAvailable(List<Integer> diners) {
-		int i = 0;
-
-		if (diners.size() >= tablesSizes.size()) {
-			return false;
-		}
-
-		for (int num : diners) {
-			boolean found = false;
-
-			while (i < tablesSizes.size()) {
-				if (num <= tablesSizes.get(i)) {
-					found = true;
-					i++;
-					break;
-				}
-				i++;
-			}
-
-			if (i == tablesSizes.size() && !found) {
-				return false;
-			}
-		}
-
-		return true;
-	}
 
 	/**
 	 * Checks whether the restaurant is closed on the given date.
@@ -544,6 +614,8 @@ public class OrderScreen {
 			return open == null || close == null || open.equals(close);
 		});
 	}
+
+
 
 	/**
 	 * Handles the "Back" button click event.
