@@ -1,0 +1,116 @@
+/* =====================
+   GLOBAL
+   ===================== */
+.root {
+    -fx-font-family: "Segoe UI", Calibri, sans-serif;
+    -fx-background-color: linear-gradient(to bottom, #eef2f7, #f7f9fc);
+}
+
+/* =====================
+   SUBTITLE
+   ===================== */
+.text.subtitle {
+    -fx-fill: #6b6b6b;
+    -fx-font-size: 13px;
+    -fx-font-style: italic;
+}
+
+/* =====================
+   FORM CARD
+   ===================== */
+.form-card {
+    -fx-background-color: #ffffff;
+    -fx-background-radius: 18;
+    -fx-border-radius: 18;
+    -fx-border-color: #dddddd;
+    -fx-padding: 22;
+    -fx-spacing: 14;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 8, 0.35, 0, 3);
+}
+
+/* =====================
+   INPUTS – clean & elegant
+   ===================== */
+.text-field,
+.combo-box {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #d0d7de;
+    -fx-border-radius: 10;
+    -fx-background-radius: 10;
+    -fx-font-size: 14px;
+    -fx-pref-height: 32;
+    -fx-padding: 4 10 4 10;
+}
+
+.text-field:focused,
+.combo-box:focused {
+    -fx-border-color: #6bb7e8;
+    -fx-effect: dropshadow(gaussian, rgba(107,183,232,0.25), 4, 0.3, 0, 2);
+}
+
+/* =====================
+   CHECKBOX
+   ===================== */
+.check-box {
+    -fx-font-size: 14px;
+    -fx-text-fill: #3a3a3a;
+}
+
+/* =====================
+   BUTTONS
+   ===================== */
+.button {
+    -fx-font-size: 14px;
+    -fx-background-radius: 12;
+    -fx-cursor: hand;
+    -fx-padding: 8 22 8 22;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.05), 2, 0.3, 0, 1);
+}
+
+.button.primary {
+    -fx-background-color: linear-gradient(to bottom, #6bb7e8, #4a90c2);
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-background-radius: 22;
+    -fx-padding: 10 28 10 28;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.18), 4, 0.3, 0, 2);
+}
+
+.button.primary:hover {
+    -fx-background-color: linear-gradient(to bottom, #5aa7dc, #3f7fb0);
+}
+
+.button.primary:pressed {
+    -fx-background-color: #3f7fb0;
+}
+
+/* Back button */
+.button.back {
+    -fx-background-color: transparent;
+    -fx-text-fill: #4a90c2;
+    -fx-font-weight: bold;
+}
+
+.button.back:hover {
+    -fx-background-color: rgba(74,144,194,0.12);
+    -fx-border-color: #4a90c2;
+    -fx-border-radius: 12;
+    -fx-border-width: 1;
+}
+
+/* =====================
+   TEXT
+   ===================== */
+.text {
+    -fx-fill: #3a3a3a;
+    -fx-font-size: 14px;
+}
+
+/* =====================
+   TITLE
+   ===================== */
+.label.title .text {
+    -fx-font-size: 48px;
+    -fx-font-weight: bold;
+    -fx-fill: linear-gradient(to bottom, #6bb7e8, #4a90c2);
+}

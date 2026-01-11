@@ -815,7 +815,7 @@ public class ConnectionToDB {
 
 	// TODO: should be instead of changeTableResId
 	public int clearTableByResId(int resId) {
-		String sql = "UPDATE tablestable SET res_id = NULL WHERE res_id = ?";
+		String sql = "UPDATE tablestable SET res_id = 0 WHERE res_id = ?";
 		return executeWriteQuery(sql, resId);
 	}
 
