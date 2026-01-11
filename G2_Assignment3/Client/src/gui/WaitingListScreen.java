@@ -89,17 +89,15 @@ public class WaitingListScreen {
 		
 		if (diners.getValue() == null) {
 			showAlert("Error", "Please choose the diners amount");
-			return;
 		}
 		int num_of_diners = Integer.parseInt(diners.getValue());
 		if (sub != null){
 			Reservation r = new Reservation(today, num_of_diners, sub.getSubscriberId(), today, now, sub.getPhone(), Status.PENDING, sub.getEmail()) ;
 			Main.client.accept(new BistroRequest(BistroCommand.ADD_RESERVATION, r));
 			showAlert("Reservation Success", "Reservation successfully created.");
-			return;
 		}
 		
-		if (worker != null && subCheckBox.isSelected()){
+		else if (worker != null && subCheckBox.isSelected()){
 			String phone = "";
 			if (prePhone.getValue() != null) phone += prePhone.getValue();
 			if (phoneField.getText() != null) phone += phoneField.getText();
@@ -121,7 +119,6 @@ public class WaitingListScreen {
 				}
 			} else {
 				showAlert("Error", "Please enter phone or email to place the order.");
-				return;
 			}
 			
 			if (foundSub != null) {
@@ -131,27 +128,27 @@ public class WaitingListScreen {
 			} else {
 				showAlert("Error", "Subscriber not found. Please check details.");
 			}
-			return;
 		}
-		
-		String phone_number = "";
-		if (prePhone.getValue() != null) phone_number += prePhone.getValue();
-		if (phoneField.getText() != null) phone_number += phoneField.getText();
-		String email = emailField.getText();
-		int nonSub = 0;
+		else{
+			String phone_number = "";
+			if (prePhone.getValue() != null) phone_number += prePhone.getValue();
+			if (phoneField.getText() != null) phone_number += phoneField.getText();
+			String email = emailField.getText();
+			int nonSub = 0;
 
-		if (phone_number.length() > 0 && phone_number.length() < 10) {
-			showAlert("Input Error", "Please enter a valid 10-digit phone number.");
-		} else if (phone_number.isEmpty() && (email == null || email.trim().isEmpty())) {
-			showAlert("Input Error", "Please enter identifying information (Phone or Email).");
-		} else {
-			Reservation r = new Reservation(today, num_of_diners, nonSub, today, now, phone_number, Status.PENDING, email);
-			Main.client.accept(new BistroRequest(BistroCommand.ADD_RESERVATION, r));
-			BistroResponse response = Main.client.getResponse();
-			if (response != null && response.getStatus() == BistroResponseStatus.SUCCESS) {
-				showAlert("Reservation Success", "Reservation successfully created.");
+			if (phone_number.length() > 0 && phone_number.length() < 10) {
+				showAlert("Input Error", "Please enter a valid 10-digit phone number.");
+			} else if (phone_number.isEmpty() && (email == null || email.trim().isEmpty())) {
+				showAlert("Input Error", "Please enter identifying information (Phone or Email).");
 			} else {
-				showAlert("Error", "Failed to create reservation.");
+				Reservation r = new Reservation(today, num_of_diners, nonSub, today, now, phone_number, Status.PENDING, email);
+				Main.client.accept(new BistroRequest(BistroCommand.ADD_RESERVATION, r));
+				BistroResponse response = Main.client.getResponse();
+				if (response != null && response.getStatus() == BistroResponseStatus.SUCCESS) {
+					showAlert("Reservation Success", "Reservation successfully created.");
+				} else {
+					showAlert("Error", "Failed to create reservation.");
+				}
 			}
 		}
 		Boolean table = searchTable(num_of_diners, today, now);
@@ -159,9 +156,9 @@ public class WaitingListScreen {
 			if (table == true){
 				Main.changeRoot(AcceptTableScreen.fxmlPath);
 			}
-	} catch (Exception e) {
+		} catch (Exception e) {
 		e.printStackTrace();
-	}
+		}
     }
 
 	public Boolean searchTable(int num_of_diners, LocalDate today, LocalTime now) {

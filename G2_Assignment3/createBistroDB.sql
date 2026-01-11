@@ -66,6 +66,7 @@ LOCK TABLES `reservations` WRITE;
 INSERT INTO `reservations` 
 (`phone`, `email`, `sub_id`, `start_time`, `finish_time`, `order_date`, `order_status`, `num_diners`, `date_of_placing_order`) 
 VALUES 
+('0500000000', 'null@mail.com', 0, '00:00:00', '00:00:00', '2001-01-01', 'COMPLETED', 0, '2001-01-01'),
 ('0501234567', 'tal@mail.com', 1, '12:30:00', '14:30:00', '2025-01-05', 'CONFIRMED', 2, '2024-12-30'),
 ('0549705492', 'ofir@mail.com', 10, '14:30:00', '16:30:00', '2025-01-05', 'CONFIRMED', 4, '2024-12-30'),
 ('0540540545', 'oshri@mail.com', 0, '10:30:00', '12:30:00', '2025-01-05', 'CONFIRMED', 4, '2024-12-30'),
@@ -104,6 +105,7 @@ CREATE TABLE `subscriber` (
 LOCK TABLES `subscriber` WRITE;
 /*!40000 ALTER TABLE `subscriber` DISABLE KEYS */;
 INSERT INTO `subscriber` VALUES 
+(0,'guest','guest','guest','guest@mail.com','0500000000','lol'),
 (1,'tal123','Tal','Levi','tal@mail.com','0501234567','$2a$10$talhash'),
 (2,'noam77','Noam','Cohen','noam@mail.com','0529876543','$2a$10$noamhash'),
 (3,'dana_k','Dana','Katz','dana@mail.com','0541112233','$2a$10$danahash'),

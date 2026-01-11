@@ -1,62 +1,86 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.CheckBox?>
 <?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Pane?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Text?>
-<?import javafx.scene.control.Label?>
 
+<Pane prefHeight="400.0"
+      prefWidth="600.0"
+      xmlns="http://javafx.com/javafx/21"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="gui.WaitingListScreen"
+      styleClass="root">
 
-<VBox alignment="CENTER" prefHeight="500" prefWidth="600" spacing="30" styleClass="root" stylesheets="@../../../Css/style.css" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="gui.WaitingListScreen">
+    <children>
 
-    <padding>
-        <Insets bottom="40" left="40" right="40" top="40" />
-    </padding>
+        <!-- Title -->
+        <Text text="Enter Waiting List"
+              layoutX="200"
+              layoutY="50"
+              styleClass="text title"/>
 
-    <!-- Title -->
-   <Label text="Enter waiting list" styleClass="title"/>
+        <!-- Subtitle -->
+        <Text text="You must enter phone number or email (or both)"
+              layoutX="150"
+              layoutY="80"
+              wrappingWidth="300"
+              styleClass="text subtitle"/>
 
+        <!-- Form Card -->
+        <VBox layoutX="150"
+              layoutY="110"
+              prefWidth="300"
+              spacing="15"
+              styleClass="form-card">
 
-   
-    <!-- Subtitle -->
-    <Text styleClass="subtitle" text="You must enter phone number or Email (or both)" />
+            <!-- Diners -->
+            <HBox spacing="10" alignment="CENTER_LEFT">
+                <Text text="Amount of diners" styleClass="text"/>
+                <ComboBox fx:id="diners" prefWidth="80"/>
+            </HBox>
 
-    <!-- Form card -->
-    <VBox alignment="CENTER_LEFT" prefWidth="420" spacing="20" styleClass="form-card">
+            <!-- Non Subscriber -->
+            <VBox fx:id="nonSubVbox" spacing="10">
 
-        <!-- Diners -->
-        <HBox alignment="CENTER_LEFT" spacing="15">
-            <Text text="Amount of diners:" />
-            <ComboBox fx:id="diners" prefWidth="101.0" />
-        </HBox>
+                <HBox spacing="10" alignment="CENTER_LEFT">
+                    <Text text="Phone number" styleClass="text"/>
+                    <ComboBox fx:id="prePhone" prefWidth="60"/>
+                    <TextField fx:id="phoneField" prefWidth="160"/>
+                </HBox>
 
-        <!-- Phone -->
-        <HBox alignment="CENTER_LEFT" spacing="10">
-            <Text text="Phone number:" />
-            <ComboBox fx:id="prePhone" prefWidth="93.0" />
-            <TextField fx:id="phoneField" prefWidth="160" />
-        </HBox>
+                <HBox spacing="10" alignment="CENTER_LEFT">
+                    <Text text="Email" styleClass="text"/>
+                    <TextField fx:id="emailField" prefWidth="240"/>
+                </HBox>
 
-        <!-- Email -->
-        <HBox alignment="CENTER_LEFT" spacing="10">
-            <Text text="Email:" />
-            <TextField fx:id="emailField" prefWidth="235" />
-        </HBox>
+            </VBox>
 
-        <!-- Subscriber -->
-        <CheckBox fx:id="subCheckBox" text="Subscriber" />
+            <!-- Worker / Subscriber -->
+            <VBox fx:id="workerVbox">
+                <CheckBox fx:id="subCheckBox" text="Is subscriber?"/>
+            </VBox>
+
+        </VBox>
 
         <!-- Buttons -->
-        <HBox alignment="CENTER" spacing="20">
-            <Button fx:id="submit" onAction="#submit" styleClass="primary" text="Submit" />
+        <Button fx:id="submit"
+                text="Submit"
+                layoutX="260"
+                layoutY="340"
+                onAction="#submit"
+                styleClass="button primary"/>
 
-            <Button fx:id="backBtn" onAction="#back" styleClass="back" text="Back" />
-        </HBox>
+        <Button fx:id="backBtn"
+                text="Back"
+                layoutX="500"
+                layoutY="350"
+                onAction="#back"
+                styleClass="button back"/>
 
-    </VBox>
-
-</VBox>
+    </children>
+</Pane>

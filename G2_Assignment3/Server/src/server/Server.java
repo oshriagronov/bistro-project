@@ -403,6 +403,16 @@ public class Server extends AbstractServer {
 			} else
 				response = new BistroResponse(BistroResponseStatus.FAILURE, "Failed to login");
 			break;
+		case GET_WORKER:
+			if (data instanceof Integer) {
+				dbReturnedValue = db.SearchWorkerById((int) data);
+				response = new BistroResponse(
+						dbReturnedValue != null ? BistroResponseStatus.SUCCESS : BistroResponseStatus.FAILURE,
+						dbReturnedValue);
+			} else {
+				response = new BistroResponse(BistroResponseStatus.FAILURE, "Invalid worker ID");
+			}
+			break;
 		case LOAD_DINERS:
 			// Expect no payload; return current diners per table for staff view.
 			dbReturnedValue = db.loadCurrentDiners();

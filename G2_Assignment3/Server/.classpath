@@ -9,6 +9,6 @@
 	</classpathentry>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="lib" path="mysql-connector-j-9.5.0.jar"/>
-	<classpathentry kind="lib" path="C:/Users/oshri/Documents/bistro-project/G2_Assignment3/jbcrypt-0.4.jar"/>
+	<classpathentry kind="lib" path="C:/Users/ofir/Documents/bistro-project/G2_Assignment3/jbcrypt-0.4.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
