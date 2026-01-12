@@ -1,8 +1,6 @@
 package gui;
 
-import java.io.IOException;
 import java.util.ArrayList;
-import logic.Subscriber;
 import communication.BistroCommand;
 import communication.BistroRequest;
 import communication.BistroResponse;
@@ -86,7 +84,6 @@ public class AcceptTableScreen {
     private Text identifyingDetailsText;
 
     private boolean isSubscriber = false;
-    private String subscriberPhone = null;
 
     /**
      * Restores the view to its default state after an error or reset.
@@ -109,38 +106,6 @@ public class AcceptTableScreen {
         applyUserView();
     }
 
-    /**
-     * Validates the phone prefix and number input fields.
-     *
-     * @param errors collects validation messages when inputs are invalid
-     * @return true when both prefix and number are valid
-     */
-    private boolean validatePhoneInputs(StringBuilder errors) {
-        String prefix = prePhone.getValue();
-        String rest = restPhone.getText();
-        boolean valid = true;
-
-        if (prefix == null || prefix.isBlank()) {
-            errors.append("Please select a phone prefix\n");
-            valid = false;
-        }
-
-        if (rest == null || rest.length() != 7 || !rest.matches("\\d+")) {
-            errors.append("Please enter a valid phone number\n");
-            valid = false;
-        }
-
-        return valid;
-    }
-
-    /**
-     * Builds the full phone number from the prefix and rest of the input.
-     *
-     * @return concatenated phone number string
-     */
-    private String buildPhoneNumber() {
-        return prePhone.getValue() + restPhone.getText();
-    }
 
     /**
      * Toggles visibility and layout management for a node.
@@ -199,22 +164,8 @@ public class AcceptTableScreen {
     void initialize() {
         isSubscriber = LoggedUser.getType() == UserType.SUBSCRIBER;
         tableResultText.setVisible(false);
-
         if (isSubscriber) {
             setupSubscriberView();
-            BistroResponse response = sendRequest(BistroCommand.GET_SUBSCRIBER_BY_ID, LoggedUser.getId());
-            if (response.getData() instanceof Subscriber) {
-                subscriberPhone = ((Subscriber) response.getData()).getPhone();
-            }
-            else {
-                showAlert("Error", "There was error getting your subscriber information.");
-                try {
-                    Main.changeRoot(SubscriberScreen.fxmlPath);
-                } catch (IOException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
-                }
-            }
         } else {
             setupDefaultView();
         }
@@ -256,6 +207,16 @@ public class AcceptTableScreen {
             message.append("Could not find a matching order.");
         }
         showAlert("Message", message.toString());
+        if (restPhone != null) {
+            restPhone.clear();
+        }
+        if (emailField != null) {
+            emailField.clear();
+        }
+        if (prePhone != null) {
+            prePhone.getSelectionModel().clearSelection();
+            prePhone.setValue(null);
+        }
     }
 
     /**
@@ -370,18 +331,6 @@ public class AcceptTableScreen {
     }
 
     /**
-     * Ensures the stored subscriber phone number is present before using it for lookup.
-     * Append an error when it is missing so {@link #handleSubmit(ActionEvent)} can alert the user.
-     */
-    private String resolveSubscriberIdentifier(StringBuilder errors) {
-        if (subscriberPhone == null || subscriberPhone.isBlank()) {
-            errors.append("Missing subscriber phone number\n");
-            return null;
-        }
-        return subscriberPhone;
-    }
-
-    /**
      * Reads the confirmation code entered by a guest user and validates that it is numeric.
      */
     private String resolveGuestCode(StringBuilder errors) {
@@ -390,36 +339,6 @@ public class AcceptTableScreen {
             errors.append("Please enter a valid confirmation code\n");
         }
         return code;
-    }
-
-    /**
-     * Chooses either the full phone number or email to use for guest lookup.
-     * Phone takes precedence once it validates; errors are appended when both contacts are missing.
-     */
-    private String resolveGuestIdentifier(StringBuilder errors) {
-        String email = emailField != null ? emailField.getText().trim() : "";
-        boolean hasEmail = !email.isEmpty();
-        String prefix = prePhone.getValue();
-        String rest = restPhone.getText();
-        boolean hasPhoneInput = (prefix != null && !prefix.isBlank()) || (rest != null && !rest.isBlank());
-
-        if (hasPhoneInput) {
-            StringBuilder phoneErrors = new StringBuilder();
-            boolean phoneValid = validatePhoneInputs(phoneErrors);
-            if (phoneValid) {
-                return buildPhoneNumber();
-            }
-            if (!hasEmail) {
-                errors.append(phoneErrors);
-            }
-        }
-
-        if (hasEmail) {
-            return email;
-        }
-
-        errors.append("Please enter a phone number or email\n");
-        return null;
     }
 
     /**
