@@ -86,7 +86,7 @@ DROP TABLE IF EXISTS `subscriber`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `subscriber` (
   `sub_id` int NOT NULL AUTO_INCREMENT,
-  `username` varchar(50) NOT NULL,
+  `username` varchar(50) NOT NULL UNIQUE,
   `first_name` varchar(50) NOT NULL,
   `last_name` varchar(50) NOT NULL,
   `email` varchar(100) NOT NULL,

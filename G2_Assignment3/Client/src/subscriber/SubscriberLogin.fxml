@@ -22,12 +22,12 @@
          <children>
             <HBox prefHeight="35.0" prefWidth="260.0">
                <children>
-                  <Label prefWidth="110.0" text="Subscriber ID">
+                  <Label prefWidth="110.0" text="Username">
                      <HBox.margin>
                         <Insets right="10.0" />
                      </HBox.margin>
                   </Label>
-                  <TextField fx:id="subscriberCodeField" prefWidth="160.0" />
+                  <TextField fx:id="usernameField" prefWidth="160.0" />
                </children>
             </HBox>
             <HBox prefHeight="35.0" prefWidth="260.0">

@@ -1,7 +1,10 @@
 package subscriber;
 
+import java.util.ArrayList;
+
 import communication.BistroCommand;
 import communication.BistroRequest;
+import communication.BistroResponse;
 import communication.BistroResponseStatus;
 import gui.LoginMenuScreen;
 import gui.Main;
@@ -11,7 +14,6 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
 import logic.LoggedUser;
-import logic.Subscriber;
 
 /**
  * Controller for the subscriber login view.
@@ -24,7 +26,7 @@ public class SubscriberLoginScreen {
     private final Alert alert = new Alert(Alert.AlertType.INFORMATION);
 
     @FXML
-    private TextField subscriberCodeField;
+    private TextField usernameField;
 
     @FXML
     private TextField codeField;
@@ -44,14 +46,14 @@ public class SubscriberLoginScreen {
 
     @FXML
     void handleLogin(ActionEvent event) {
-        String subscriberCode = subscriberCodeField.getText();
+        String username = usernameField.getText();
         String password = codeField.getText();
         StringBuilder errors = new StringBuilder();
         boolean ok = true;
 
-        if (subscriberCode == null || subscriberCode.isBlank()) {
+        if (username == null || username.isBlank()) {
             ok = false;
-            errors.append("Please enter subscriber ID\n");
+            errors.append("Please enter username\n");
         }
         if (password == null || password.isBlank()) {
             ok = false;
@@ -60,15 +62,17 @@ public class SubscriberLoginScreen {
 
         if (ok) {
             // Send login request
-            Main.client.accept(new BistroRequest(
-                    BistroCommand.SUBSCRIBER_LOGIN,
-                    new Subscriber(Integer.parseInt(subscriberCode), password)
-            ));
-
-            if (Main.client.getResponse().getStatus() == BistroResponseStatus.SUCCESS) {
+            ArrayList<String> subscriberLoginInfo = new ArrayList<>();
+            subscriberLoginInfo.add(username);
+            subscriberLoginInfo.add(password);
+            Main.client.accept(new BistroRequest(BistroCommand.SUBSCRIBER_LOGIN, subscriberLoginInfo));
+            BistroResponse response = Main.client.getResponse();
+            if (response.getStatus() == BistroResponseStatus.SUCCESS) {
                 try {
-                    // Save subscriber globally
-                    LoggedUser.setSubscriber(Integer.parseInt(subscriberCode));
+                    Object subscriberCode = response.getData();
+                    if(subscriberCode instanceof Integer)
+                        // Save subscriber globally
+                        LoggedUser.setSubscriber((Integer)subscriberCode);
                     // Switch screen
                     Main.changeRoot(SubscriberScreen.fxmlPath);
                 } catch (Exception e) {

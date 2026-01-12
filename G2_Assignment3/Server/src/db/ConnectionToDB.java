@@ -889,24 +889,35 @@ public class ConnectionToDB {
 	/**
 	 * Checks subscriber credentials against the DB.
 	 *
-	 * @param subscriberId subscriber ID
+	 * @param username subscriber username(it's unique)
 	 * @param rawPassword  subscriber raw password
-	 * @return list of reservations if credentials match, null otherwise
+	 * @return subscriber id if credentials match, 0 otherwise
 	 */
-	public boolean subscriberLogin(int subscriberId, String rawPassword) {
-		String sql = "SELECT password_hash FROM subscriber WHERE sub_id = ?";
-		List<List<Object>> rows = executeReadQuery(sql, subscriberId);
+	public int subscriberLogin(String username, String rawPassword) {
+		String sql = "SELECT sub_id, password_hash FROM subscriber WHERE username = ?";
+		List<List<Object>> rows = executeReadQuery(sql, username);
 		if (rows.isEmpty())
-			return false;
+			return 0;
 		List<Object> row = rows.get(0);
-		if (row.isEmpty())
-			return false;
-		Object hashObj = row.get(0);
-		if (!(hashObj instanceof String))
-			return false;
-		return BCrypt.checkpw(rawPassword, (String) hashObj);
+		if (row.size() < 2)
+			return 0;
+		Object idObj = row.get(0);
+		Object hashObj = row.get(1);
+		if (!(idObj instanceof Number) || !(hashObj instanceof String))
+			return 0;
+		int subscriberId = ((Number) idObj).intValue();
+		String passwordHash = (String) hashObj;
+		return BCrypt.checkpw(rawPassword, passwordHash) ? subscriberId : 0;
 	}
 
+	/**
+	 * Retrieves all reservations made by a subscriber, filtering out rows that
+	 * lack required data or a valid {@link Status}.
+	 *
+	 * @param subscriberId database id of the subscriber whose history is needed
+	 * @return list of reservations created by the subscriber, or {@code null} if
+	 *         no rows were found
+	 */
 	public List<Reservation> getSubscriberHistory(int subscriberId) {
 		String sql = "SELECT confirmation_code, phone, start_time, finish_time, order_date, order_status, "
 				+ "num_diners, date_of_placing_order, email " + "FROM reservations WHERE sub_id = ?";

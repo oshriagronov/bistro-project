@@ -272,16 +272,35 @@ public class Server extends AbstractServer {
 			}
 			break;
 		case SUBSCRIBER_LOGIN:
-			// Expect Subscriber with id+raw password; verify and return reservations list.
-			if (data instanceof Subscriber) {
-				subscriber = (Subscriber) data;
-				response = new BistroResponse(
-						db.subscriberLogin(subscriber.getSubscriberId(), subscriber.getPasswordHash())
-								? BistroResponseStatus.SUCCESS
-								: BistroResponseStatus.FAILURE,
-						null);
-			} else
+			// Validates login payload ([subscriberId, rawPassword]) and checks credentials via
+			// db.subscriberLogin; triggered by Client/src/subscriber/SubscriberLoginScreen.java.
+			String username = null;
+			String password = null;
+			// Expect [subscriberId, raw password]; verify and return subscriber id on success.
+			if (data instanceof ArrayList<?>) {
+				ArrayList<?> params = (ArrayList<?>) data;
+				if (params.size() >= 2) {
+					if (params.get(0) instanceof String) {
+						username = ((String) params.get(0)).trim();
+						if (username.isEmpty()) {
+							username = null;
+						}
+					}
+					if (params.get(1) instanceof String) {
+						password = (String) params.get(1);
+						if (!hasText(password)) {
+							password = null;
+						}
+					}
+				}
+			}
+			if (!hasText(username) || !hasText(password)) {
 				response = new BistroResponse(BistroResponseStatus.FAILURE, null);
+				break;
+			}
+			int subscriberId = db.subscriberLogin(username, password);
+			response = new BistroResponse(subscriberId > 0 ? BistroResponseStatus.SUCCESS : BistroResponseStatus.FAILURE, 
+				subscriberId > 0 ? subscriberId :null);
 			break;
 		case GET_SUBSCRIBER_HISTORY:
 			// Expect Subscriber with id+raw password; verify and return reservations list.
