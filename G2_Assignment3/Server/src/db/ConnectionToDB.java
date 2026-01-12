@@ -8,9 +8,7 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
-
 import org.mindrot.jbcrypt.BCrypt;
-import logic.LoggedUser;
 import communication.AvgStayCounts;
 import communication.StatusCounts;
 import logic.CurrentDinerRow;
@@ -195,8 +193,7 @@ public class ConnectionToDB {
 	 * @return number of rows affected
 	 */
 	public int updateReservationTimesAfterAcceptation(int order_number) {
-		String sql = "UPDATE `reservations` SET start_time = CURTIME(), "
-				+ "finish_time = ADDTIME(CURTIME(), '02:00:00'), " + "order_status = 'ACCEPTED' WHERE res_id = ?";
+		String sql = "UPDATE reservations SET start_time = CURTIME(), finish_time = ADDTIME(CURTIME(), '02:00:00'), order_status = 'ACCEPTED' WHERE res_id = ?";
 		return executeWriteQuery(sql, order_number);
 	}
 
@@ -566,21 +563,39 @@ public class ConnectionToDB {
 	}
 
 	/**
-	 * Retrieves a reservation from the database using email and confirmation code.
+	 * Retrieves a reservation from the database using confirmation code only.
 	 * Uses {@link #executeReadQuery} and maps the first matching row into a
 	 * {@link Reservation}.
 	 *
-	 * @param email            the email associated with the reservation
 	 * @param confirmationCode the confirmation code of the reservation
 	 * @return a Reservation object if found, otherwise null
 	 */
+	public Reservation getConfirmedReservationByConfirmationCode(int confirmationCode) {
+		String sql = "SELECT * "
+				+ "FROM reservations WHERE confirmation_code = ? " + "AND order_status = 'CONFIRMED' "
+				+ "AND NOW() >= TIMESTAMP(order_date, start_time) "
+				+ "AND NOW() <= TIMESTAMPADD(MINUTE, 15, TIMESTAMP(order_date, start_time)) LIMIT 1";
+		List<List<Object>> rows = executeReadQuery(sql, confirmationCode);
+		return rows.isEmpty() ? null : buildReservationFromRow(rows.get(0));
+	}
+
+	public Reservation getAcceptedReservationByConfirmationCode(int confirmationCode) {
+		String sql = "SELECT * FROM reservations "
+				+ "WHERE confirmation_code = ? AND order_status = 'ACCEPTED' "
+				+ "AND NOW() >= TIMESTAMP(order_date, start_time) "
+				+ "AND NOW() <= TIMESTAMP(order_date, finish_time) LIMIT 1";
+		List<List<Object>> rows = executeReadQuery(sql, confirmationCode);
+		return rows.isEmpty() ? null : buildReservationFromRow(rows.get(0));
+	}
+
+
 	public Reservation getOrderByEmailAndCode(String email, int confirmationCode, String status) {
 		String sql = "SELECT res_id, confirmation_code, phone, email, sub_id, start_time, finish_time, "
 				+ "       order_date, order_status, num_diners, date_of_placing_order "
-				+ "FROM reservations WHERE email = ? AND confirmation_code = ? " + "AND order_status = ? "
+				+ "FROM reservations WHERE confirmation_code = ? " + "AND order_status = ? "
 				+ "AND NOW() >= TIMESTAMP(order_date, start_time) "
 				+ "AND NOW() <= TIMESTAMPADD(MINUTE, 15, TIMESTAMP(order_date, start_time))";
-		List<List<Object>> rows = executeReadQuery(sql, email, confirmationCode, status);
+		List<List<Object>> rows = executeReadQuery(sql, confirmationCode, status);
 		return rows.isEmpty() ? null : buildReservationFromRow(rows.get(0));
 	}
 
@@ -812,7 +827,7 @@ public class ConnectionToDB {
 
 	// TODO: should be instead of changeTableResId
 	public int clearTableByResId(int resId) {
-		String sql = "UPDATE tablestable SET res_id = 0 WHERE res_id = ?";
+		String sql = "UPDATE tablestable SET res_id = NULL WHERE res_id = ?";
 		return executeWriteQuery(sql, resId);
 	}
 

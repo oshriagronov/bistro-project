@@ -258,7 +258,7 @@ public final class RequestFactory {
 		search.add(identifier);
 		search.add(code);
 
-		return withPayload(BistroCommand.GET_TABLE_BY_IDENTIFIER_AND_CODE, search);
+		return withPayload(BistroCommand.GET_TABLE_BY_CONFIRMATION_CODE, search);
 	}
 
 	/**

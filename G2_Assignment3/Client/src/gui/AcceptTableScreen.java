@@ -50,6 +50,9 @@ public class AcceptTableScreen {
     private TextField emailField;
 
     @FXML
+    private HBox emailBox;
+
+    @FXML
     private CheckBox forgotCheckBox;
 
     @FXML
@@ -169,6 +172,8 @@ public class AcceptTableScreen {
         boolean forgotSelected = forgotCheckBox != null && forgotCheckBox.isSelected();
         toggleNode(confirmationBox, !forgotSelected);
         toggleNode(identifyingDetailsText, forgotSelected);
+        toggleNode(phoneBox, forgotSelected);
+        toggleNode(emailBox, forgotSelected);
         toggleNode(submitBTN, !forgotSelected);
         toggleNode(getConfirmationBtn, forgotSelected);
     }
@@ -325,17 +330,12 @@ public class AcceptTableScreen {
     void handleSubmit(ActionEvent event){
         StringBuilder errors = new StringBuilder();
         String code = isSubscriber ? resolveSubscriberCode(errors) : resolveGuestCode(errors);
-        String identifier = isSubscriber ? resolveSubscriberIdentifier(errors) : resolveGuestIdentifier(errors);
 
         if (errors.length() > 0) {
             showAlert("Input Error", errors.toString());
             return;
         }
-
-        ArrayList <String> search = new ArrayList<>(2);
-        search.add(identifier);
-        search.add(code);
-        BistroResponse response = sendRequest(BistroCommand.GET_TABLE_BY_IDENTIFIER_AND_CODE, search);
+        BistroResponse response = sendRequest(BistroCommand.GET_TABLE_BY_CONFIRMATION_CODE, code);
         if (response != null && response.getStatus() == BistroResponseStatus.SUCCESS) {
             Object data = response.getData();
             if (data != null) {
@@ -345,8 +345,16 @@ public class AcceptTableScreen {
                 return;
             }
         }
+        else if(response.getStatus() == BistroResponseStatus.NO_AVAILABLE_TABLE){
+            showAlert("Message", "There is no available table.");    
+        }
+        else if(response.getStatus() == BistroResponseStatus.NOT_FOUND){
+            showAlert("Message", "Could not find a matching order.");
+        }
+        else if(response.getStatus() == BistroResponseStatus.INVALID_REQUEST){
+            showAlert("Error", "The confirmation code is invalid.");
+        }
         resetToDefaultView();
-        showAlert("Error", "Could not find a matching order.");
     }
 
     /**

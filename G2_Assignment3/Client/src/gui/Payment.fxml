@@ -33,19 +33,6 @@
                         <TextField fx:id="confirmationCode" prefWidth="150.0" />
                      </children>
                   </HBox>
-                  <HBox fx:id="phoneHbox" alignment="CENTER_LEFT" prefHeight="28.0" prefWidth="200.0" spacing="10.0">
-                     <children>
-                        <Text strokeType="OUTSIDE" strokeWidth="0.0" text="phone number" />
-                        <ComboBox fx:id="prePhone" prefHeight="25.0" prefWidth="65.0" />
-                        <TextField fx:id="restPhone" prefWidth="150.0" />
-                     </children>
-                  </HBox>
-                  <HBox fx:id="emailHbox" alignment="CENTER_LEFT" prefHeight="28.0" prefWidth="200.0" spacing="10.0">
-                     <children>
-                        <Text strokeType="OUTSIDE" strokeWidth="0.0" text="email" />
-                        <TextField fx:id="emailField" prefWidth="200.0" />
-                     </children>
-                  </HBox>
                </children>
             </VBox>
             <HBox fx:id="submitHbox" alignment="CENTER" prefHeight="100.0" prefWidth="200.0">

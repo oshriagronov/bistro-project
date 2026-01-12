@@ -114,17 +114,10 @@ public class Server extends AbstractServer {
 			dbReturnedValue = db.searchOrderByOrderNumber(orderNumber);
 			response = new BistroResponse(BistroResponseStatus.SUCCESS, dbReturnedValue);
 			break;
-		case GET_TABLE_BY_IDENTIFIER_AND_CODE:
-			// Expect ArrayList [identifier, confirmationCode]; fetch reservation then find an
-			// available table.
-			if (data instanceof ArrayList) {
-				ArrayList<?> params = (ArrayList<?>) data;
-				String identifier = (String) params.get(0);
-				int code = Integer.parseInt((String) params.get(1));
-				Reservation res;
-				res = identifier.contains("@") ? 
-					db.getOrderByEmailAndCode(identifier, code, Status.CONFIRMED.name()) :
-					db.getOrderByPhoneAndCode(identifier, code, Status.CONFIRMED.name());
+		case GET_TABLE_BY_CONFIRMATION_CODE:
+			// Expect String of confirmation code; fetch reservation then find an available table.
+			if (data instanceof String) {
+				Reservation res = db.getConfirmedReservationByConfirmationCode(Integer.parseInt((String)data));
 				if (res != null) {
 					int tableNum = db.searchAvailableTableBySize(res.getNumberOfGuests());
 					if (tableNum > 0) {
@@ -263,14 +256,9 @@ public class Server extends AbstractServer {
 			break;
 		case GET_BILL:
 			// Expect ArrayList [identifier, confirmationCode]; fetch reservation then get bill.
-			if (data instanceof ArrayList) {
-				ArrayList<?> params = (ArrayList<?>) data;
-				String identifier = (String) params.get(0);
-				int code = Integer.parseInt((String) params.get(1));
-				Reservation res;
-				res = identifier.contains("@") ? 
-					db.getOrderByEmailAndCode(identifier, code, Status.ACCEPTED.name()) :
-					db.getOrderByPhoneAndCode(identifier, code, Status.ACCEPTED.name());
+			if (data instanceof String) {
+				int code = Integer.parseInt((String) data);
+				Reservation res = db.getAcceptedReservationByConfirmationCode(code);
 				if (res != null) {
 					db.changeOrderStatus(res.getPhone_number(), res.getOrderNumber(), Status.COMPLETED);
 					db.updateReservationTimesAfterCompleting(res.getOrderNumber());

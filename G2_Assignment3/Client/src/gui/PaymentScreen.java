@@ -18,7 +18,6 @@ import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import logic.LoggedUser;
 import logic.Reservation;
-import logic.Subscriber;
 import logic.UserType;
 import subscriber.SubscriberScreen;
 import employee.employeeMenu;
@@ -26,7 +25,7 @@ import employee.employeeMenu;
 /**
  * Controller class for the Payment.fxml view.
  * This class handles the logic for customers to view their bill
- * by entering their phone/email and confirmation code.
+ * by entering their confirmation code.
  */
 public class PaymentScreen {
 	public static final int PAYMENT_PER_DINER=100;
@@ -44,19 +43,7 @@ public class PaymentScreen {
     private VBox detailsVbox;
 
     @FXML
-    private TextField emailField;
-
-    @FXML
     private VBox infoVbox;
-
-    @FXML
-    private HBox phoneHbox;
-
-    @FXML
-    private ComboBox<String> prePhone;
-
-    @FXML
-    private TextField restPhone;
 
     @FXML
     private HBox subscriberConfirmationBox;
@@ -77,12 +64,11 @@ public class PaymentScreen {
     private Button backBtn;
 
     private boolean isSubscriber = false;
-    private String subscriberIdentifier = null;
 
     /**
      * Initializes the controller.
      * This method is automatically called after the FXML file has been loaded.
-     * It sets up the phone number prefix options and hides the total amount text.
+     * It sets up the view for the current user type and hides the total amount text.
      */
     @FXML
     void initialize() {
@@ -91,19 +77,6 @@ public class PaymentScreen {
 
         if (isSubscriber) {
             setupSubscriberView();
-            BistroResponse response = sendRequest(BistroCommand.GET_SUBSCRIBER_BY_ID, LoggedUser.getId());
-            if (response != null && response.getStatus() == BistroResponseStatus.SUCCESS
-                    && response.getData() instanceof Subscriber) {
-                Subscriber subscriber = (Subscriber) response.getData();
-                subscriberIdentifier = resolveSubscriberContact(subscriber.getPhone(), subscriber.getEmail());
-            } else {
-                showAlert("Error", "There was error getting your subscriber information.");
-                try {
-                    Main.changeRoot(SubscriberScreen.fxmlPath);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
         } else {
             setupDefaultView();
         }
@@ -123,7 +96,7 @@ public class PaymentScreen {
 
     /**
      * Handles the submit button action.
-     * Validates the phone/email and confirmation code, sends them to the server,
+     * Validates the confirmation code, sends it to the server,
      * and displays the total bill amount if found.
      * @param event The ActionEvent triggered by the submit button.
      */
@@ -132,17 +105,12 @@ public class PaymentScreen {
     void handleSubmit(ActionEvent event) {
         StringBuilder errors = new StringBuilder();
         String code = isSubscriber ? resolveSubscriberCode(errors) : resolveGuestCode(errors);
-        String identifier = isSubscriber ? resolveSubscriberIdentifier(errors) : resolveGuestIdentifier(errors);
 
         if (errors.length() > 0) {
             showAlert("Input Error", errors.toString());
             return;
         }
-
-        ArrayList<String> search = new ArrayList<>(2);
-        search.add(identifier);
-        search.add(code);
-        BistroResponse response = sendRequest(BistroCommand.GET_BILL, search);
+        BistroResponse response = sendRequest(BistroCommand.GET_BILL, code);
         if (response != null && response.getStatus() == BistroResponseStatus.SUCCESS) {
             Object data = response.getData();
             if (data != null && data instanceof Reservation) {
@@ -187,8 +155,6 @@ public class PaymentScreen {
     private void setupDefaultView() {
         isSubscriber = false;
         applyUserView();
-        prePhone.getItems().clear();
-        prePhone.getItems().addAll("050", "052", "053", "054", "055", "058");
     }
 
     private void setupSubscriberView() {
@@ -243,46 +209,6 @@ public class PaymentScreen {
         return Main.client.getResponse();
     }
 
-    private boolean validatePhoneInputs(StringBuilder errors) {
-        String prefix = prePhone.getValue();
-        String rest = restPhone.getText();
-        boolean valid = true;
-
-        if (prefix == null || prefix.isBlank()) {
-            errors.append("Please select a phone prefix\n");
-            valid = false;
-        }
-
-        if (rest == null || rest.length() != 7 || !rest.matches("\\d+")) {
-            errors.append("Please enter a valid phone number\n");
-            valid = false;
-        }
-
-        return valid;
-    }
-
-    private String buildPhoneNumber() {
-        return prePhone.getValue() + restPhone.getText();
-    }
-
-    private String resolveSubscriberContact(String phone, String email) {
-        if (phone != null && !phone.isBlank()) {
-            return phone;
-        }
-        if (email != null && !email.isBlank()) {
-            return email;
-        }
-        return null;
-    }
-
-    private String resolveSubscriberIdentifier(StringBuilder errors) {
-        if (subscriberIdentifier == null || subscriberIdentifier.isBlank()) {
-            errors.append("Missing subscriber contact details\n");
-            return null;
-        }
-        return subscriberIdentifier;
-    }
-
     private String resolveSubscriberCode(StringBuilder errors) {
         String code = subscriberConfirmationCodes != null ? subscriberConfirmationCodes.getValue() : null;
         if (code == null || code.isBlank() || !code.matches("\\d+")) {
@@ -297,31 +223,5 @@ public class PaymentScreen {
             errors.append("Please enter a valid confirmation code\n");
         }
         return code;
-    }
-
-    private String resolveGuestIdentifier(StringBuilder errors) {
-        String email = emailField != null ? emailField.getText().trim() : "";
-        boolean hasEmail = !email.isEmpty();
-        String prefix = prePhone.getValue();
-        String rest = restPhone.getText();
-        boolean hasPhoneInput = (prefix != null && !prefix.isBlank()) || (rest != null && !rest.isBlank());
-
-        if (hasPhoneInput) {
-            StringBuilder phoneErrors = new StringBuilder();
-            boolean phoneValid = validatePhoneInputs(phoneErrors);
-            if (phoneValid) {
-                return buildPhoneNumber();
-            }
-            if (!hasEmail) {
-                errors.append(phoneErrors);
-            }
-        }
-
-        if (hasEmail) {
-            return email;
-        }
-
-        errors.append("Please enter a phone number or email\n");
-        return null;
     }
 }
