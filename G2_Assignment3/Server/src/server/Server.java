@@ -90,7 +90,7 @@ public class Server extends AbstractServer {
 		case GET_ACTIVE_RESERVATIONS_BY_PHONE:
 			// Expect String phone; query reservations by phone and return list.
 			if (!(data instanceof String)) {
-				response = new BistroResponse(BistroResponseStatus.FAILURE, "Bad phone number.");
+				response = new BistroResponse(BistroResponseStatus.FAILURE, "Invalid phone number.");
 				break;
 			}
 			dbReturnedValue = db.searchOrdersByPhoneNumberList((String) data);// try catch for casting
@@ -109,9 +109,13 @@ public class Server extends AbstractServer {
 			// Expect String order number; parse and return the matching reservation.
 			int orderNumber = handleStringRequest(data);
 			if (orderNumber == -1) {
-				response = new BistroResponse(BistroResponseStatus.FAILURE, "Bad order number.");
+				response = new BistroResponse(BistroResponseStatus.FAILURE, "Wrong order number.");
 			}
 			dbReturnedValue = db.searchOrderByOrderNumber(orderNumber);
+			response = new BistroResponse(BistroResponseStatus.SUCCESS, dbReturnedValue);
+			break;
+		case GET_ALL_PENDING_RESERVATIONS:
+			dbReturnedValue = db.getAllPendingReservationsOrdered();
 			response = new BistroResponse(BistroResponseStatus.SUCCESS, dbReturnedValue);
 			break;
 		case GET_TABLE_BY_CONFIRMATION_CODE:

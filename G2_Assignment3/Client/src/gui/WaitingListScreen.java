@@ -9,7 +9,10 @@ import communication.BistroCommand;
 import communication.BistroRequest;
 import communication.BistroResponse;
 import communication.BistroResponseStatus;
+import communication.EventBus;
+import communication.EventType;
 import communication.RequestFactory;
+import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
@@ -28,6 +31,7 @@ public class WaitingListScreen {
 	private Subscriber sub=null;
 	private Worker worker=null;
     Alert alert = new Alert(Alert.AlertType.INFORMATION);
+    private volatile boolean isActive = true;
 
      @FXML
     private Button backBtn;
@@ -80,6 +84,13 @@ public class WaitingListScreen {
 		}
         prePhone.getItems().clear();
         prePhone.getItems().addAll("050", "052", "053", "054", "055", "058");
+
+		EventBus.getInstance().subscribe(EventType.TABLE_CHANGED, event -> {
+			if (isActive) new Thread(this::checkWaitingList).start();
+		});
+        EventBus.getInstance().subscribe(EventType.ORDER_CHANGED, event -> {
+        	if (isActive) new Thread(this::checkWaitingList).start();
+        });
     }
 
 	@FXML
@@ -154,6 +165,7 @@ public class WaitingListScreen {
 		Boolean table = searchTable(num_of_diners, today, now);
 		try{
 			if (table == true){
+				isActive = false;
 				Main.changeRoot(AcceptTableScreen.fxmlPath);
 			}
 		} catch (Exception e) {
@@ -202,6 +214,7 @@ public class WaitingListScreen {
 	    List<Integer> tables = Restaurant.getTableSizes();
 
 	    for (Reservation r : pending) {
+			if (!r.getOrderDate().equals(date)) continue;
 	        List<Integer> test = new java.util.ArrayList<>(current);
 	        test.add(r.getNumberOfGuests());
 	        test.sort(Integer::compareTo);
@@ -214,6 +227,24 @@ public class WaitingListScreen {
 	    return null;
 	}
 
+	private void checkWaitingList() {
+		if (!isActive) return;
+		Main.client.accept(RequestFactory.getAllPendingReservations());
+		BistroResponse res = Main.client.getResponse();
+		if (res.getStatus() == BistroResponseStatus.SUCCESS) {
+			List<Reservation> pending = (List<Reservation>) res.getData();
+			Reservation candidate = findCandidateFromWaitingList(pending, LocalDate.now(), LocalTime.now());
+			if (candidate != null) {
+				Main.client.accept(RequestFactory.changeStatus(candidate.getPhone_number(), candidate.getOrderNumber(), Status.ACCEPTED));
+				Platform.runLater(() -> {
+					if (isActive) {
+						showAlert("Waiting List Update", "Reservation for " + candidate.getPhone_number() + " has been automatically accepted.");
+					}
+				});
+			}
+		}
+	}
+
 	/**
 	 * Handles the action when the "Back to MainMenu" button is clicked.
 	 * Navigates the application back to the main menu screen.
@@ -222,6 +253,7 @@ public class WaitingListScreen {
 	@FXML
 	void back(ActionEvent event) {
 		try {
+			isActive = false;
 			// Use the static method in Main to switch the scene root
 			Main.changeRoot(MainMenuScreen.fxmlPath);
 		} catch (Exception e) {
