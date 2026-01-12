@@ -69,7 +69,7 @@ public class WaitingListScreen {
         	this.sub = ScreenSetup.setupSubscriber(nonSubVbox, workerVbox, null);
         }
         else if (LoggedUser.getType()==UserType.EMPLOYEE || LoggedUser.getType()==UserType.MANAGER) {
-        	this.worker = ScreenSetup.setupWorkerView(nonSubVbox, workerVbox, null);
+        	ScreenSetup.setupWorkerView(nonSubVbox, workerVbox, null);
         }
         else {
             ScreenSetup.setupGuestView(nonSubVbox, workerVbox, null);
@@ -160,7 +160,15 @@ public class WaitingListScreen {
 		e.printStackTrace();
 		}
     }
-
+	/**
+	 * Checks whether a table is available for the given number of diners
+	 * at the specified date and time.
+	 *
+	 * @param num_of_diners number of diners
+	 * @param today the requested date
+	 * @param now the requested time
+	 * @return true if a suitable table is available, otherwise false
+	 */
 	public Boolean searchTable(int num_of_diners, LocalDate today, LocalTime now) {
 		Main.client.accept(RequestFactory.getOrderIn4HoursRange(today, now));
 		BistroResponse response = Main.client.getResponse();
@@ -174,6 +182,36 @@ public class WaitingListScreen {
 			return true;
 		}
 		return false;
+	}
+
+	
+	/**
+	 * Finds a pending reservation that can be seated right now
+	 * based on current diners and table availability.
+	 *
+	 * @param pending list of pending reservations
+	 * @param date today's date
+	 * @param time current time
+	 * @return a reservation that can be seated now, or null if none fit
+	 */
+	public static Reservation findCandidateFromWaitingList(List<Reservation> pending, LocalDate date, LocalTime time) {
+
+	    var map = Restaurant.buildDinersByTime(date);
+	    List<Integer> current = map.getOrDefault(time, new java.util.ArrayList<>());
+
+	    List<Integer> tables = Restaurant.getTableSizes();
+
+	    for (Reservation r : pending) {
+	        List<Integer> test = new java.util.ArrayList<>(current);
+	        test.add(r.getNumberOfGuests());
+	        test.sort(Integer::compareTo);
+
+	        if (Restaurant.isAvailable(test, tables)) {
+	            return r;
+	        }
+	    }
+
+	    return null;
 	}
 
 	/**

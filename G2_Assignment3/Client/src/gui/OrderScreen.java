@@ -7,7 +7,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 
 import communication.BistroCommand;
 import communication.BistroRequest;
@@ -69,17 +68,9 @@ public class OrderScreen {
 	/** FXML path for the order screen. */
 	public static final String fxmlPath = "/gui/Order.fxml";
 
-	/** Utility for generating random values (reserved for future use). */
-	private final Random random = new Random();
-
 	/** Loaded subscriber data when the logged-in user is a subscriber. */
 	private Subscriber sub = null;
 
-	/**
-	 * Loaded worker data when the logged-in user is an employee/manager (currently
-	 * unused).
-	 */
-	private Worker worker = null;
 
 	/** Alert dialog used to display information and error messages. */
 	private final Alert alert = new Alert(Alert.AlertType.INFORMATION);
@@ -106,10 +97,6 @@ public class OrderScreen {
 	private TextField phoneNumber;
 	@FXML
 	private ComboBox<String> phoneStart;
-	@FXML
-	private HBox subHBOX;
-	@FXML
-	private TextField subID;
 	@FXML
 	private VBox subVbox;
 	@FXML
@@ -156,15 +143,15 @@ public class OrderScreen {
 	 */
 	@FXML
 	public void initialize() {
-		if (LoggedUser.getType() == UserType.SUBSCRIBER) {
-			this.sub = ScreenSetup.setupSubscriber(nonSubVbox, workerVbox, subHBOX);
-		} else if (LoggedUser.getType() == UserType.EMPLOYEE) {
-			this.worker = ScreenSetup.setupWorkerView(nonSubVbox, workerVbox, subHBOX);
-		} else {
-			ScreenSetup.setupGuestView(nonSubVbox, workerVbox, subHBOX);
-		}
-		subHBOX.setVisible(false);
-
+		if (LoggedUser.getType()==UserType.SUBSCRIBER) {
+        	this.sub = ScreenSetup.setupSubscriber(nonSubVbox, workerVbox, null);
+        }
+        else if (LoggedUser.getType()==UserType.EMPLOYEE || LoggedUser.getType()==UserType.MANAGER) {
+        	ScreenSetup.setupWorkerView(nonSubVbox, workerVbox, null);
+        }
+        else {
+            ScreenSetup.setupGuestView(nonSubVbox, workerVbox, null);
+        }
 		orderDate.setDayCellFactory(d -> new DateCell() {
 			@Override
 			public void updateItem(LocalDate item, boolean empty) {
@@ -254,76 +241,7 @@ public class OrderScreen {
 
 
 
-	/**
-	 * Configures the screen for a logged-in subscriber.
-	 * <p>
-	 * Requests the subscriber object from the server and auto-fills:
-	 * </p>
-	 * <ul>
-	 * <li>Email</li>
-	 * <li>Phone prefix + number</li>
-	 * <li>Subscriber ID</li>
-	 * </ul>
-	 * <p>
-	 * Guest-related and worker-related UI elements are hidden after a successful
-	 * fetch. If the request fails, the screen falls back to the guest flow.
-	 * </p>
-	 */
-	@FXML
-	public void setupSubscriber() {
-		int id = LoggedUser.getId();
-
-		BistroRequest request = RequestFactory.getSubscriberById(id);
-		Main.client.accept(request);
-
-		BistroResponse response = Main.client.getResponse();
-		if (response == null) {
-			setupGuestView();
-			return;
-		}
-
-		Object data = response.getData();
-		if (data != null) {
-			this.sub = (Subscriber) data;
-
-			orderEmail.setText(sub.getEmail());
-
-			String p = sub.getPhone();
-			if (p != null && p.length() == 10) {
-				phoneStart.setValue(p.substring(0, 3));
-				phoneNumber.setText(p.substring(3));
-			}
-
-			subID.setText(String.valueOf(sub.getSubscriberId()));
-
-			nonSubVbox.setVisible(false);
-			workerVbox.setVisible(false);
-		}
-	}
-
-	/**
-	 * Configures the screen for a guest user.
-	 * <p>
-	 * Guest users must manually enter email and phone number. Worker UI controls
-	 * are hidden.
-	 * </p>
-	 */
-	private void setupGuestView() {
-		nonSubVbox.setVisible(true);
-		workerVbox.setVisible(false);
-	}
-
-	/**
-	 * Configures the screen for an employee/manager.
-	 * <p>
-	 * Worker controls are enabled/visible. Guest fields remain visible according to
-	 * the current UI design.
-	 * </p>
-	 */
-	private void setupWorkerView() {
-		nonSubVbox.setVisible(true);
-		workerVbox.setVisible(true);
-	}
+	
 
 	/**
 	 * Handles the subscriber CheckBox click event.
@@ -335,7 +253,7 @@ public class OrderScreen {
 	 */
 	@FXML
 	public void checkClicked(ActionEvent e) {
-		subHBOX.setVisible(checkBox.isSelected());
+		
 	}
 
 	/**
@@ -381,13 +299,14 @@ public class OrderScreen {
 	 */
 	@FXML
 	public void clickOrder(ActionEvent event) {
+		//TODO need??
 		LocalDateTime now = LocalDateTime.now();
 		LocalDateTime oneHourFromNow = LocalDateTime.now().plusHours(1);
 
 		int amount = 0;
 		String phone;
 		String email;
-		String idStr;
+		int subId = 0;
 		String amountStr;
 
 		StringBuilder errors = new StringBuilder();
@@ -411,54 +330,7 @@ public class OrderScreen {
 		} else {
 			amount = Integer.parseInt(amountStr);
 		}
-
-		// 3) Subscriber ID (if checkbox selected)
-		if (!checkBox.isSelected() || subID.getText() == null || subID.getText().isBlank()) {
-			idStr = "0";
-		} else {
-			idStr = subID.getText();
-			if (!idStr.matches("\\d+")) {
-				errors.append("Please enter a valid subscriber ID\n");
-				valid = false;
-				idStr = "0";
-			}
-		}
-
-		// 4) Contact fields
-		if (LoggedUser.getType() == UserType.SUBSCRIBER) {
-			idStr = String.valueOf(LoggedUser.getId());
-			email = (sub != null) ? sub.getEmail() : "";
-			phone = (sub != null) ? sub.getPhone() : "";
-		} else {
-			email = orderEmail.getText();
-			String phonePrefix = phoneStart.getValue() != null ? phoneStart.getValue() : "";
-			String phoneNumberText = phoneNumber.getText();
-			phone = phonePrefix + phoneNumberText;
-
-			boolean emailProvided = email != null && !email.isBlank();
-			boolean phoneProvided = phone != null && !phone.isBlank();
-
-			// חייב להיות לפחות אחד
-			if (!emailProvided && !phoneProvided) {
-				errors.append("Please enter at least an Email or a Phone number\n");
-				valid = false;
-			}
-
-			// אם הוזן אימייל – לבדוק תקינות
-			if (emailProvided && !email.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$")) {
-				errors.append("Please enter a valid Email\n");
-				valid = false;
-			}
-
-			// אם הוזן טלפון – לבדוק תקינות
-			if (phoneProvided) {
-				if (phone.length() != 10 || !phone.matches("\\d+")) {
-					errors.append("Please enter a valid 10-digit phone number\n");
-					valid = false;
-				}
-			}
-		}
-
+		
 		// 5) Time selection
 		String hourStr = orderHours.getValue();
 		if (hourStr == null) {
@@ -520,7 +392,74 @@ public class OrderScreen {
 			return;
 		}
 
-		Reservation r = new Reservation(date, amount, Integer.parseInt(idStr), today, selected, phone, Status.CONFIRMED,
+		
+
+		// 4) Contact fields
+		if (LoggedUser.getType() == UserType.SUBSCRIBER) {
+			subId = LoggedUser.getId();
+			email =sub.getEmail();
+			phone =sub.getPhone();
+			
+		} else if((LoggedUser.getType() == UserType.EMPLOYEE|| LoggedUser.getType() == UserType.MANAGER)&& checkBox.isSelected()){
+			phone="";
+			phone+=(String)phoneStart.getValue();
+			phone+=(String)phoneNumber.getText();
+			email = orderEmail.getText();
+			Subscriber foundSub = null;
+			
+			if (phone.length() ==  10) {
+				Main.client.accept(new BistroRequest(BistroCommand.SEARCH_SUB_BY_PHONE, phone));
+				BistroResponse response = Main.client.getResponse();
+				if (response.getStatus() == BistroResponseStatus.SUCCESS) {
+					foundSub = (Subscriber) response.getData();
+				}
+			} else if (email != null && !email.isEmpty()) {
+				Main.client.accept(new BistroRequest(BistroCommand.SEARCH_SUB_BY_EMAIL, email));
+				BistroResponse response = Main.client.getResponse();
+				if (response.getStatus() == BistroResponseStatus.SUCCESS) {
+					foundSub = (Subscriber) response.getData();
+				}
+				else {
+					showAlert("Error", "Please enter phone or email to place the order.");
+				}
+			}
+			phone=foundSub.getPhone();
+			email=foundSub.getEmail();
+			subId=foundSub.getSubscriberId();
+			
+		}
+		else {
+			email = orderEmail.getText();
+			String phonePrefix = phoneStart.getValue() != null ? phoneStart.getValue() : "";
+			String phoneNumberText = phoneNumber.getText();
+			phone = phonePrefix + phoneNumberText;
+
+			boolean emailProvided = email != null && !email.isBlank();
+			boolean phoneProvided = phone != null && !phone.isBlank();
+			// At least one contact method must be provided
+			if (!emailProvided && !phoneProvided) {
+			    errors.append("Please enter at least an Email or a Phone number\n");
+			    valid = false;
+			}
+
+			// If an email was provided – validate its format
+			if (emailProvided && !email.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$")) {
+			    errors.append("Please enter a valid Email\n");
+			    valid = false;
+			}
+
+			// If a phone number was provided – validate its format
+			if (phoneProvided) {
+			    if (phone.length() != 10 || !phone.matches("\\d+")) {
+			        errors.append("Please enter a valid 10-digit phone number\n");
+			        valid = false;
+			    }
+			}
+
+		}
+
+
+		Reservation r = new Reservation(date, amount,subId , today, selected, phone, Status.CONFIRMED,
 				email);
 
 		BistroRequest req = new BistroRequest(BistroCommand.ADD_RESERVATION, r);

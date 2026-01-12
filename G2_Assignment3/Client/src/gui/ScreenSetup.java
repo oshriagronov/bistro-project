@@ -55,7 +55,7 @@ public class ScreenSetup {
 	 * Configures the screen for a logged‑in worker.
 	 * @return The Worker object if found, null otherwise.
 	 */
-	public static Worker setupWorkerView(Node nonSubContainer, Node workerContainer, Node subContainer) {
+	public static void setupWorkerView(Node nonSubContainer, Node workerContainer, Node subContainer) {
 		int id = LoggedUser.getId();
 		BistroRequest request = new BistroRequest(BistroCommand.GET_WORKER, id);
 		Main.client.accept(request);
@@ -67,15 +67,13 @@ public class ScreenSetup {
 			if (nonSubContainer != null) nonSubContainer.setVisible(false);
 			if (workerContainer != null) workerContainer.setVisible(false);
 			if (subContainer != null) subContainer.setVisible(false);
-			return null;
+			return;
 		}
 		
-		Worker worker = (Worker) response.getData();
 		// Hide fields that are not relevant for subscribers
 		if (nonSubContainer != null) nonSubContainer.setVisible(true);
 		if (workerContainer != null) workerContainer.setVisible(true);
 		if (subContainer != null) subContainer.setVisible(false); // worker does NOT need to enter subscriber ID manually
 		
-		return worker;
 	}
 }

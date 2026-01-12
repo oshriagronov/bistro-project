@@ -208,6 +208,31 @@ public class ConnectionToDB {
 		String sql = "UPDATE `reservations` SET finish_time = CURTIME() WHERE res_id = ?";
 		return executeWriteQuery(sql, order_number);
 	}
+	
+	/**
+	 * Returns all PENDING reservations ordered by reservation date,
+	 * start time, and the time the reservation was placed (oldest first).
+	 *
+	 * @return ordered list of all pending reservations
+	 */
+	public List<Reservation> getAllPendingReservationsOrdered() {
+
+	    String sql = "SELECT * FROM reservations "
+	               + "WHERE order_status = 'PENDING' "
+	               + "ORDER BY order_date ASC, start_time ASC, date_of_placing_order ASC";
+
+	    List<List<Object>> rows = executeReadQuery(sql);
+
+	    List<Reservation> result = new ArrayList<>();
+
+	    for (List<Object> row : rows) {
+	        result.add(buildReservationFromRow(row));
+	    }
+
+	    return result;
+	}
+
+
 
 	/**
 	 * Cancels a reservation by confirmation code and either email or phone. Uses

@@ -220,6 +220,7 @@ public class Server extends AbstractServer {
 				else{
 
 					int result = db.CancelReservation(statusUpdate.getOrderNumber(), statusUpdate.getEmail(), statusUpdate.getPhoneNumber());
+					
 					if (result > 0)
 						response = new BistroResponse(BistroResponseStatus.SUCCESS, "Cancel succeeded.");
 					else

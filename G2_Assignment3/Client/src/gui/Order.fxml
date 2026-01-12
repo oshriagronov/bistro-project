@@ -12,7 +12,7 @@
 <?import javafx.scene.text.Font?>
 <?import javafx.scene.text.Text?>
 
-<Pane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="456.0" prefWidth="578.0" stylesheets="@../../../Css/style.css" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="gui.OrderScreen">
+<Pane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="456.0" prefWidth="578.0" stylesheets="@../../../Css/style.css" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="gui.OrderScreen">
    <children>
       <Text fill="#1673f6" layoutX="173.0" layoutY="46.0" strokeType="OUTSIDE" strokeWidth="0.0" style="-fx-font-size: 36;" text="New reservation">
          <font>
@@ -103,21 +103,7 @@
                               <Insets right="10.0" />
                            </HBox.margin>
                         </Text>
-                        <CheckBox fx:id="checkBox" mnemonicParsing="false" onAction="#checkClicked" />
-                     </children>
-                  </HBox>
-                  <HBox fx:id="subHBOX" prefHeight="39.0" prefWidth="200.0">
-                     <children>
-                        <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Subscriber ID:">
-                           <HBox.margin>
-                              <Insets right="20.0" />
-                           </HBox.margin>
-                        </Text>
-                        <TextField fx:id="subID">
-                           <opaqueInsets>
-                              <Insets left="20.0" />
-                           </opaqueInsets>
-                        </TextField>
+                        <CheckBox fx:id="checkBox" mnemonicParsing="false"  />
                      </children>
                   </HBox>
                </children>
@@ -128,10 +114,10 @@
                      <VBox.margin>
                         <Insets bottom="10.0" />
                      </VBox.margin></Button>
-                  <Button fx:id="backBtn" mnemonicParsing="false" onAction="#back" prefHeight="34.0" prefWidth="92.0" text="Back" />
                </children>
             </VBox>
          </children>
       </VBox>
+      <Button fx:id="backBtn" layoutX="467.0" layoutY="406.0" mnemonicParsing="false" onAction="#back" prefHeight="34.0" prefWidth="92.0" text="Back" />
    </children>
 </Pane>
