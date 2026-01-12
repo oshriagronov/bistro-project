@@ -624,17 +624,27 @@ public class Server extends AbstractServer {
 	private void checkReservations() {
 		List<List<String>> reservationsToSendReminder = db.getReservationToSendReminder();
 		List<List<String>> reservationsToSendPaymentReminder = db.getReservationToSendPaymentReminder();
-		if (reservationsToSendReminder != null)
+		// *** send reminder to arrive
+		if (reservationsToSendReminder != null){
 			for (List<String> reservation : reservationsToSendReminder) {
 				StringBuilder sb = new StringBuilder();
 				String phone = reservation.get(1);
 				String email = reservation.get(2);
 				sb.append("Hey, you have 2 hours before your reservation.\n");
 				sb.append("Reservation Id: " + reservation.get(0) + "\nwith confirmation code: " + reservation.get(4)
-						+ "\nat " + reservation.get(3));
+				+ "\nat " + reservation.get(3));
 				sendReminder(phone, email, sb.toString());
 			}
-		if (reservationsToSendPaymentReminder != null)
+			// TODO:should solve the REMINDED status first and then uncomment the lines below
+			// if(reservationsToSendPaymentReminder.size() == db.setReservationsAsReminded(reservationsToSendPaymentReminder)){
+			// 	log("[SYSTEM] All reservation that got reminders marked as REMINDED.");
+			// }
+			// else{
+			// 	log("[SYSTEM] There was some problem with mark reservations as reminded.");
+			// }
+		}
+		// ** send the bill to the customer of the reservation that past the endtime and clear the tables
+		if (reservationsToSendPaymentReminder != null){
 			for (List<String> reservation : reservationsToSendPaymentReminder) {
 				String phone = reservation.get(1);
 				String email = reservation.get(2);
@@ -643,6 +653,13 @@ public class Server extends AbstractServer {
 				sb.append("Reservation Id: " + reservation.get(0));
 				sendReminder(phone, email, sb.toString());
 			}
+			if(reservationsToSendPaymentReminder.size() == db.setReservationAfterEndTimeAsCompleted(reservationsToSendPaymentReminder)){
+				log("[SYSTEM] All reservation that exceed the finish time are got the bill and cleared the tables.");
+			}
+			else{
+				log("[SYSTEM] There was some problem with clearing the tables or set reservations as completed.");
+			}
+		}
 	}
 
 	/**

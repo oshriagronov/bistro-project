@@ -1373,9 +1373,9 @@ public class ConnectionToDB {
 		String sql = """
 				    SELECT res_id, phone, email
 				    FROM reservations
-				    WHERE order_status = 'CONFIRMED'
-				      AND finish_time IS NOT NULL
-				      AND TIMESTAMP(order_date, finish_time) < NOW()
+				    WHERE order_status = 'ACCEPTED'
+					AND finish_time IS NOT NULL
+					AND TIMESTAMP(order_date, finish_time) < NOW()
 				""";
 		List<List<Object>> rows = executeReadQuery(sql);
 		if (rows.isEmpty())
@@ -1391,6 +1391,65 @@ public class ConnectionToDB {
 		return out;
 	}
 
+	/**
+	 * Marks reservations whose recorded end times are in the past as completed, already sent them the bill.
+	 *
+	 * <p>The rows in {@code reservationIds} are expected to match the shape returned
+	 * by {@link #getReservationToSendPaymentReminder()}, with the reservation id in
+	 * index 0 and the customer's phone in index 1. For each valid row the method
+	 * sets {@link Status#COMPLETED} via {@link #changeOrderStatus(String, int, Status)}
+	 * and then releases any table held by that reservation with
+	 * {@link #clearTableByResId(int)}.</p>
+	 *
+	 * @param reservationIds rows of reservation data (id + contact info)
+	 * @return number of reservations whose status was updated
+	 */
+	public int setReservationAfterEndTimeAsCompleted(List<List<String>> reservationIds){
+		int result = 0;
+		if (reservationIds != null && !(reservationIds.isEmpty())){
+			for(List<String> reservation : reservationIds){
+				if (reservation == null || reservation.isEmpty())
+					continue;
+				String stringReservationId = reservation.get(0);
+				if (stringReservationId == null || stringReservationId.trim().isEmpty())
+					continue;
+				int reservationId = toInteger(stringReservationId);
+				result += this.changeOrderStatus(reservation.get(1), reservationId, Status.COMPLETED);
+				this.clearTableByResId(reservationId);
+			}	
+		}
+		return result;
+	}
+
+	/**
+	 * Marks reservations as having received a reminder message.
+	 *
+	 * <p>The rows in {@code reservationIds} are expected to match the shape returned
+	 * by {@link #getReservationToSendPaymentReminder()}, with the reservation id in
+	 * index 0 and customer contact data in index 1. For every valid row the method
+	 * advances the reservation status to {@link Status#REMINDED} using
+	 * {@link #changeOrderStatus(String, int, Status)} so the reminder workflow
+	 * knows this customer has already been notified.</p>
+	 *
+	 * @param reservationIds rows of reservation data (id + contact info)
+	 * @return number of reservations whose status was updated
+	 */
+	public int setReservationsAsReminded(List<List<String>> reservationIds){
+		int result = 0;
+		if (reservationIds != null && !(reservationIds.isEmpty())){
+			for(List<String> reservation : reservationIds){
+				if (reservation == null || reservation.isEmpty())
+					continue;
+				String stringReservationId = reservation.get(0);
+				if (stringReservationId == null || stringReservationId.trim().isEmpty())
+					continue;
+				int reservationId = toInteger(stringReservationId);
+				// should use order_status IN ('CONFIRMED','REMINDED') where it need confirm or reminded.
+				result += this.changeOrderStatus(reservation.get(1), reservationId, Status.REMINDED);
+			}	
+		}
+		return result;
+	}
 	/**
 	 * Executes a write query with positional parameters.
 	 *
