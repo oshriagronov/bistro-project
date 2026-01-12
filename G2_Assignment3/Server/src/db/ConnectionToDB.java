@@ -11,6 +11,7 @@ import java.util.List;
 import org.mindrot.jbcrypt.BCrypt;
 import communication.AvgStayCounts;
 import communication.StatusCounts;
+import communication.SubscriberOrderCounts;
 import logic.CurrentDinerRow;
 import logic.Reservation;
 import logic.SpecialDay;
@@ -1652,5 +1653,29 @@ public class ConnectionToDB {
 		}
 		return out;
 	}
+	
+	
+	public SubscriberOrderCounts getSubscriberOrderCounts(int year, int month) {
+	    String sql = """
+	        SELECT
+	          SUM(CASE WHEN sub_id IS NOT NULL AND sub_id <> 0 THEN 1 ELSE 0 END) AS subs,
+	          SUM(CASE WHEN sub_id IS NULL OR sub_id = 0 THEN 1 ELSE 0 END) AS nonsubs
+	        FROM reservations
+	        WHERE YEAR(order_date) = ? AND MONTH(order_date) = ?
+	        """;
+
+	    List<List<Object>> rows = executeReadQuery(sql, year, month);
+
+	    int subs = 0, nonsubs = 0;
+	    if (!rows.isEmpty()) {
+	        Object a = rows.get(0).get(0);
+	        Object b = rows.get(0).get(1);
+	        if (a instanceof Number) subs = ((Number)a).intValue();
+	        if (b instanceof Number) nonsubs = ((Number)b).intValue();
+	    }
+
+	    return new SubscriberOrderCounts(year, month, subs, nonsubs); // או YearDate/YearMonth אם בחרת
+	}
+
 
 }

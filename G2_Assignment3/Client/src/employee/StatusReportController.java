@@ -326,7 +326,7 @@ public class StatusReportController {
 	@FXML
 	void backToMenu(ActionEvent event) {
 		try {
-			Main.changeRoot(employeeMenu.fxmlPath, 600, 500);
+			Main.changeRoot(ReportsMenuScreen.fxmlPath, 600, 500);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

@@ -111,7 +111,7 @@ public class employeeMenu {
 	@FXML
 	void watchReports(ActionEvent event) {
 		try {
-			Main.changeRoot(StatusReportController.fxmlPath, 1000, 800);
+			Main.changeRoot(ReportsMenuScreen.fxmlPath, 600, 500);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

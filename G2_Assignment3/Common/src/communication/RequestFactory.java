@@ -223,16 +223,17 @@ public final class RequestFactory {
 		}
 		return withPayload(BistroCommand.GET_RESERVATIONS_BY_EMAIL, email.trim());
 	}
-	
+
 	/**
-	 * Creates a request to retrieve all pending reservations ordered by date and time.
+	 * Creates a request to retrieve all pending reservations ordered by date and
+	 * time.
 	 *
-	 * @return a {@link BistroRequest} for {@link BistroCommand#GET_ALL_PENDING_RESERVATIONS}
+	 * @return a {@link BistroRequest} for
+	 *         {@link BistroCommand#GET_ALL_PENDING_RESERVATIONS}
 	 */
 	public static BistroRequest getAllPendingReservations() {
 		return noPayload(BistroCommand.GET_ALL_PENDING_RESERVATIONS);
 	}
-
 
 	// -------------------------------------------------------------------------
 	// Subscribers
@@ -240,7 +241,6 @@ public final class RequestFactory {
 	public static BistroRequest getSubscriberById(int id) {
 		return withPayload(BistroCommand.GET_SUB, id);
 	}
-	
 
 	// -------------------------------------------------------------------------
 	// Accept table
@@ -319,6 +319,10 @@ public final class RequestFactory {
 			throw new IllegalArgumentException("YearMonth is required");
 		}
 		return withPayload(BistroCommand.GET_STAYING_TIMES, ym);
+	}
+
+	public static BistroRequest getSubscriberOrderCounts(int year, int month) {
+		return new BistroRequest(BistroCommand.GET_SUBSCRIBER_ORDER_COUNTS, YearMonth.of(year, month));
 	}
 
 	// -------------------------------------------------------------------------
