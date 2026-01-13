@@ -36,6 +36,10 @@ CREATE TABLE `reservations` (
   `order_status` enum('PENDING', 'REMINDED', 'CONFIRMED','CANCELLED','COMPLETED', 'ACCEPTED') DEFAULT NULL,
   `num_diners` int NOT NULL,
   `date_of_placing_order` date NOT NULL,
+
+  -- ✅ NEW: waitlist enter timestamp (NULL for regular reservations)
+  `waitlist_enter_time` DATETIME NULL,
+
   PRIMARY KEY (`res_id`),
   KEY `sub_id` (`sub_id`),
   CONSTRAINT `reservations_ibfk_1` FOREIGN KEY (`sub_id`) REFERENCES `subscriber` (`sub_id`)
@@ -64,14 +68,14 @@ DELIMITER ;
 LOCK TABLES `reservations` WRITE;
 /*!40000 ALTER TABLE `reservations` DISABLE KEYS */;
 INSERT INTO `reservations` 
-(`phone`, `email`, `sub_id`, `start_time`, `finish_time`, `order_date`, `order_status`, `num_diners`, `date_of_placing_order`) 
+(`phone`, `email`, `sub_id`, `start_time`, `finish_time`, `order_date`, `order_status`, `num_diners`, `date_of_placing_order`, `waitlist_enter_time`) 
 VALUES 
-('0500000000', 'null@mail.com', 0, '00:00:00', '00:00:00', '2001-01-01', 'COMPLETED', 0, '2001-01-01'),
-('0501234567', 'tal@mail.com', 1, '12:30:00', '14:30:00', '2025-01-05', 'CONFIRMED', 2, '2024-12-30'),
-('0549705492', 'ofir@mail.com', 10, '14:30:00', '16:30:00', '2025-01-05', 'CONFIRMED', 4, '2024-12-30'),
-('0540540545', 'oshri@mail.com', 0, '10:30:00', '12:30:00', '2025-01-05', 'CONFIRMED', 4, '2024-12-30'),
-('0529876543', 'noam@mail.com', 2, '18:00:00', '20:00:00', '2025-01-06', 'CONFIRMED', 2, '2024-12-31'),
-('0526943286', 'test@mail.com', 5, '18:00:00', '20:00:00', '2025-01-06', 'CONFIRMED', 2, '2024-12-31');
+('0500000000', 'null@mail.com', 0, '00:00:00', '00:00:00', '2001-01-01', 'COMPLETED', 0, '2001-01-01', NULL),
+('0501234567', 'tal@mail.com', 1, '12:30:00', '14:30:00', '2025-01-05', 'CONFIRMED', 2, '2024-12-30', NULL),
+('0549705492', 'ofir@mail.com', 10, '14:30:00', '16:30:00', '2025-01-05', 'CONFIRMED', 4, '2024-12-30', NULL),
+('0540540545', 'oshri@mail.com', 0, '10:30:00', '12:30:00', '2025-01-05', 'CONFIRMED', 4, '2024-12-30', NULL),
+('0529876543', 'noam@mail.com', 2, '18:00:00', '20:00:00', '2025-01-06', 'CONFIRMED', 2, '2024-12-31', NULL),
+('0526943286', 'test@mail.com', 5, '18:00:00', '20:00:00', '2025-01-06', 'CONFIRMED', 2, '2024-12-31', NULL);
 /*!40000 ALTER TABLE `reservations` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -182,7 +186,6 @@ INSERT INTO `workers` VALUES
 /*!40000 ALTER TABLE `workers` ENABLE KEYS */;
 UNLOCK TABLES;
 
-
 --
 -- Table structure for table `regulartimes`
 --
@@ -232,7 +235,7 @@ CREATE TABLE `specialdates` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `regulartimes`
+-- Dumping data for table `specialdates`
 --
 
 LOCK TABLES `specialdates` WRITE;
@@ -248,11 +251,9 @@ VALUES
 /*!40000 ALTER TABLE `specialdates` ENABLE KEYS */;
 UNLOCK TABLES;
 
-
 --
 -- Dumping routines for database 'bistro'
 --
-
 
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
