@@ -83,7 +83,18 @@ public class AcceptTableScreen {
     @FXML
     private Text identifyingDetailsText;
 
+    private static String pendingConfirmationCode;
+
     private boolean isSubscriber = false;
+
+    public static void setPendingConfirmationCode(String code) {
+        if (code == null) {
+            pendingConfirmationCode = null;
+            return;
+        }
+        String trimmed = code.trim();
+        pendingConfirmationCode = trimmed.isEmpty() ? null : trimmed;
+    }
 
     /**
      * Restores the view to its default state after an error or reset.
@@ -169,6 +180,7 @@ public class AcceptTableScreen {
         } else {
             setupDefaultView();
         }
+        applyPendingConfirmationCode();
     }
 
     /**
@@ -281,6 +293,46 @@ public class AcceptTableScreen {
     }
 
     /**
+     * Applies a queued confirmation code passed from another screen and clears it
+     * so it is only used once per screen load.
+     */
+    private void applyPendingConfirmationCode() {
+        if (pendingConfirmationCode == null || pendingConfirmationCode.isBlank()) {
+            return;
+        }
+        String code = pendingConfirmationCode;
+        pendingConfirmationCode = null;
+        handleTableLookup(code);
+    }
+
+    /**
+     * Runs the table lookup flow used by the Submit action and updates the UI
+     * with either the assigned table or an error message.
+     *
+     * @param code confirmation code to resolve into a table assignment
+     */
+    private void handleTableLookup(String code) {
+        BistroResponse response = sendRequest(BistroCommand.GET_TABLE_BY_CONFIRMATION_CODE, code);
+        if (response != null && response.getStatus() == BistroResponseStatus.SUCCESS) {
+            Object data = response.getData();
+            if (data != null) {
+                infoVbox.setVisible(false);
+                tableResultText.setText("Your table is: " + data.toString());
+                tableResultText.setVisible(true);
+                return;
+            }
+        }
+        if (response != null && response.getStatus() == BistroResponseStatus.NO_AVAILABLE_TABLE) {
+            showAlert("Message", "There is no available table.");
+        } else if (response != null && response.getStatus() == BistroResponseStatus.NOT_FOUND) {
+            showAlert("Message", "Could not find a matching order.");
+        } else if (response != null && response.getStatus() == BistroResponseStatus.INVALID_REQUEST) {
+            showAlert("Error", "The confirmation code is invalid.");
+        }
+        resetToDefaultView();
+    }
+
+    /**
      * Handles the submit button action.
      * Validates inputs, sends the phone/email and confirmation code to the server,
      * and displays the assigned table number when found.
@@ -296,26 +348,7 @@ public class AcceptTableScreen {
             showAlert("Input Error", errors.toString());
             return;
         }
-        BistroResponse response = sendRequest(BistroCommand.GET_TABLE_BY_CONFIRMATION_CODE, code);
-        if (response != null && response.getStatus() == BistroResponseStatus.SUCCESS) {
-            Object data = response.getData();
-            if (data != null) {
-                infoVbox.setVisible(false);
-                tableResultText.setText("Your table is: " + data.toString());
-                tableResultText.setVisible(true);
-                return;
-            }
-        }
-        else if(response.getStatus() == BistroResponseStatus.NO_AVAILABLE_TABLE){
-            showAlert("Message", "There is no available table.");    
-        }
-        else if(response.getStatus() == BistroResponseStatus.NOT_FOUND){
-            showAlert("Message", "Could not find a matching order.");
-        }
-        else if(response.getStatus() == BistroResponseStatus.INVALID_REQUEST){
-            showAlert("Error", "The confirmation code is invalid.");
-        }
-        resetToDefaultView();
+        handleTableLookup(code);
     }
 
     /**
