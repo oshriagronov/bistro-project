@@ -1,7 +1,6 @@
 package gui;
 
 import java.util.ArrayList;
-
 import communication.BistroCommand;
 import communication.BistroRequest;
 import communication.BistroResponse;
@@ -68,16 +67,21 @@ public class PaymentScreen {
     /**
      * Initializes the controller.
      * This method is automatically called after the FXML file has been loaded.
-     * It sets up the view for the current user type and hides the total amount text.
+     * It sets up the view for the current user type, hides the total amount text,
+     * and loads subscriber confirmation codes when applicable.
      */
     @FXML
     void initialize() {
         total.setVisible(false);
-        isSubscriber = LoggedUser.getType() == UserType.SUBSCRIBER;
-
-        if (isSubscriber) {
+        UserType type = LoggedUser.getType();
+        if (type == UserType.SUBSCRIBER) {
+            ScreenSetup.setupSubscriber(detailsVbox, null, null);
             setupSubscriberView();
+        } else if (type == UserType.EMPLOYEE || type == UserType.MANAGER) {
+            ScreenSetup.setupWorkerView(detailsVbox, null, null);
+            setupDefaultView();
         } else {
+            ScreenSetup.setupGuestView(detailsVbox, null, null);
             setupDefaultView();
         }
     }
@@ -97,7 +101,7 @@ public class PaymentScreen {
     /**
      * Handles the submit button action.
      * Validates the confirmation code, sends it to the server,
-     * and displays the total bill amount if found.
+     * and displays the total bill amount if found (including subscriber discount).
      * @param event The ActionEvent triggered by the submit button.
      */
     
@@ -131,6 +135,7 @@ public class PaymentScreen {
 
     /**
      * Handles the back button action and routes to the appropriate previous screen.
+     * @param event The ActionEvent triggered by the Back button.
      */
     @FXML
     void back(ActionEvent event) {
@@ -141,6 +146,10 @@ public class PaymentScreen {
         }
     }
 
+    /**
+     * Resolves the FXML path to return to based on the logged-in user type.
+     * @return fxml path for the previous screen
+     */
     private String getBackFxmlPath() {
         UserType type = LoggedUser.getType();
         if (type == UserType.SUBSCRIBER) {
@@ -151,18 +160,26 @@ public class PaymentScreen {
         return MainMenuScreen.fxmlPath;
     }
 
-
+    /**
+     * Configures the UI for non-subscriber flows.
+     */
     private void setupDefaultView() {
         isSubscriber = false;
         applyUserView();
     }
 
+    /**
+     * Configures the UI for subscriber flows and loads confirmation codes.
+     */
     private void setupSubscriberView() {
         isSubscriber = true;
         applyUserView();
         populateSubscriberConfirmationCodes();
     }
 
+    /**
+     * Populates the subscriber confirmation code combo box from the server.
+     */
     private void populateSubscriberConfirmationCodes() {
         if (subscriberConfirmationCodes == null) {
             showAlert("Error", "Could not load subscriber confirmation codes.");
@@ -186,6 +203,9 @@ public class PaymentScreen {
         }
     }
 
+    /**
+     * Applies the UI visibility rules based on the current user type.
+     */
     private void applyUserView() {
         if (isSubscriber) {
             toggleNode(detailsVbox, false);
@@ -196,6 +216,11 @@ public class PaymentScreen {
         toggleNode(subscriberConfirmationBox, false);
     }
 
+    /**
+     * Toggles visibility and layout management for a node.
+     * @param node node to show or hide
+     * @param show true to show, false to hide
+     */
     private void toggleNode(Node node, boolean show) {
         if (node != null) {
             node.setVisible(show);
@@ -203,12 +228,23 @@ public class PaymentScreen {
         }
     }
 
+    /**
+     * Sends a request to the server and returns the response.
+     * @param command server command to execute
+     * @param data request payload
+     * @return server response, or null if unavailable
+     */
     private BistroResponse sendRequest(BistroCommand command, Object data) {
         BistroRequest request = new BistroRequest(command, data);
         Main.client.accept(request);
         return Main.client.getResponse();
     }
 
+    /**
+     * Reads the confirmation code selected by a subscriber and validates it.
+     * @param errors collector for validation messages
+     * @return confirmation code, or null if missing/invalid
+     */
     private String resolveSubscriberCode(StringBuilder errors) {
         String code = subscriberConfirmationCodes != null ? subscriberConfirmationCodes.getValue() : null;
         if (code == null || code.isBlank() || !code.matches("\\d+")) {
@@ -217,6 +253,11 @@ public class PaymentScreen {
         return code;
     }
 
+    /**
+     * Reads the confirmation code entered by a guest user and validates it.
+     * @param errors collector for validation messages
+     * @return confirmation code, or null if missing/invalid
+     */
     private String resolveGuestCode(StringBuilder errors) {
         String code = confirmationCode != null ? confirmationCode.getText().trim() : null;
         if (code == null || code.isBlank() || !code.matches("\\d+")) {

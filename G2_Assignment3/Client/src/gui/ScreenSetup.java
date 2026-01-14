@@ -7,7 +7,6 @@ import communication.BistroResponse;
 import javafx.scene.Node;
 import logic.LoggedUser;
 import logic.Subscriber;
-import logic.Worker;
 
 public class ScreenSetup {
 

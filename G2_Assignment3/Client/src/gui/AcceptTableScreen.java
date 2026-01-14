@@ -64,49 +64,57 @@ public class AcceptTableScreen {
 
     @FXML
     private TextField restPhone;
-
+    
     @FXML
     private Button submitBTN;
-
+    
     @FXML
     private Button getConfirmationBtn;
-
+    
     @FXML
     private HBox subscriberConfirmationBox;
-
+    
     @FXML
     private ComboBox<String> subscriberConfirmationCodes;
-
+    
     @FXML
     private Text tableResultText;
-
+    
     @FXML
     private Text identifyingDetailsText;
-
-    private static String pendingConfirmationCode;
-
+    
+    
     private boolean isSubscriber = false;
-
-    public static void setPendingConfirmationCode(String code) {
-        if (code == null) {
-            pendingConfirmationCode = null;
-            return;
+    
+    /**
+     * Initializes the controller.
+     * This method is automatically called after the FXML file has been loaded.
+     */
+    @FXML
+    void initialize() {
+        UserType type = LoggedUser.getType();
+        if (type == UserType.SUBSCRIBER) {
+            ScreenSetup.setupSubscriber(detailsVbox, null, null);
+            setupSubscriberView();
+        } else if (type == UserType.EMPLOYEE || type == UserType.MANAGER) {
+            ScreenSetup.setupWorkerView(detailsVbox, null, null);
+            setupDefaultView();
+        } else {
+            ScreenSetup.setupGuestView(detailsVbox, null, null);
+            setupDefaultView();
         }
-        String trimmed = code.trim();
-        pendingConfirmationCode = trimmed.isEmpty() ? null : trimmed;
     }
-
     /**
      * Restores the view to its default state after an error or reset.
-     */
-    private void resetToDefaultView() {
-        detailsVbox.setVisible(true);
-        infoVbox.setVisible(true);
-        tableResultText.setVisible(false);
-        confirmationCode.clear();
-        restPhone.clear();
-        if (emailField != null) {
-            emailField.clear();
+    */
+   private void resetToDefaultView() {
+       detailsVbox.setVisible(true);
+       infoVbox.setVisible(true);
+       tableResultText.setVisible(false);
+       confirmationCode.clear();
+       restPhone.clear();
+       if (emailField != null) {
+           emailField.clear();
         }
         if (subscriberConfirmationCodes != null) {
             subscriberConfirmationCodes.getSelectionModel().clearSelection();
@@ -167,21 +175,6 @@ public class AcceptTableScreen {
         return Main.client.getResponse();
     }
 
-    /**
-     * Initializes the controller.
-     * This method is automatically called after the FXML file has been loaded.
-     */
-    @FXML
-    void initialize() {
-        isSubscriber = LoggedUser.getType() == UserType.SUBSCRIBER;
-        tableResultText.setVisible(false);
-        if (isSubscriber) {
-            setupSubscriberView();
-        } else {
-            setupDefaultView();
-        }
-        applyPendingConfirmationCode();
-    }
 
     /**
      * Handles toggling of the forgot confirmation checkbox.
@@ -290,19 +283,6 @@ public class AcceptTableScreen {
                 subscriberConfirmationCodes.getSelectionModel().selectFirst();
             }
         }
-    }
-
-    /**
-     * Applies a queued confirmation code passed from another screen and clears it
-     * so it is only used once per screen load.
-     */
-    private void applyPendingConfirmationCode() {
-        if (pendingConfirmationCode == null || pendingConfirmationCode.isBlank()) {
-            return;
-        }
-        String code = pendingConfirmationCode;
-        pendingConfirmationCode = null;
-        handleTableLookup(code);
     }
 
     /**

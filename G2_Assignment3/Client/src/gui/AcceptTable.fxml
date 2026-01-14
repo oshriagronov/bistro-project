@@ -63,17 +63,17 @@
                         <Insets top="6.0" />
                      </VBox.margin>
                   </CheckBox>
+                  <Button fx:id="getConfirmationBtn" alignment="CENTER" contentDisplay="CENTER" managed="false" mnemonicParsing="false" onAction="#handleGetConfirmationCode" prefHeight="25.0" prefWidth="165.0" text="Recover Confirmation Code" visible="false">
+                     <HBox.margin>
+                        <Insets top="8.0" />
+                     </HBox.margin>
+                  </Button>
                </children>
             </VBox>
 
             <HBox prefHeight="28.0" prefWidth="168.0">
                <children>
                   <Button fx:id="submitBTN" alignment="CENTER" contentDisplay="CENTER" mnemonicParsing="false" onAction="#handleSubmit" prefHeight="25.0" prefWidth="61.0" text="Submit">
-                     <HBox.margin>
-                        <Insets top="8.0" />
-                     </HBox.margin>
-                  </Button>
-                  <Button fx:id="getConfirmationBtn" alignment="CENTER" contentDisplay="CENTER" managed="false" mnemonicParsing="false" onAction="#handleGetConfirmationCode" prefHeight="25.0" prefWidth="165.0" text="Recover Confirmation Code" visible="false">
                      <HBox.margin>
                         <Insets top="8.0" />
                      </HBox.margin>
