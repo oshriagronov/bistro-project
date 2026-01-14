@@ -615,7 +615,7 @@ public class Server extends AbstractServer {
 	private void startCheckReservationsTimer() {
 		checkReservationsService = Executors.newSingleThreadScheduledExecutor();
 		checkReservationsService.scheduleAtFixedRate(this::checkReservations, CHECK_INTERVAL, CHECK_INTERVAL,
-				TimeUnit.MINUTES);
+				TimeUnit.SECONDS);
 	}
 
 	/**
@@ -624,6 +624,7 @@ public class Server extends AbstractServer {
 	private void checkReservations() {
 		List<List<String>> reservationsToSendReminder = db.getReservationToSendReminder();
 		List<List<String>> reservationsToSendPaymentReminder = db.getReservationToSendPaymentReminder();
+		List<List<String>> reservationsToCancel = db.getLateReservationToCancel();
 		// *** send reminder to arrive
 		if (reservationsToSendReminder != null){
 			for (List<String> reservation : reservationsToSendReminder) {
@@ -633,22 +634,22 @@ public class Server extends AbstractServer {
 				sb.append("Hey, you have 2 hours before your reservation.\n");
 				sb.append("Reservation Id: " + reservation.get(0) + "\nwith confirmation code: " + reservation.get(4)
 				+ "\nat " + reservation.get(3));
+				db.setRemindedFieldToTrue(Integer.valueOf(reservation.get(0)));
 				sendReminder(phone, email, sb.toString());
 			}
-			// TODO:should solve the REMINDED status first and then uncomment the lines below
-			// if(reservationsToSendPaymentReminder.size() == db.setReservationsAsReminded(reservationsToSendPaymentReminder)){
-			// 	log("[SYSTEM] All reservation that got reminders marked as REMINDED.");
-			// }
-			// else{
-			// 	log("[SYSTEM] There was some problem with mark reservations as reminded.");
-			// }
+			if(reservationsToSendPaymentReminder.size() == db.setReservationsAsReminded(reservationsToSendPaymentReminder)){
+				log("[SYSTEM] All reservation that got reminders marked as REMINDED.");
+			}
+			else{
+				log("[SYSTEM] There was some problem with mark reservations as reminded.");
+			}
 		}
 		// ** send the bill to the customer of the reservation that past the endtime and clear the tables
 		if (reservationsToSendPaymentReminder != null){
 			for (List<String> reservation : reservationsToSendPaymentReminder) {
+				StringBuilder sb = new StringBuilder();
 				String phone = reservation.get(1);
 				String email = reservation.get(2);
-				StringBuilder sb = new StringBuilder();
 				sb.append("Sent receipt for your reservation.\n");
 				sb.append("Reservation Id: " + reservation.get(0));
 				sendReminder(phone, email, sb.toString());
@@ -658,6 +659,23 @@ public class Server extends AbstractServer {
 			}
 			else{
 				log("[SYSTEM] There was some problem with clearing the tables or set reservations as completed.");
+			}
+		}
+
+		if (reservationsToCancel != null) {
+			for (List<String> reservation : reservationsToCancel){
+				StringBuilder sb = new StringBuilder();
+				String phone = reservation.get(1);
+				String email = reservation.get(2);
+				sb.append("Customer is 15 minutes late, reservation is canceled.\n");
+				sb.append("Reservation Id: " + reservation.get(0));
+				sendReminder(phone, email, sb.toString());
+			}
+			if(reservationsToCancel.size() == db.setReservationToCancelIfCustomerLate(reservationsToCancel)){
+				log("[SYSTEM] All the reservations that customer is late are canceled.");
+			}
+			else{
+				log("[SYSTEM] There was some problem with clearing the tables or set reservations as cancel.");
 			}
 		}
 	}

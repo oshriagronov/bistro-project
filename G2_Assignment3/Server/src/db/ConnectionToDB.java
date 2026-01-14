@@ -1391,6 +1391,40 @@ public class ConnectionToDB {
 		return out;
 	}
 
+
+	/**
+	 * Retrieves confirmed reservations that have finished and are past due for
+	 * payment reminders.
+	 *
+	 * @return list of rows as strings (res_id, phone, email), or null if none found
+	 */
+	/**
+	 * Returns confirmed reservations that are at least 15 minutes late and not in the waitlist.
+	 *
+	 * @return rows of reservation data (res_id, phone, email) or null when none found
+	 */
+	public List<List<String>> getLateReservationToCancel() {
+		String sql = """
+				    SELECT res_id, phone, email, confirmation_code
+				    FROM reservations
+				    WHERE order_status = 'CONFIRMED'
+					AND waitlist_enter_time IS NULL
+					AND TIMESTAMP(order_date, finish_time) < NOW()
+				""";
+		List<List<Object>> rows = executeReadQuery(sql);
+		if (rows.isEmpty())
+			return null;
+		List<List<String>> out = new ArrayList<>(rows.size());
+		for (List<Object> row : rows) {
+			List<String> outRow = new ArrayList<>(row.size());
+			for (Object cell : row) {
+				outRow.add(cell == null ? null : cell.toString());
+			}
+			out.add(outRow);
+		}
+		return out;
+	}
+
 	/**
 	 * Marks reservations whose recorded end times are in the past as completed, already sent them the bill.
 	 *
@@ -1422,6 +1456,43 @@ public class ConnectionToDB {
 	}
 
 	/**
+	 * Sets the `reminded` flag on a reservation row so we can track who received reminders.
+	 *
+	 * @param reservationId primary key of the reservation to update
+	 * @return number of rows affected (should be 1 when the row exists)
+	 */
+	public int setRemindedFieldToTrue(int reservationId){
+		String sql = "UPDATE reservations SET reminded = true WHERE res_id = ?";
+		return executeWriteQuery(sql, reservationId);
+	}
+
+	/**
+	 * Cancels late reservations and releases their tables.
+	 *
+	 * <p>Each row in {@code reservationIds} should provide the reservation id at
+	 * index 0 and contact info at index 1. For each valid row, the reservation
+	 * status is changed to {@link Status#CANCELLED} and the table is freed.</p>
+	 *
+	 * @param reservationIds rows of reservation data (id + contact info)
+	 * @return number of reservations whose status was updated
+	 */
+	public int setReservationToCancelIfCustomerLate(List<List<String>> reservationIds){
+		int result = 0;
+		if (reservationIds != null && !(reservationIds.isEmpty())){
+			for(List<String> reservation : reservationIds){
+				if (reservation == null || reservation.isEmpty())
+					continue;
+				String stringReservationId = reservation.get(0);
+				if (stringReservationId == null || stringReservationId.trim().isEmpty())
+					continue;
+				result += this.changeOrderStatus(reservation.get(1), Integer.valueOf(reservation.get(0)), Status.CANCELLED);
+				this.clearTableByResId(toInteger(stringReservationId));
+			}	
+		}
+		return result;
+	}
+
+	/**
 	 * Marks reservations as having received a reminder message.
 	 *
 	 * <p>The rows in {@code reservationIds} are expected to match the shape returned
@@ -1443,9 +1514,7 @@ public class ConnectionToDB {
 				String stringReservationId = reservation.get(0);
 				if (stringReservationId == null || stringReservationId.trim().isEmpty())
 					continue;
-				int reservationId = toInteger(stringReservationId);
-				// should use order_status IN ('CONFIRMED','REMINDED') where it need confirm or reminded.
-				result += this.changeOrderStatus(reservation.get(1), reservationId, Status.REMINDED);
+				result += this.setRemindedFieldToTrue(toInteger(stringReservationId));
 			}	
 		}
 		return result;
