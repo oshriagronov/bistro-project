@@ -392,8 +392,6 @@ public class OrderScreen {
 			return;
 		}
 
-		
-
 		// 4) Contact fields
 		if (LoggedUser.getType() == UserType.SUBSCRIBER) {
 			subId = LoggedUser.getId();
@@ -457,8 +455,7 @@ public class OrderScreen {
 			}
 
 		}
-
-
+		
 		Reservation r = new Reservation(date, amount,subId , today, selected, phone, Status.CONFIRMED,
 				email);
 

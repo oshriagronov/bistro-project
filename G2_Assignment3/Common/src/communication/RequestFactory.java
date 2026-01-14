@@ -224,6 +224,10 @@ public final class RequestFactory {
 		return withPayload(BistroCommand.GET_RESERVATIONS_BY_EMAIL, email.trim());
 	}
 
+	public static BistroRequest resetWaitingList() {
+		return noPayload(BistroCommand.RESET_WAITING_LIST);
+	}
+
 	/**
 	 * Creates a request to retrieve all pending reservations ordered by date and
 	 * time.
