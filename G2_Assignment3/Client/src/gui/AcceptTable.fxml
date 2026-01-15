@@ -6,29 +6,31 @@
 <?import javafx.scene.text.Font?>
 <?import javafx.scene.text.Text?>
 
-<Pane prefHeight="400.0"
-      prefWidth="600.0"
-      xmlns="http://javafx.com/javafx/23.0.1"
-      xmlns:fx="http://javafx.com/fxml/1"
-      stylesheets="@/css/style.css"
-      fx:controller="gui.AcceptTableScreen">
+<AnchorPane prefHeight="400.0"
+            prefWidth="600.0"
+            xmlns="http://javafx.com/javafx/23.0.1"
+            xmlns:fx="http://javafx.com/fxml/1"
+            stylesheets="@../../../Css/style.css"
+            fx:controller="gui.AcceptTableScreen">
 
     <children>
 
         <!-- TITLE -->
         <Label fx:id="title"
-               layoutX="80.0"
-               layoutY="25.0"
                text="Accept your table here"
-               styleClass="title"/>
+               styleClass="title"
+               AnchorPane.topAnchor="25.0"
+               AnchorPane.leftAnchor="80.0"/>
 
         <!-- FORM CARD -->
         <VBox fx:id="infoVbox"
-              layoutX="110.0"
-              layoutY="90.0"
-              prefWidth="380.0"
+              prefWidth="380"
+              maxWidth="420"
               spacing="14"
-              styleClass="form-card">
+              styleClass="form-card"
+              AnchorPane.topAnchor="90.0"
+              AnchorPane.leftAnchor="90.0"
+              AnchorPane.rightAnchor="90.0">
 
             <children>
 
@@ -57,20 +59,34 @@
                         <HBox fx:id="confirmationBox" spacing="10">
                             <children>
                                 <Text text="confirmation code"/>
-                                <TextField fx:id="confirmationCode"/>
+                                <TextField fx:id="confirmationCode"
+						           prefWidth="180"
+						           maxWidth="220"
+						           HBox.hgrow="ALWAYS"/>
+
                             </children>
                         </HBox>
 
                         <HBox fx:id="phoneBox"
-                              spacing="10"
-                              managed="false"
-                              visible="false">
-                            <children>
-                                <Text text="phone"/>
-                                <ComboBox fx:id="prePhone" prefWidth="70"/>
-                                <TextField fx:id="restPhone"/>
-                            </children>
-                        </HBox>
+					      spacing="10"
+					      managed="false"
+					      visible="false"
+					      alignment="CENTER_LEFT">
+					    <children>
+					        <Text text="phone"/>
+					
+					        <ComboBox fx:id="prePhone"
+					                  prefWidth="100"
+					                  maxWidth="120"
+					                  HBox.hgrow="ALWAYS"/>
+					
+					        <TextField fx:id="restPhone"
+					                   prefWidth="180"
+					                   maxWidth="200"
+					                   HBox.hgrow="ALWAYS"/>
+					    </children>
+					</HBox>
+
 
                         <HBox fx:id="emailBox"
                               spacing="10"
@@ -78,7 +94,11 @@
                               visible="false">
                             <children>
                                 <Text text="Email"/>
-                                <TextField fx:id="emailField"/>
+                                <TextField fx:id="emailField"
+						          prefWidth="180"
+						          maxWidth="220"
+						          HBox.hgrow="ALWAYS"/>
+
                             </children>
                         </HBox>
 
@@ -110,8 +130,8 @@
 
         <!-- RESULT TEXT -->
         <HBox alignment="CENTER"
-              layoutY="260"
               prefWidth="600"
+              AnchorPane.topAnchor="260.0"
               mouseTransparent="true">
             <children>
                 <Text fx:id="tableResultText"
@@ -125,11 +145,11 @@
 
         <!-- BACK BUTTON -->
         <Button fx:id="backBtn"
-                layoutX="500"
-                layoutY="350"
                 text="Back"
                 onAction="#back"
-                styleClass="button back"/>
+                styleClass="button back"
+                AnchorPane.bottomAnchor="20.0"
+                AnchorPane.rightAnchor="20.0"/>
 
     </children>
-</Pane>
+</AnchorPane>
