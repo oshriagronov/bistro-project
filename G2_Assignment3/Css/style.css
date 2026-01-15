@@ -1,5 +1,5 @@
 /* GLOBAL */
-.root {
+.root, #root {
     -fx-font-family: "Segoe UI", Calibri, sans-serif;
     -fx-background-color: linear-gradient(to bottom, #eef2f7, #f7f9fc);
 }

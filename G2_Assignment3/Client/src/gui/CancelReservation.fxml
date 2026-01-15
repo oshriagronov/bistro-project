@@ -8,60 +8,99 @@
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 
-<AnchorPane prefHeight="285.0" prefWidth="390.0" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/23.0.1" stylesheets="@../../../Css/style.css" fx:controller="gui.CancelReservationScreen">
+<AnchorPane fx:id="root" id="root" prefHeight="400.0" prefWidth="600.0"
+            styleClass="root"
+            xmlns="http://javafx.com/javafx/23.0.1"
+            xmlns:fx="http://javafx.com/fxml/1"
+            stylesheets="@../../../Css/style.css"
+            fx:controller="gui.CancelReservationScreen">
+
+
     <children>
-        <StackPane AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+
+       <StackPane styleClass="root"
+           AnchorPane.topAnchor="0"
+           AnchorPane.bottomAnchor="0"
+           AnchorPane.leftAnchor="0"
+           AnchorPane.rightAnchor="0">
+
+
             <children>
-                <VBox alignment="CENTER" spacing="15">
-                    <children>
-                    <Label fx:id="title" styleClass="title">
-                        <graphic>
-                            <Text text="Cancel Reservation">
-                            </Text>
-                        </graphic>
-                    </Label>
-                        <Label style="-fx-font-size: 22px; -fx-font-weight: bold;" text="Cancel Reservation" textAlignment="CENTER" textFill="#0e4c99" />
-                        <VBox alignment="CENTER" spacing="10">
+
+                <VBox alignment="CENTER" spacing="20" >
+
+                    <!-- TITLE -->
+                    <Label text="Cancel Reservation"
+                           styleClass="title"
+                           alignment="CENTER"/>
+
+                    <!-- FORM -->
+                    <VBox alignment="CENTER" spacing="12" styleClass="form-card">
+
+                        <HBox alignment="CENTER" spacing="10">
                             <children>
-                                <HBox alignment="CENTER" spacing="10">
-                                    <children>
-                                        <Label alignment="CENTER_LEFT" minWidth="120.0" prefWidth="120.0" text="Email" />
-                                        <TextField fx:id="emailField" maxWidth="250" prefWidth="180.0" />
-                                    </children>
-                                </HBox>
-
-                                <HBox alignment="CENTER" spacing="10">
-                                    <children>
-                                        <Label alignment="CENTER_LEFT" minWidth="120.0" prefWidth="120.0" text="Phone number" />
-                                        <TextField fx:id="phoneField" maxWidth="250" prefHeight="26.0" prefWidth="180.0" />
-                                    </children>
-                                </HBox>
-
-                                <HBox alignment="CENTER" spacing="10">
-                                    <children>
-                                        <Label alignment="CENTER_LEFT" minWidth="120.0" prefWidth="120.0" text="Confirmation Code" />
-                                        <TextField fx:id="ConfirmationCodeField" maxWidth="250" prefWidth="180.0" />
-                                    </children>
-                                </HBox>
-
-                                <Button maxWidth="200"
-						        onAction="#cancelReservation"
-						        text="Cancel Reservation"
-						        styleClass="button primary"/>
+                                <Label text="Email"
+                                       minWidth="120"
+                                       prefWidth="120"/>
+                                <TextField fx:id="emailField"
+					           styleClass="text-field"
+					           prefWidth="180.0"
+					           maxWidth="200"
+					           HBox.hgrow="ALWAYS"/>
 
                             </children>
-                        </VBox>
+                        </HBox>
 
-                        <Label fx:id="messageLabel" style="-fx-text-fill: red; -fx-font-size: 14px;" text="" />
-                    </children>
+                        <HBox alignment="CENTER" spacing="10">
+                            <children>
+                                <Label text="Phone number"
+                                       minWidth="120"
+                                       prefWidth="120"/>
+                                <TextField fx:id="phoneField"
+                                           styleClass="text-field"
+								           prefWidth="180.0"
+								           maxWidth="200"
+								           HBox.hgrow="ALWAYS"/>
+                            </children>
+                        </HBox>
+
+                        <HBox alignment="CENTER" spacing="10">
+                            <children>
+                                <Label text="Confirmation Code"
+                                       minWidth="120"
+                                       prefWidth="120"/>
+                                <TextField fx:id="ConfirmationCodeField"
+                                           styleClass="text-field"
+								           prefWidth="180.0"
+								           maxWidth="200"
+								           HBox.hgrow="ALWAYS"/>
+                            </children>
+                        </HBox>
+
+                        <!-- SUBMIT BUTTON -->
+                        <Button text="Cancel Reservation"
+                                onAction="#cancelReservation"
+                                styleClass="button primary"
+                                prefWidth="220"/>
+
+                    </VBox>
+
+                    <!-- MESSAGE LABEL -->
+                    <Label fx:id="messageLabel"
+                           style="-fx-text-fill: red; -fx-font-size: 14px;"
+                           text=""/>
+
                 </VBox>
+
             </children>
         </StackPane>
-        <Button onAction="#back"
-	        text="Back"
-	        styleClass="button back"
-	        AnchorPane.bottomAnchor="10"
-	        AnchorPane.rightAnchor="10"/>
+
+        <!-- BACK BUTTON -->
+        <Button text="Back"
+                onAction="#back"
+                styleClass="button back"
+                AnchorPane.bottomAnchor="20"
+                AnchorPane.rightAnchor="20"/>
 
     </children>
 </AnchorPane>
