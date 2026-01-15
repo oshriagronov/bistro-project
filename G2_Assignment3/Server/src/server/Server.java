@@ -1,37 +1,19 @@
 package server;
 
 import java.io.*;
-import java.lang.reflect.Array;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.sql.SQLException;
-import java.time.LocalDate;
-import java.time.LocalTime;
-import java.time.YearMonth;
-import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 import service.NotificationService;
-import org.mindrot.jbcrypt.BCrypt;
-
 import communication.BistroCommand;
 import communication.BistroRequest;
 import communication.BistroResponse;
 import communication.BistroResponseStatus;
-import communication.EventBus;
-import communication.EventType;
-import communication.NewSubscriberInfo;
-import communication.OrdersInRangeRequest;
-import communication.ServerEvent;
-import communication.StatusUpdate;
-import communication.TableSizeUpdate;
-import communication.TableStatusUpdate;
-import communication.WorkerLoginRequest;
 import db.ConnectionToDB;
 import handlers.AddReservationHandler;
 import handlers.AddSubscriberHandler;
@@ -66,19 +48,11 @@ import handlers.ReservationsByPhoneHandler;
 import handlers.SearchSubByEmailHandler;
 import handlers.SearchSubByPhoneHandler;
 import handlers.SubscriberLoginHandler;
-import handlers.SubscriberOrderCountsHandler;
 import handlers.TableByIdentifierAndCodeHandler;
 import handlers.UpdateRegularScheduleHandler;
 import handlers.UpdateSpecialDayHandler;
 import handlers.UpdateSubscriberInfoHandler;
 import handlers.WorkerLoginHandler;
-import logic.Reservation;
-import logic.SpecialDay;
-import logic.Status;
-import logic.Subscriber;
-import logic.Table;
-import logic.WeeklySchedule;
-import logic.Worker;
 import ocsf.server.*;
 
 /**
@@ -87,11 +61,7 @@ import ocsf.server.*;
  */
 public class Server extends AbstractServer {
 	// Class variables *************************************************
-
-	/**
-	 * The default port to listen on.
-	 */
-	public static final int DEFAULT_PORT = 5555;
+	public static final int DEFAULT_PORT = 5555; // The default port to listen on.
 	private static final long CHECK_INTERVAL = 5; // Check every 5 minutes
 	private ScheduledExecutorService checkReservationsService;
 	private ConnectionToDB db;
@@ -126,8 +96,7 @@ public class Server extends AbstractServer {
 		handlers.put(BistroCommand.SEARCH_SUB_BY_PHONE, new SearchSubByPhoneHandler());
 		handlers.put(BistroCommand.GET_SUBSCRIBER_BY_ID, new GetSubscriberByIdHandler());
 		handlers.put(BistroCommand.GET_SUBSCRIBER_HISTORY, new GetSubscriberHistoryHandler());
-		handlers.put(BistroCommand.GET_SUBSCRIBER_CONFIRMATION_CODE_FOR_PAYMENT,
-				new GetSubscriberConfirmationCodeForPaymentHandler());
+		handlers.put(BistroCommand.GET_SUBSCRIBER_CONFIRMATION_CODE_FOR_PAYMENT,new GetSubscriberConfirmationCodeForPaymentHandler());
 		handlers.put(BistroCommand.GET_SUBSCRIBER_CONFIRMATION_CODES, new GetSubscribersConfirmationCodesHandler());
 		handlers.put(BistroCommand.GET_SUBSCRIBER_ORDER_COUNTS, new GetSubscribersOrdersCountsHandler());
 		handlers.put(BistroCommand.UPDATE_SUBSCRIBER_INFO, new UpdateSubscriberInfoHandler());
@@ -160,14 +129,6 @@ public class Server extends AbstractServer {
 		handlers.put(BistroCommand.GET_WAITING_LIST, new GetWaitingListHandler());
 	}
 
-	/**
-	 * Updates the database password used by the server-side connection pool.
-	 *
-	 * @param password database password
-	 */
-	public static void ServerScreen(String password) {
-		ConnectionToDB.setPassword(password);
-	}
 
 	// Handle Messages and parsing methods(override)
 	// ************************************************
@@ -183,7 +144,7 @@ public class Server extends AbstractServer {
 			try {
 				client.sendToClient(new BistroResponse(BistroResponseStatus.INVALID_REQUEST, "Expected BistroRequest"));
 			} catch (IOException e) {
-				log("Send failed");
+				log("The message is has invalid format.");
 			}
 			return;
 		}
@@ -199,7 +160,7 @@ public class Server extends AbstractServer {
 		try {
 			client.sendToClient(response);
 		} catch (IOException e) {
-			log("Send failed");
+			log("Method sendToClient failed to send response.");
 		}
 	}
 
@@ -232,6 +193,29 @@ public class Server extends AbstractServer {
 		System.out.println("Server has stopped listening for connections.");
 		checkReservationsService.shutdown();
 	}
+
+		/**
+	 * Updates the database password used by the server-side connection pool.
+	 *
+	 * @param password database password
+	 */
+	public static void ServerScreen(String password) {
+		ConnectionToDB.setPassword(password);
+	}
+
+	/**
+	 * Writes the provided message to the GUI log if available, otherwise stdout.
+	 * 
+	 * @param msg the text to append to the log.
+	 */
+	private void log(String msg) {
+		if (ServerScreen.instance != null)
+			ServerScreen.instance.appendLog(msg);
+		else
+			System.out.println("[SERVER] " + msg);
+	}
+
+
 
 	// Client methods ************************************************
 	/**
@@ -266,18 +250,6 @@ public class Server extends AbstractServer {
 		log(id + " disconnected");
 	}
 
-
-	/**
-	 * Writes the provided message to the GUI log if available, otherwise stdout.
-	 * 
-	 * @param msg the text to append to the log.
-	 */
-	private void log(String msg) {
-		if (ServerScreen.instance != null)
-			ServerScreen.instance.appendLog(msg);
-		else
-			System.out.println(msg);
-	}
 
 	// *********************** */ Notification service *******************
 	/**

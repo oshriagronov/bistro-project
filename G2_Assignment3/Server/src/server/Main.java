@@ -19,7 +19,7 @@ public class Main extends Application {
 	 * which the application scene can be set.
 	 */
 
-	public void start(@SuppressWarnings("exports") Stage primaryStage) {
+	public void start(Stage primaryStage) {
 		Parent root;
 		try {
 			// Load the main menu FXML file
