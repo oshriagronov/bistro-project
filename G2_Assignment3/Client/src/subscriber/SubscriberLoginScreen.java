@@ -60,7 +60,13 @@ public class SubscriberLoginScreen {
     }
 
     @FXML
-    void handleSwitchView(ActionEvent event) {
+    public void initialize(){
+        usernamelogin.setVisible(false);
+        IDlogin.setVisible(true);
+    }
+
+    @FXML
+    public void handleSwitchView(ActionEvent event) {
         if (switchView.isSelected()) {
             usernamelogin.setVisible(true);
             IDlogin.setVisible(false);
@@ -81,10 +87,15 @@ public class SubscriberLoginScreen {
 
         if(subID != null && !subID.isBlank() && !switchView.isSelected()) {
             // Send login request
-            ArrayList<String> subscriberLoginInfo = new ArrayList<>();
-            subscriberLoginInfo.add(subID);
-            Main.client.accept(new BistroRequest(BistroCommand.GET_SUBSCRIBER_BY_ID, subscriberLoginInfo));
+            if (subID.length() != 5){
+                errors.append("Please scan your card again\n");
+            }
+            else{
+            int sub_id = Integer.parseInt(subID);
+            Main.client.accept(new BistroRequest(BistroCommand.GET_SUBSCRIBER_BY_ID, sub_id));
             response = Main.client.getResponse();
+            }
+            
             
         }
         else {
