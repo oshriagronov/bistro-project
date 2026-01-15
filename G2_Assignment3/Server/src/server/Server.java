@@ -62,6 +62,7 @@ import handlers.ReservationsByEmailHandler;
 import handlers.ReservationsByPhoneHandler;
 import handlers.SearchSubByEmailHandler;
 import handlers.SearchSubByPhoneHandler;
+import handlers.SendCodeToWaitingListCustomerHandler;
 import handlers.SubscriberLoginHandler;
 import handlers.SubscriberOrderCountsHandler;
 import handlers.TableByIdentifierAndCodeHandler;
@@ -115,6 +116,7 @@ public class Server extends AbstractServer {
 
 		handlers.put(BistroCommand.GET_TABLE_BY_IDENTIFIER_AND_CODE, new TableByIdentifierAndCodeHandler());
 		handlers.put(BistroCommand.FORGOT_CONFIRMATION_CODE, new ForgotConfirmationCodeHandler());
+		handlers.put(BistroCommand.SEND_CODE_TO_WAITING_LIST, new SendCodeToWaitingListCustomerHandler());
 
 		// Subscribers
 		handlers.put(BistroCommand.ADD_SUBSCRIBER, new AddSubscriberHandler());

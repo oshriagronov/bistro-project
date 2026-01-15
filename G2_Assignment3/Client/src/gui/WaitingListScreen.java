@@ -2,11 +2,13 @@ package gui;
 
 import javafx.scene.control.TextField;
 import javafx.scene.layout.VBox;
+import javafx.scene.text.Text;
 
 import java.io.IOException;
 import java.sql.Date;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.List;
 import communication.BistroCommand;
 import communication.BistroRequest;
@@ -36,8 +38,11 @@ public class WaitingListScreen {
     Alert alert = new Alert(Alert.AlertType.INFORMATION);
     private volatile boolean isActive = true;
 
-     @FXML
+    @FXML
     private Button backBtn;
+
+	@FXML
+    private VBox infoVbox;
 
     @FXML
     private ComboBox<String> diners;
@@ -59,6 +64,9 @@ public class WaitingListScreen {
 
     @FXML
     private Button submit;
+
+	 @FXML
+    private Text tableResultText;
 
 	@FXML
     private VBox workerVbox;
@@ -150,7 +158,7 @@ public class WaitingListScreen {
 			String email = emailField.getText();
 			int nonSub = 0;
 
-			if (phone_number.length() > 0 && phone_number.length() < 10) {
+			if (phone_number.length() != 10) {
 				showAlert("Input Error", "Please enter a valid 10-digit phone number.");
 			} else if (phone_number.isEmpty() && (email == null || email.trim().isEmpty())) {
 				showAlert("Input Error", "Please enter identifying information (Phone or Email).");
@@ -263,21 +271,42 @@ public class WaitingListScreen {
 			Reservation candidate = findCandidateFromWaitingList(pending, LocalDate.now(), LocalTime.now());
 			if (candidate != null) {
 				Main.client.accept(RequestFactory.changeStatus(candidate.getPhone_number(), candidate.getOrderNumber(), Status.CONFIRMED));
+				String code = String.valueOf(candidate.getOrderNumber());
+				ArrayList<String> info = new ArrayList<>();
+				info.add(candidate.getPhone_number());
+				info.add(candidate.getEmail());
+				info.add(candidate.getConfirmationCode());
+				sendRequest(BistroCommand.SEND_CODE_TO_WAITING_LIST, info);
+				BistroResponse response = sendRequest(BistroCommand.GET_TABLE_BY_CONFIRMATION_CODE, code);
 				Platform.runLater(() -> {
 					if (isActive) {
 						showAlert("Waiting List Update", "Reservation for " + candidate.getPhone_number() + " has been automatically accepted.");
-						AcceptTableScreen.setPendingConfirmationCode(candidate.getConfirmationCode().toString());
-						// Use the static method in Main to switch the scene root
-						try {
-							Main.changeRoot(AcceptTableScreen.fxmlPath);
-						} catch (IOException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
-						}
+       		 			if (response != null && response.getStatus() == BistroResponseStatus.SUCCESS) {
+            			Object data = response.getData();
+            				if (data != null) {
+								infoVbox.setVisible(false);
+								tableResultText.setText("Your table is: " + data.toString());
+								tableResultText.setVisible(true);
+								return;
+            				}
+       					}
 					}
 				});
 			}
 		}
+	}
+
+	/**
+	 * Sends a request to the server and returns the response.
+	 *
+	 * @param command server command to execute
+	 * @param data request payload
+	 * @return response received from the server
+	 */
+	private BistroResponse sendRequest(BistroCommand command, Object data) {
+		BistroRequest request = new BistroRequest(command, data);
+		Main.client.accept(request);
+		return Main.client.getResponse();
 	}
 
 	/**

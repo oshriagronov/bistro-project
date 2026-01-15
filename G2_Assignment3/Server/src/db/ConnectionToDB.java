@@ -274,7 +274,7 @@ public class ConnectionToDB {
 		String insertSql = """
 				    INSERT INTO reservations
 				    (phone, email, sub_id, start_time, finish_time, order_date, order_status, num_diners, date_of_placing_order, waitlist_enter_time)
-				    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+				    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 				""";
 
 		MySQLConnectionPool pool = MySQLConnectionPool.getInstance();
@@ -295,7 +295,7 @@ public class ConnectionToDB {
 			insertStmt.setString(7, reservation.getStatus().name());
 			insertStmt.setInt(8, reservation.getNumberOfGuests());
 			insertStmt.setDate(9, java.sql.Date.valueOf(reservation.getDateOfPlacingOrder()));
-			//if it is from Waitinglist, create time stemp. else null
+			//if it is from Waitinglist, create time stamp. else null
 			if (reservation.getStatus() == Status.PENDING){
 				insertStmt.setTime(10, java.sql.Time.valueOf(reservation.getStart_time()));
 			}

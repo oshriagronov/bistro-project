@@ -10,7 +10,7 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Text?>
 
-<Pane prefHeight="400.0" prefWidth="600.0" styleClass="root" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="gui.WaitingListScreen">
+<Pane prefHeight="400.0" prefWidth="600.0" styleClass="root" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="gui.WaitingListScreen">
 
     <children>
       <Label layoutX="145.0" layoutY="14.0" prefHeight="36.0" prefWidth="162.0">
@@ -21,11 +21,8 @@
          </graphic>
       </Label>
 
-        <!-- Subtitle -->
-        <Text layoutX="150" layoutY="80" styleClass="text subtitle" text="You must enter phone number or email (or both)" wrappingWidth="300" />
-
         <!-- Form Card -->
-        <VBox layoutX="150" layoutY="110" prefWidth="300" spacing="15" styleClass="form-card">
+        <VBox fx:id="infoVbox" layoutX="150" layoutY="110" prefWidth="300" spacing="15" styleClass="form-card">
 
             <!-- Diners -->
             <HBox alignment="CENTER_LEFT" spacing="10">
@@ -35,6 +32,9 @@
 
             <!-- Non Subscriber -->
             <VBox fx:id="nonSubVbox" spacing="10">
+      
+              <!-- Subtitle -->
+              <Text styleClass="text subtitle" text="You must enter phone number or email (or both)" wrappingWidth="300" />
 
                 <HBox alignment="CENTER_LEFT" spacing="10">
                     <Text styleClass="text" text="Phone number" />
@@ -60,6 +60,7 @@
         <Button fx:id="submit" layoutX="260" layoutY="340" onAction="#submit" styleClass="button primary" text="Submit" />
 
         <Button fx:id="backBtn" layoutX="500" layoutY="350" onAction="#back" styleClass="button back" text="Back" />
+      <Text fx:id="tableResultText" layoutX="563.0" layoutY="226.0" strokeType="OUTSIDE" strokeWidth="0.0" />
 
     </children>
 </Pane>
