@@ -2,34 +2,35 @@
 
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
-<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.Label?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
-<?import javafx.scene.text.Text?>
 
-<VBox alignment="TOP_CENTER" spacing="15.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="subscriber.SubscriberScreen">
+<VBox alignment="TOP_CENTER" spacing="15.0" stylesheets="@../../../Css/style.css" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="subscriber.SubscriberScreen">
    <padding>
       <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
    </padding>
    <children>
-      <Text style="-fx-font-size: 20px; -fx-font-weight: bold;" text="Subscriber Dashboard" />
+      <Label styleClass="title" text="Subscriber Dashboard" />
       
       <VBox alignment="CENTER" spacing="10.0">
          <children>
-            <Button fx:id="newReservationBtn" minWidth="180.0" onAction="#goToNewReservation" prefWidth="180.0" text="New Reservation" />
-            <Button fx:id="cancelReservationBtn" minWidth="180.0" onAction="#goToCancelReservation" prefWidth="180.0" text="Cancel Reservation" />
-            <Button fx:id="waitingListBtn" minWidth="180.0" onAction="#goToWaitingList" prefWidth="180.0" text="Waiting List" />
-            <Button fx:id="acceptTableBtn" minWidth="180.0" onAction="#goToAcceptTable" prefWidth="180.0" text="Accept Table" />
-            <Button fx:id="paymentBtn" minWidth="180.0" onAction="#goToPayment" prefWidth="180.0" text="Payment" />
-            <Button fx:id="historyBtn" minWidth="180.0" onAction="#goToReservationHistory" prefWidth="180.0" text="Reservation History" />
-            <Button fx:id="updateInfoBtn" minWidth="180.0" onAction="#updateInfo" prefWidth="180.0" text="Update Personal Info" />
+            <Button fx:id="newReservationBtn" maxWidth="200" onAction="#goToNewReservation" styleClass="primary" text="New Reservation" />
+            <Button fx:id="cancelReservationBtn" maxWidth="200" onAction="#goToCancelReservation" styleClass="primary" text="Cancel Reservation" />
+            <Button fx:id="waitingListBtn" maxWidth="200" onAction="#goToWaitingList" styleClass="primary" text="Waiting List" />
+            <Button fx:id="acceptTableBtn" maxWidth="200" onAction="#goToAcceptTable" styleClass="primary" text="Accept Table" />
+            <Button fx:id="paymentBtn" maxWidth="200" onAction="#goToPayment" styleClass="primary" text="Payment" />
+            <Button fx:id="historyBtn" maxWidth="200" onAction="#goToReservationHistory" styleClass="primary" text="Reservation History" />
+            <Button fx:id="updateInfoBtn" maxWidth="200" onAction="#updateInfo" styleClass="primary" text="Update Personal Info" />
          </children>
       </VBox>
+      
       <Region VBox.vgrow="ALWAYS" />
+      
       <HBox alignment="CENTER_RIGHT" maxWidth="Infinity" spacing="10.0">
          <children>
-            <Button fx:id="backBtn" onAction="#backToSubscriberLogin" text="Logout" />
+            <Button fx:id="backBtn" onAction="#backToSubscriberLogin" text="Logout" styleClass="back"/>
          </children>
       </HBox>
    </children>

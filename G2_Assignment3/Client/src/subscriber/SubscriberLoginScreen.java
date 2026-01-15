@@ -15,6 +15,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleButton;
+import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import logic.LoggedUser;
 
@@ -52,6 +53,9 @@ public class SubscriberLoginScreen {
     @FXML
     private VBox usernamelogin;
 
+    @FXML
+    private Pane knob;
+
     private void showAlert(String title, String body) {
         alert.setTitle(title);
         alert.setHeaderText(null);
@@ -66,14 +70,16 @@ public class SubscriberLoginScreen {
     }
 
     @FXML
-    public void handleSwitchView(ActionEvent event) {
-        if (switchView.isSelected()) {
-            usernamelogin.setVisible(true);
-            IDlogin.setVisible(false);
-        } else {
-            usernamelogin.setVisible(false);
-            IDlogin.setVisible(true);
-        }
+    private void handleSwitchView() {
+    boolean isIdView = switchView.isSelected();
+
+    // Toggle Subscriber ID view
+    IDlogin.setVisible(!isIdView);
+    IDlogin.setManaged(!isIdView);
+    
+    // Toggle Username view
+    usernamelogin.setVisible(isIdView);
+    usernamelogin.setManaged(isIdView);
     }
 
     @FXML

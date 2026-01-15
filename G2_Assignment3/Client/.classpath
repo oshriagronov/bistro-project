@@ -6,9 +6,8 @@
 		</attributes>
 	</classpathentry>
 	<classpathentry kind="src" path="src"/>
-	<classpathentry kind="lib" path="C:/Users/liraz/Documents/bistro-project/G2_Assignment3/jbcrypt-0.4.jar"/>
+	<classpathentry kind="lib" path="C:/Users/ofir/Documents/bistro-project/G2_Assignment3/jbcrypt-0.4.jar"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/Common"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/OCSF"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/Css"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
