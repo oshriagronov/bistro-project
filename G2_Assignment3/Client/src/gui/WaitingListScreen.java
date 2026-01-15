@@ -240,7 +240,7 @@ public class WaitingListScreen {
 	/**
 	 * Starts a background thread to monitor opening and closing times.
 	 * Resets the waiting list when the restaurant closes.
-	 */
+	 
 	public static void checkOpeningAndClosingTime() {
 		LocalDate today = LocalDate.now();
 		new Thread(() -> {
@@ -258,9 +258,7 @@ public class WaitingListScreen {
 			}
 		}).start();
 	}
-	
-
-
+	*/
 
 	private void checkWaitingList() {
 		if (!isActive) return;

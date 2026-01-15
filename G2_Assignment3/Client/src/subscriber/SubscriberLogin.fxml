@@ -5,20 +5,33 @@
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.PasswordField?>
 <?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.ToggleButton?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Pane?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 <?import javafx.scene.text.Text?>
 
-<Pane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="subscriber.SubscriberLoginScreen">
+<Pane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="subscriber.SubscriberLoginScreen">
    <children>
       <Text fill="#1673f6" layoutX="210.0" layoutY="40.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Subscriber Login">
          <font>
             <Font name="Calibri Bold" size="18.0" />
          </font>
       </Text>
-      <VBox layoutX="170.0" layoutY="90.0" prefHeight="150.0" prefWidth="260.0">
+      <ToggleButton fx:id="switchView" contentDisplay="TOP" layoutX="171.0" layoutY="164.0" mnemonicParsing="false" text="switch View" textAlignment="CENTER" textOverrun="CLIP" />
+      <VBox fx:id="IDlogin" layoutX="170.0" layoutY="71.0" prefHeight="70.0" prefWidth="390.0">
+         <children>
+            <Text strokeType="OUTSIDE" strokeWidth="0.0" text="you want to login by username and password OR by subscriberID?" wrappingWidth="351.10546875" />
+            <HBox prefHeight="65.0" prefWidth="390.0">
+               <children>
+                  <Text strokeType="OUTSIDE" strokeWidth="0.0" text="SubscriberID" />
+                  <TextField fx:id="subIDfield" prefHeight="25.0" prefWidth="134.0" />
+               </children>
+            </HBox>
+         </children>
+      </VBox>
+      <VBox fx:id="usernamelogin" layoutX="170.0" layoutY="200.0" prefHeight="150.0" prefWidth="260.0">
          <children>
             <HBox prefHeight="35.0" prefWidth="260.0">
                <children>

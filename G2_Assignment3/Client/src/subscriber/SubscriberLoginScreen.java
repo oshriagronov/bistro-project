@@ -12,7 +12,10 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
+import javafx.scene.control.ToggleButton;
+import javafx.scene.layout.VBox;
 import logic.LoggedUser;
 
 /**
@@ -25,17 +28,29 @@ public class SubscriberLoginScreen {
 
     private final Alert alert = new Alert(Alert.AlertType.INFORMATION);
 
-    @FXML
-    private TextField usernameField;
+      @FXML
+    private VBox IDlogin;
 
     @FXML
-    private TextField codeField;
+    private Button backBtn;
+
+    @FXML
+    private PasswordField codeField;
 
     @FXML
     private Button loginBtn;
 
     @FXML
-    private Button backBtn;
+    private TextField subIDfield;
+
+    @FXML
+    private ToggleButton switchView;
+
+    @FXML
+    private TextField usernameField;
+
+    @FXML
+    private VBox usernamelogin;
 
     private void showAlert(String title, String body) {
         alert.setTitle(title);
@@ -45,28 +60,51 @@ public class SubscriberLoginScreen {
     }
 
     @FXML
+    void handleSwitchView(ActionEvent event) {
+        if (switchView.isSelected()) {
+            usernamelogin.setVisible(true);
+            IDlogin.setVisible(false);
+        } else {
+            usernamelogin.setVisible(false);
+            IDlogin.setVisible(true);
+        }
+    }
+
+    @FXML
     void handleLogin(ActionEvent event) {
         String username = usernameField.getText();
         String password = codeField.getText();
+        String subID = subIDfield.getText();
         StringBuilder errors = new StringBuilder();
         boolean ok = true;
+        BistroResponse response = null;
 
-        if (username == null || username.isBlank()) {
-            ok = false;
-            errors.append("Please enter username\n");
+        if(subID != null && !subID.isBlank() && !switchView.isSelected()) {
+            // Send login request
+            ArrayList<String> subscriberLoginInfo = new ArrayList<>();
+            subscriberLoginInfo.add(subID);
+            Main.client.accept(new BistroRequest(BistroCommand.GET_SUBSCRIBER_BY_ID, subscriberLoginInfo));
+            response = Main.client.getResponse();
+            
         }
-        if (password == null || password.isBlank()) {
-            ok = false;
-            errors.append("Please enter password\n");
-        }
-
-        if (ok) {
+        else {
+            if (username == null || username.isBlank()) {
+                ok = false;
+                errors.append("Please enter username\n");
+            }
+            if (password == null || password.isBlank()) {
+                ok = false;
+                errors.append("Please enter password\n");
+            }
             // Send login request
             ArrayList<String> subscriberLoginInfo = new ArrayList<>();
             subscriberLoginInfo.add(username);
             subscriberLoginInfo.add(password);
             Main.client.accept(new BistroRequest(BistroCommand.SUBSCRIBER_LOGIN, subscriberLoginInfo));
-            BistroResponse response = Main.client.getResponse();
+            response = Main.client.getResponse();
+        }
+        
+        if (ok) {
             if (response.getStatus() == BistroResponseStatus.SUCCESS) {
                 try {
                     Object subscriberCode = response.getData();
@@ -79,7 +117,7 @@ public class SubscriberLoginScreen {
                     e.printStackTrace();
                 }
             } else {
-                errors.append("Subscriber ID or password are wrong.");
+                errors.append("user info are wrong, please enter valid info.");
                 ok = false;
             }
         }
