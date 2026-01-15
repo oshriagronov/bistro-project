@@ -37,6 +37,7 @@ public class WaitingListScreen {
 	private Worker worker=null;
     Alert alert = new Alert(Alert.AlertType.INFORMATION);
     private volatile boolean isActive = true;
+	private int numofhourstowait = 2;
 
     @FXML
     private Button backBtn;
@@ -257,8 +258,49 @@ public class WaitingListScreen {
 				}
 			}
 		}).start();
+
+		Main.client.accept(RequestFactory.getAllPendingReservations());
+		BistroResponse res = Main.client.getResponse();
+		if (res.getStatus() == BistroResponseStatus.SUCCESS) {
+			List<Reservation> pending = (List<Reservation>) res.getData();
+			LocalDate today = LocalDate.now();
+			LocalTime now = LocalTime.now();
+			for (Reservation r : pending) {
+				if (r.getOrderDate().equals(today) && r.getStart_time().plusHours(1).isBefore(now)) {
+					Main.client.accept(RequestFactory.changeStatus(r.getPhone_number(), r.getOrderNumber(), Status.CANCELLED));
+				}
+			}
+		}
 	}
 	*/
+	/**
+	 * Checks with thread the waiting list for pending reservations that already past 1 hour
+	 * If a reservation already past 1 hour, change its status to CANCELLED 
+	 */
+	public void checkWaitingListExpired() {
+		if (!isActive) return;
+		new Thread(() -> {
+			while (isActive) {
+				LocalDate today = LocalDate.now();
+				LocalTime now = LocalTime.now();
+				Main.client.accept(RequestFactory.getAllPendingReservations());
+				BistroResponse res = Main.client.getResponse();
+				if (res.getStatus() == BistroResponseStatus.SUCCESS) {
+					List<Reservation> pending = (List<Reservation>) res.getData();
+					for (Reservation r : pending) {
+						if (r.getOrderDate().equals(today) && r.getStart_time().plusHours(numofhourstowait).isBefore(now)) {
+							Main.client.accept(RequestFactory.changeStatus(r.getPhone_number(), r.getOrderNumber(), Status.CANCELLED));
+						}
+					}
+				}
+				try {
+					Thread.sleep(1800000); // Check every 30 minutes
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+			}
+		}).start();
+	}	
 
 	private void checkWaitingList() {
 		if (!isActive) return;
