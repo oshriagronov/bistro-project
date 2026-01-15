@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+
+<BorderPane prefHeight="600" prefWidth="920" style="-fx-background-color: #F6F7FB;" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="employee.WaitingListScreen">
+
+	<padding>
+		<Insets bottom="16" left="16" right="16" top="16" />
+	</padding>
+
+	<!-- Header card (no drop shadow) -->
+	<top>
+		<VBox spacing="8" style="-fx-background-color: white;                      -fx-background-radius: 14;                      -fx-padding: 16;                      -fx-border-color: #E5E7EB;                      -fx-border-radius: 14;">
+
+			<HBox alignment="CENTER_LEFT">
+				<VBox spacing="4">
+					<Label text="Waiting List" textFill="#0c5be8">
+						<font>
+							<Font name="Calibri Bold" size="24.0" />
+						</font>
+					</Label>
+
+					<Label style="-fx-font-size: 12.5px; -fx-text-fill: #6B7280;" text="Customers currently waiting to be seated" />
+				</VBox>
+
+				<Region HBox.hgrow="ALWAYS" />
+            <Button fx:id="BackBtn" mnemonicParsing="false" onAction="#BackToMenu" prefHeight="25.0" prefWidth="87.0" text="Back" />
+			</HBox>
+         <BorderPane.margin>
+            <Insets bottom="10.0" />
+         </BorderPane.margin>
+		</VBox>
+	</top>
+
+	<!-- Table card (no drop shadow) -->
+	<center>
+		<VBox prefHeight="392.0" prefWidth="888.0" spacing="10" style="-fx-background-color: white;                      -fx-background-radius: 14;                      -fx-padding: 16;                      -fx-border-color: #E5E7EB;                      -fx-border-radius: 14;">
+
+			<TableView fx:id="waitlistTable" prefHeight="440.0" prefWidth="853.0" style="-fx-background-radius: 10;" VBox.vgrow="ALWAYS">
+
+				<placeholder>
+					<Label style="-fx-text-fill: #6B7280; -fx-font-size: 13px;" text="No customers currently in the waiting list" />
+				</placeholder>
+
+				<columns>
+					<TableColumn fx:id="emailCol" prefWidth="260" text="Email" />
+					<TableColumn fx:id="phoneCol" prefWidth="161.33331298828125" text="Phone" />
+					<TableColumn fx:id="dinersCol" prefWidth="200.0001220703125" text="Number of diners" />
+					<TableColumn fx:id="enterTimeCol" prefWidth="226.0" text="Entered at" />
+				</columns>
+
+			</TableView>
+
+		</VBox>
+	</center>
+
+</BorderPane>

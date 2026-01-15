@@ -2,7 +2,12 @@ package employee;
 
 import java.time.LocalDate;
 import java.time.YearMonth;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
+import communication.AvgWaitTimePerDay;
 import communication.EventBus;
 import communication.EventListener;
 import communication.EventType;
@@ -11,7 +16,10 @@ import communication.SubscriberOrderCounts; // <-- תוודא שזה ה-DTO של
 import gui.Main;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.scene.chart.LineChart;
+import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.PieChart;
+import javafx.scene.chart.XYChart;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
@@ -47,9 +55,33 @@ public class SubscribersReportController {
 	private Button refreshBtn;
 
 	@FXML
+	private ComboBox<String> reportsCB;
+
+	@FXML
+	private Label chartTitleLabel;
+
+	@FXML
+	private LineChart<Number, Number> avgWaitLineChart;
+
+	@FXML
+	private NumberAxis avgWaitDayAxis;
+
+	@FXML
+	private NumberAxis avgWaitMinutesAxis;
+
+	@FXML
 	public void initialize() {
 		initYearPicker();
 		initMonthPicker();
+		initReportsPicker();
+		setReportView(reportsCB.getValue());
+		avgWaitLineChart.setAnimated(false);
+		avgWaitLineChart.setLegendVisible(false);
+		avgWaitDayAxis.setAutoRanging(false);
+		avgWaitDayAxis.setLowerBound(1);
+		avgWaitDayAxis.setUpperBound(31);
+		avgWaitDayAxis.setTickUnit(1);
+		avgWaitDayAxis.setMinorTickVisible(false);
 		ordersSplitPieChart.setLegendVisible(true);
 		ordersSplitPieChart.setLegendSide(javafx.geometry.Side.BOTTOM);
 		ordersSplitPieChart.setStartAngle(90);
@@ -77,6 +109,28 @@ public class SubscribersReportController {
 		monthCB.setOnAction(e -> onRefresh());
 	}
 
+	private void initReportsPicker() {
+		reportsCB.getItems().addAll("Orders split", "Average wait time");
+		reportsCB.getSelectionModel().selectFirst();
+
+		reportsCB.setOnAction(e -> {
+			setReportView(reportsCB.getValue());
+			onRefresh();
+		});
+	}
+
+	private void setReportView(String type) {
+		boolean split = "Orders split".equals(type);
+
+		ordersSplitPieChart.setVisible(split);
+		ordersSplitPieChart.setManaged(split);
+
+		avgWaitLineChart.setVisible(!split);
+		avgWaitLineChart.setManaged(!split);
+
+		chartTitleLabel.setText(split ? "Orders split" : "Average wait time per day");
+	}
+
 	private void showAlert(String title, String body) {
 		alert.setTitle(title);
 		alert.setHeaderText(null);
@@ -96,7 +150,15 @@ public class SubscribersReportController {
 			return;
 		}
 
-		loadSubscribersSplit(year, month);
+		String type = reportsCB.getValue();
+		if (type == null)
+			return;
+
+		if ("Orders split".equals(type)) {
+			loadSubscribersSplit(year, month);
+		} else {
+			loadAvgWaitTime(year, month);
+		}
 	}
 
 	private void loadSubscribersSplit(int year, int month) {
@@ -130,6 +192,49 @@ public class SubscribersReportController {
 		}
 
 		ordersSplitPieChart.setLabelsVisible(false);
+	}
+
+	private void loadAvgWaitTime(int year, int month) {
+		YearMonth ym = YearMonth.of(year, month);
+
+		reportTitleLabel.setText("Subscribers Report – " + year + "-" + String.format("%02d", month));
+		reportSubtitleLabel.setText("Average wait time per day for " + ym);
+
+		Main.client.accept(RequestFactory.getDailyAverageWaitTimeReport(year, month));
+
+		Object data = Main.client.getResponse().getData();
+
+		List<AvgWaitTimePerDay> rows = new ArrayList<>();
+		if (data instanceof List<?>) {
+			for (Object o : (List<?>) data) {
+				if (o instanceof AvgWaitTimePerDay r) {
+					rows.add(r);
+				}
+			}
+		}
+
+		Map<Integer, AvgWaitTimePerDay> byDay = new HashMap<>();
+		for (AvgWaitTimePerDay r : rows) {
+			byDay.put(r.getDay(), r);
+		}
+
+		XYChart.Series<Number, Number> series = new XYChart.Series<>();
+		series.setName("Avg wait (min)");
+
+		int daysInMonth = ym.lengthOfMonth();
+		for (int day = 1; day <= daysInMonth; day++) {
+			AvgWaitTimePerDay r = byDay.get(day);
+			double avg = (r == null) ? 0.0 : r.getAvgWaitMinutes();
+			series.getData().add(new XYChart.Data<>(day, avg));
+		}
+
+		avgWaitLineChart.getData().setAll(series);
+
+		if (rows.isEmpty()) {
+			avgWaitLineChart.setTitle("No waitlist data for " + ym);
+		} else {
+			avgWaitLineChart.setTitle("Average wait time – " + ym);
+		}
 	}
 
 	private boolean canViewMonthlyReport(int year, int month) {

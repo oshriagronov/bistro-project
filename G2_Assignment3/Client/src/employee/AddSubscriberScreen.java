@@ -5,6 +5,8 @@ import communication.BistroRequest;
 import communication.BistroResponse;
 import communication.BistroResponseStatus;
 import communication.NewSubscriberInfo;
+import communication.RequestFactory;
+import gui.BarcodeUtil;
 import gui.Main;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -14,16 +16,18 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import logic.Subscriber;
 
 /**
  * Controller for the "Add Subscriber" screen.
  * <p>
- * Handles user input validation, creation of a new {@link Subscriber},
- * sending the creation request to the server, and handling the server response.
+ * Handles user input validation, creation of a new {@link Subscriber}, sending
+ * the creation request to the server, and handling the server response.
  */
 public class AddSubscriberScreen {
-	public static final String fxmlPath ="/employee/AddSubscriber.fxml";
+	public static final String fxmlPath = "/employee/AddSubscriber.fxml";
 	@FXML
 	private Button MenuBtn;
 
@@ -56,7 +60,7 @@ public class AddSubscriberScreen {
 
 	@FXML
 	private TextField usernameTxt;
-    
+
 	private final Alert alert = new Alert(Alert.AlertType.INFORMATION);
 
 	/**
@@ -70,6 +74,20 @@ public class AddSubscriberScreen {
 		alert.setHeaderText(null);
 		alert.setContentText(body);
 		alert.showAndWait();
+	}
+
+	private void showAlertWithBarcode(String title, String body, Image barcodeImage) {
+		Alert a = new Alert(Alert.AlertType.INFORMATION);
+		a.setTitle(title);
+		a.setHeaderText(null);
+		a.setContentText(body);
+
+		ImageView iv = new ImageView(barcodeImage);
+		iv.setFitWidth(180);
+		iv.setPreserveRatio(true);
+
+		a.setGraphic(iv);
+		a.showAndWait();
 	}
 
 	/**
@@ -92,7 +110,7 @@ public class AddSubscriberScreen {
 	@FXML
 	void backToMenu(ActionEvent event) {
 		try {
-			Main.changeRoot(employeeMenu.fxmlPath, 600, 500);
+			Main.changeRoot(RestaurantManagementScreen.fxmlPath, 600, 500);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -116,8 +134,8 @@ public class AddSubscriberScreen {
 	/**
 	 * Handles creation of a new subscriber.
 	 * <p>
-	 * Validates user input, constructs a {@link Subscriber} object,
-	 * sends a creation request to the server, and displays the server response.
+	 * Validates user input, constructs a {@link Subscriber} object, sends a
+	 * creation request to the server, and displays the server response.
 	 *
 	 * @param event the button click event
 	 */
@@ -126,29 +144,28 @@ public class AddSubscriberScreen {
 		StringBuilder error = new StringBuilder();
 		boolean valid = true;
 
-		if (!isInputValid(firstNameTxt.getText(), lastNameTxt.getText(),
-				usernameTxt.getText(), passwordTxt.getText(),
+		if (!isInputValid(firstNameTxt.getText(), lastNameTxt.getText(), usernameTxt.getText(), passwordTxt.getText(),
 				phoneTxt.getText(), emailTxt.getText())) {
 			error.append("Please fill all fields");
 			valid = false;
 		} else {
-			if (!firstNameTxt.getText().matches("^[A-Za-z]+$")) {
+			if (!firstNameTxt.getText().trim().matches("^[A-Za-z]+$")) {
 				error.append("First name can only contain letters\n");
 				valid = false;
 			}
-			if (!lastNameTxt.getText().matches("^[A-Za-z]+$")) {
+			if (!lastNameTxt.getText().trim().matches("^[A-Za-z]+$")) {
 				error.append("Last name can only contain letters\n");
 				valid = false;
 			}
-			if (!phoneTxt.getText().matches("^[0-9]+$")) {
+			if (!phoneTxt.getText().trim().matches("^[0-9]+$")) {
 				error.append("Phone number can only contain numbers\n");
 				valid = false;
 			}
-			if (phoneTxt.getText().length() != 7) {
+			if (phoneTxt.getText().trim().length() != 7) {
 				error.append("Phone number should be 7 digits\n");
 				valid = false;
 			}
-			if (!emailTxt.getText().matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$")) {
+			if (!emailTxt.getText().trim().matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$")) {
 				error.append("Please enter a valid Email\n");
 				valid = false;
 			}
@@ -159,22 +176,19 @@ public class AddSubscriberScreen {
 			return;
 		}
 
-		Subscriber subscriber = new Subscriber(
-				usernameTxt.getText(),
-				firstNameTxt.getText(),
-				lastNameTxt.getText(),
-				emailTxt.getText(),
-				PhoneStartCombo.getValue() + phoneTxt.getText()
-		);
+		Subscriber subscriber = new Subscriber(usernameTxt.getText(), firstNameTxt.getText(), lastNameTxt.getText(),
+				emailTxt.getText(), PhoneStartCombo.getValue() + phoneTxt.getText());
 
 		String password = passwordTxt.getText();
-		NewSubscriberInfo data = new NewSubscriberInfo(subscriber, password);
-
-		Main.client.accept(new BistroRequest(BistroCommand.ADD_SUBSCRIBER, data));
+		Main.client.accept(RequestFactory.addSubscriber(subscriber, password));
 		BistroResponse response = Main.client.getResponse();
 
 		if (response != null && response.getStatus() == BistroResponseStatus.SUCCESS) {
-			showAlert("Success", "Subscriber added successfully");
+			int subCode = (int) response.getData();
+			String codeStr = String.format("%05d", subCode);
+			Image qr = BarcodeUtil.createQr(codeStr, 220);
+
+			showAlertWithBarcode("Success", "Subscriber added successfully!\nYour sub code is: " + codeStr, qr);
 			clear(null);
 		} else {
 			showAlert("Error", "Failed to add subscriber");
@@ -192,16 +206,21 @@ public class AddSubscriberScreen {
 	 * @param email     the email address
 	 * @return {@code true} if all fields are valid, {@code false} otherwise
 	 */
-	boolean isInputValid(String firstName, String lastName,
-	                     String username, String password,
-	                     String phone, String email) {
+	boolean isInputValid(String firstName, String lastName, String username, String password, String phone,
+			String email) {
 
-		if (firstName == null || firstName.isBlank()) return false;
-		if (lastName == null || lastName.isBlank()) return false;
-		if (username == null || username.isBlank()) return false;
-		if (password == null || password.isBlank()) return false;
-		if (phone == null || phone.isBlank()) return false;
-		if (email == null || email.isBlank()) return false;
+		if (firstName == null || firstName.isBlank())
+			return false;
+		if (lastName == null || lastName.isBlank())
+			return false;
+		if (username == null || username.isBlank())
+			return false;
+		if (password == null || password.isBlank())
+			return false;
+		if (phone == null || phone.isBlank())
+			return false;
+		if (email == null || email.isBlank())
+			return false;
 
 		return true;
 	}

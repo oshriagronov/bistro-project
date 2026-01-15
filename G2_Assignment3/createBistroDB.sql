@@ -36,9 +36,7 @@ CREATE TABLE `reservations` (
   `order_status` enum('PENDING', 'REMINDED', 'CONFIRMED','CANCELLED','COMPLETED', 'ACCEPTED') DEFAULT NULL,
   `num_diners` int NOT NULL,
   `date_of_placing_order` date NOT NULL,
-
-  -- ✅ NEW: waitlist enter timestamp (NULL for regular reservations)
-  `waitlist_enter_time` DATETIME NULL,
+  `waitlist_enter_time` time NULL,
 
   PRIMARY KEY (`res_id`),
   KEY `sub_id` (`sub_id`),

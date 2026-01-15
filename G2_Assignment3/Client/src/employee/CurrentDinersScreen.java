@@ -70,10 +70,6 @@ public class CurrentDinersScreen {
 	@FXML
 	private Button menuBtn;
 
-	/** Button used to refresh the diner data from the server. */
-	@FXML
-	private Button refreshBtn;
-
 	/**
 	 * Requests the current diners data from the server and populates the table
 	 * view.
@@ -118,20 +114,10 @@ public class CurrentDinersScreen {
 	@FXML
 	void menu(ActionEvent event) {
 		try {
-			Main.changeRoot(employeeMenu.fxmlPath, 600, 500);
+			Main.changeRoot(RestaurantInfoScreen.fxmlPath, 600, 500);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-	}
-
-	/**
-	 * Handles refreshing the diner data from the server.
-	 *
-	 * @param event the action event triggered by clicking the refresh button
-	 */
-	@FXML
-	void refresh(ActionEvent event) {
-		loadTables();
 	}
 	
 	public void onClose() {

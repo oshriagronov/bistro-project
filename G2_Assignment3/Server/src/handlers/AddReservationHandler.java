@@ -7,6 +7,7 @@ import communication.EventType;
 import communication.ServerEvent;
 import db.ConnectionToDB;
 import logic.Reservation;
+import logic.Status;
 import ocsf.server.ConnectionToClient;
 import server.Server;
 
@@ -41,7 +42,10 @@ public class AddReservationHandler implements RequestHandler {
 			String success = db.insertReservation((Reservation) data);
 			if (success != null) {
 				response = new BistroResponse(BistroResponseStatus.SUCCESS, success);
-				server.sendToAllClients(new ServerEvent(EventType.ORDER_CHANGED));
+				if (((Reservation) data).getStatus() == Status.PENDING)
+					server.sendToAllClients(new ServerEvent(EventType.WAITLIST_CHANGED));
+				else
+					server.sendToAllClients(new ServerEvent(EventType.ORDER_CHANGED));
 			} else {
 				response = new BistroResponse(BistroResponseStatus.FAILURE, "Reservation failed");
 			}

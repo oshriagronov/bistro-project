@@ -126,7 +126,7 @@ public class OrdersManagementScreen {
 	@FXML
 	void clickMenu(ActionEvent event) {
 		try {
-			Main.changeRoot(employeeMenu.fxmlPath, 600, 500);
+			Main.changeRoot(RestaurantInfoScreen.fxmlPath, 600, 500);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

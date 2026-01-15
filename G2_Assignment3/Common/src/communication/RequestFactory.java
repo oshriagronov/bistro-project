@@ -7,6 +7,7 @@ import java.time.YearMonth;
 import java.util.ArrayList;
 
 import logic.SpecialDay;
+import logic.Subscriber;
 import logic.WeekDay;
 import logic.WeeklySchedule;
 
@@ -79,6 +80,10 @@ public final class RequestFactory {
 	 */
 	public static BistroRequest workerLogin(String username, String password) {
 		return withPayload(BistroCommand.WORKER_LOGIN, new WorkerLoginRequest(username, password));
+	}
+	
+	public static BistroRequest getWaitingList() {
+		return noPayload(BistroCommand.GET_WAITING_LIST);
 	}
 
 	// -------------------------------------------------------------------------
@@ -241,6 +246,25 @@ public final class RequestFactory {
 	public static BistroRequest getSubscriberById(int id) {
 		return withPayload(BistroCommand.GET_SUB, id);
 	}
+	
+	public static BistroRequest addSubscriber(Subscriber sub, String password) {
+		return withPayload(BistroCommand.ADD_SUBSCRIBER, new NewSubscriberInfo(sub, password));
+	}
+	
+	/**
+	 * Creates a request to retrieve all orders/reservations for a given subscriber id.
+	 *
+	 * @param subscriberId subscriber id (sub_id)
+	 * @return a {@link BistroRequest} for {@link BistroCommand#GET_SUBSCRIBER_ORDERS}
+	 * @throws IllegalArgumentException if {@code subscriberId <= 0}
+	 */
+	public static BistroRequest getSubscriberOrders(int subscriberId) {
+	    if (subscriberId <= 0) {
+	        throw new IllegalArgumentException("Subscriber id must be positive");
+	    }
+	    return withPayload(BistroCommand.GET_SUBSCRIBER_ORDERS, subscriberId);
+	}
+
 
 	// -------------------------------------------------------------------------
 	// Accept table
@@ -323,6 +347,10 @@ public final class RequestFactory {
 
 	public static BistroRequest getSubscriberOrderCounts(int year, int month) {
 		return new BistroRequest(BistroCommand.GET_SUBSCRIBER_ORDER_COUNTS, YearMonth.of(year, month));
+	}
+	
+	public static BistroRequest getDailyAverageWaitTimeReport(int year, int month) {
+		return new BistroRequest(BistroCommand.GET_DAILY_AVG_WAIT_TIME, YearMonth.of(year, month));
 	}
 
 	// -------------------------------------------------------------------------

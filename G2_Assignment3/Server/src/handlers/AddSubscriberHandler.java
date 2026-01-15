@@ -36,29 +36,24 @@ public class AddSubscriberHandler implements RequestHandler {
 	public BistroResponse handle(BistroRequest request, ConnectionToClient client, ConnectionToDB db, Server server) {
 
 		Object data = request.getData();
-		BistroResponse response;
 
-		if (data instanceof NewSubscriberInfo) {
-			NewSubscriberInfo newSubscriberInfo = (NewSubscriberInfo) data;
-
-			Subscriber subscriber = newSubscriberInfo.getSubscriber();
-			String rawPassword = newSubscriberInfo.getRawPassword();
-
-			String hash = BCrypt.hashpw(rawPassword, BCrypt.gensalt());
-			subscriber.setPasswordHash(hash);
-
-			try {
-				db.addSubscriber(subscriber);
-				response = new BistroResponse(BistroResponseStatus.SUCCESS, null);
-			} catch (SQLException e) {
-				e.printStackTrace();
-				response = new BistroResponse(BistroResponseStatus.FAILURE, null);
-			}
-
-		} else {
-			response = new BistroResponse(BistroResponseStatus.FAILURE, "update failed.");
+		if (!(data instanceof NewSubscriberInfo info)) {
+			return new BistroResponse(BistroResponseStatus.FAILURE, "Invalid payload");
 		}
 
-		return response;
+		Subscriber subscriber = info.getSubscriber();
+		String rawPassword = info.getRawPassword();
+
+		String hash = BCrypt.hashpw(rawPassword, BCrypt.gensalt());
+		subscriber.setPasswordHash(hash);
+
+		Integer subId = db.addSubscriber(subscriber);
+
+		if (subId == null) {
+			return new BistroResponse(BistroResponseStatus.FAILURE, "Failed to add subscriber");
+		}
+
+		return new BistroResponse(BistroResponseStatus.SUCCESS, subId);
 	}
+
 }

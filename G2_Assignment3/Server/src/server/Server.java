@@ -42,16 +42,19 @@ import handlers.ChangeTableSizeHandler;
 import handlers.DeleteTableHandler;
 import handlers.ForgotConfirmationCodeHandler;
 import handlers.GetBillHandler;
+import handlers.GetDailyAverageWaitTimeHandler;
 import handlers.GetOpeningHoursHandler;
 import handlers.GetOrdersInRangeHandler;
 import handlers.GetStayingTimesHandler;
 import handlers.GetSubscriberByIdHandler;
 import handlers.GetSubscriberConfirmationCodeForPaymentHandler;
 import handlers.GetSubscriberHistoryHandler;
+import handlers.GetSubscriberOrdersHandler;
 import handlers.GetSubscribersConfirmationCodesHandler;
 import handlers.GetSubscribersOrdersCountsHandler;
 import handlers.GetTablesHandler;
 import handlers.GetTimingsHandler;
+import handlers.GetWaitingListHandler;
 import handlers.GetWorkerHandler;
 import handlers.LoadDinersHandler;
 import handlers.LoadSpecialDatesHandler;
@@ -128,6 +131,8 @@ public class Server extends AbstractServer {
 		handlers.put(BistroCommand.GET_SUBSCRIBER_CONFIRMATION_CODES, new GetSubscribersConfirmationCodesHandler());
 		handlers.put(BistroCommand.GET_SUBSCRIBER_ORDER_COUNTS, new GetSubscribersOrdersCountsHandler());
 		handlers.put(BistroCommand.UPDATE_SUBSCRIBER_INFO, new UpdateSubscriberInfoHandler());
+		handlers.put(BistroCommand.GET_SUB, new GetSubscriberByIdHandler());
+		handlers.put(BistroCommand.GET_SUBSCRIBER_ORDERS, new GetSubscriberOrdersHandler());
 
 		// Tables
 		handlers.put(BistroCommand.GET_TABLES, new GetTablesHandler());
@@ -147,10 +152,12 @@ public class Server extends AbstractServer {
 		handlers.put(BistroCommand.GET_TIMINGS, new GetTimingsHandler());
 		handlers.put(BistroCommand.GET_STAYING_TIMES, new GetStayingTimesHandler());
 		handlers.put(BistroCommand.GET_ORDERS_IN_RANGE, new GetOrdersInRangeHandler());
+		handlers.put(BistroCommand.GET_DAILY_AVG_WAIT_TIME, new GetDailyAverageWaitTimeHandler());
 
 		// Worker
 		handlers.put(BistroCommand.WORKER_LOGIN, new WorkerLoginHandler());
 		handlers.put(BistroCommand.GET_WORKER, new GetWorkerHandler());
+		handlers.put(BistroCommand.GET_WAITING_LIST, new GetWaitingListHandler());
 	}
 
 	/**

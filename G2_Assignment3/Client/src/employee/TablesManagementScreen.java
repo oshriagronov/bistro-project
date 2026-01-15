@@ -95,7 +95,6 @@ public class TablesManagementScreen {
 	 * Loads (or reloads) the tables list from the server and updates the TableView.
 	 */
 	private void reloadTables() {
-		// Main.client.accept(new BistroRequest(BistroCommand.GET_TABLES, null));
 		Main.client.accept(RequestFactory.getTables());
 		Object data = Main.client.getResponse().getData();
 		ArrayList<Table> tables = (ArrayList<Table>) data;
@@ -222,7 +221,7 @@ public class TablesManagementScreen {
 	@FXML
 	void clickMenu(ActionEvent event) {
 		try {
-			Main.changeRoot(employeeMenu.fxmlPath, 600, 500);
+			Main.changeRoot(RestaurantManagementScreen.fxmlPath,600,500);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

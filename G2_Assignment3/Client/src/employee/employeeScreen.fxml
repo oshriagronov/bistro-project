@@ -16,27 +16,12 @@
                   <Insets bottom="10.0" />
                </VBox.margin>
             </Button>
-            <Button fx:id="ordersBTN" mnemonicParsing="false" onAction="#manageOrders" prefHeight="40.0" prefWidth="170.0" text="Manage orders ">
+            <Button fx:id="managementBtn" mnemonicParsing="false" onAction="#manageRestaurant" prefHeight="40.0" prefWidth="170.0" text="Manage Restaurant">
                <VBox.margin>
                   <Insets bottom="10.0" />
                </VBox.margin>
             </Button>
-            <Button fx:id="tablesBTN" mnemonicParsing="false" onAction="#manageTables" prefHeight="40.0" prefWidth="170.0" text="Manage tables">
-               <VBox.margin>
-                  <Insets bottom="10.0" />
-               </VBox.margin>
-            </Button>
-            <Button fx:id="dinersBtn" mnemonicParsing="false" onAction="#watchDiners" prefHeight="40.0" prefWidth="170.0" text="Current diners">
-               <VBox.margin>
-                  <Insets bottom="10.0" />
-               </VBox.margin>
-            </Button>
-            <Button fx:id="subscriberBtn" mnemonicParsing="false" onAction="#addSubscriber" prefHeight="40.0" prefWidth="170.0" text="Add a subscriber">
-               <VBox.margin>
-                  <Insets bottom="10.0" />
-               </VBox.margin>
-            </Button>
-            <Button fx:id="scheduleBtn" mnemonicParsing="false" onAction="#manageSchedule" prefHeight="40.0" prefWidth="170.0" text="Manage schedule">
+            <Button fx:id="infoBtn" mnemonicParsing="false" onAction="#watchInfo" prefHeight="40.0" prefWidth="170.0" text="Restaurant info">
                <VBox.margin>
                   <Insets bottom="10.0" />
                </VBox.margin>
