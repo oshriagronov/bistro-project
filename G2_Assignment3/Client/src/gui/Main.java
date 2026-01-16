@@ -32,7 +32,7 @@ public class Main extends Application {
 	 * * @param primaryStage The primary stage for this application, onto which 
 	 * the application scene can be set.
 	 */
-	public void start(@SuppressWarnings("exports") Stage primaryStage) {
+	public void start(Stage primaryStage) {
 	    List<String> args = getParameters().getRaw(); // get the arguments in form of list.
 	    String host;
 	    // if there no arguments provided to us for the ip of the server, then we use localhost.

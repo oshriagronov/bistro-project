@@ -1,9 +1,5 @@
 package handlers;
-
-import java.sql.SQLException;
-
 import org.mindrot.jbcrypt.BCrypt;
-
 import communication.BistroRequest;
 import communication.BistroResponse;
 import communication.BistroResponseStatus;

@@ -75,14 +75,12 @@ public class PaymentScreen {
         total.setVisible(false);
         UserType type = LoggedUser.getType();
         if (type == UserType.SUBSCRIBER) {
-            ScreenSetup.setupSubscriber(detailsVbox, null, null);
+            ScreenSetup.setupSubscriber(null, null, subscriberConfirmationBox);
             setupSubscriberView();
         } else if (type == UserType.EMPLOYEE || type == UserType.MANAGER) {
-            ScreenSetup.setupWorkerView(detailsVbox, null, null);
-            setupDefaultView();
+            ScreenSetup.setupWorkerView(null, detailsVbox, null);
         } else {
             ScreenSetup.setupGuestView(detailsVbox, null, null);
-            setupDefaultView();
         }
     }
 

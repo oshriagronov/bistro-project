@@ -29,7 +29,7 @@ public class SubscriberLoginScreen {
 
     private final Alert alert = new Alert(Alert.AlertType.INFORMATION);
 
-      @FXML
+    @FXML
     private VBox IDlogin;
 
     @FXML
@@ -56,6 +56,12 @@ public class SubscriberLoginScreen {
     @FXML
     private Pane knob;
 
+    /**
+     * Displays a blocking information alert with the provided title and body.
+     *
+     * @param title dialog title
+     * @param body  dialog message body
+     */
     private void showAlert(String title, String body) {
         alert.setTitle(title);
         alert.setHeaderText(null);
@@ -64,12 +70,18 @@ public class SubscriberLoginScreen {
     }
 
     @FXML
+    /**
+     * Initializes the login screen with the Subscriber ID view visible by default.
+     */
     public void initialize(){
         usernamelogin.setVisible(false);
         IDlogin.setVisible(true);
     }
 
     @FXML
+    /**
+     * Toggles between Subscriber ID login and username/password login views.
+     */
     private void handleSwitchView() {
     boolean isIdView = switchView.isSelected();
 
@@ -83,6 +95,12 @@ public class SubscriberLoginScreen {
     }
 
     @FXML
+    /**
+     * Handles login by validating inputs, sending the relevant request,
+     * and navigating on success.
+     *
+     * @param event UI action event from the login button
+     */
     void handleLogin(ActionEvent event) {
         String username = usernameField.getText();
         String password = codeField.getText();
@@ -101,8 +119,6 @@ public class SubscriberLoginScreen {
             Main.client.accept(new BistroRequest(BistroCommand.GET_SUBSCRIBER_BY_ID, sub_id));
             response = Main.client.getResponse();
             }
-            
-            
         }
         else {
             if (username == null || username.isBlank()) {
@@ -120,30 +136,38 @@ public class SubscriberLoginScreen {
             Main.client.accept(new BistroRequest(BistroCommand.SUBSCRIBER_LOGIN, subscriberLoginInfo));
             response = Main.client.getResponse();
         }
-        
-        if (ok) {
-            if (response.getStatus() == BistroResponseStatus.SUCCESS) {
-                try {
-                    Object subscriberCode = response.getData();
-                    if(subscriberCode instanceof Integer)
-                        // Save subscriber globally
-                        LoggedUser.setSubscriber((Integer)subscriberCode);
+        if (ok && response.getStatus() == BistroResponseStatus.SUCCESS) {
+            try {
+                Object subscriberCode = response.getData();
+                if(subscriberCode instanceof Integer){
+                    // Save subscriber globally
+                    LoggedUser.setSubscriber((Integer)subscriberCode);
                     // Switch screen
                     Main.changeRoot(SubscriberScreen.fxmlPath);
-                } catch (Exception e) {
-                    e.printStackTrace();
                 }
-            } else {
-                errors.append("user info are wrong, please enter valid info.");
-                ok = false;
+                else{
+                    errors.append("something with the server is wrong.");
+                    ok = false;                    
+                }
+            } catch (Exception e) {
+                showAlert("App Error", "The method changeRoot failed.");
+                e.printStackTrace();
             }
         }
-
+        else {
+            errors.append("user info are wrong, please enter valid info.");
+            ok = false;
+        }
         if (!ok)
             showAlert("Login Failure", errors.toString());
     }
 
     @FXML
+    /**
+     * Returns the user to the main login menu.
+     *
+     * @param event UI action event from the back button
+     */
     void backToLoginMenu(ActionEvent event) {
         try {
             Main.changeRoot(LoginMenuScreen.fxmlPath);

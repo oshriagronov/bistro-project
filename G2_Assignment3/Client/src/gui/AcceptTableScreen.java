@@ -379,5 +379,4 @@ public class AcceptTableScreen {
         }
         return MainMenuScreen.fxmlPath;
     }
-
 }

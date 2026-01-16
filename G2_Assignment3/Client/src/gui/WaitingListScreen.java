@@ -3,9 +3,6 @@ package gui;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
-
-import java.io.IOException;
-import java.sql.Date;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
@@ -17,6 +14,7 @@ import communication.BistroResponseStatus;
 import communication.EventBus;
 import communication.EventType;
 import communication.RequestFactory;
+import employee.employeeMenu;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -30,6 +28,7 @@ import logic.Status;
 import logic.Subscriber;
 import logic.UserType;
 import logic.Worker;
+import subscriber.SubscriberScreen;
 
 public class WaitingListScreen {
 	public static final String fxmlPath = "/gui/WaitingList.fxml";
@@ -349,19 +348,29 @@ public class WaitingListScreen {
 		return Main.client.getResponse();
 	}
 
-	/**
-	 * Handles the action when the "Back to MainMenu" button is clicked.
-	 * Navigates the application back to the main menu screen.
-	 * * @param event The ActionEvent triggered by the Back button.
-	 */
+    /**
+     * Handles the action when the "Back to MainMenu" button is clicked.
+     * Navigates the application back to the main menu screen.
+     * @param event The ActionEvent triggered by the Back button.
+     */
 	@FXML
 	void back(ActionEvent event) {
 		try {
-			isActive = false;
 			// Use the static method in Main to switch the scene root
-			Main.changeRoot(MainMenuScreen.fxmlPath);
+			Main.changeRoot(getBackFxmlPath());
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
+
+    private String getBackFxmlPath() {
+        UserType type = LoggedUser.getType();
+        if (type == UserType.SUBSCRIBER) {
+            return SubscriberScreen.fxmlPath;
+        }
+        else if (type == UserType.EMPLOYEE || type == UserType.MANAGER) {
+            return employeeMenu.fxmlPath;
+        }
+        return MainMenuScreen.fxmlPath;
+    }
 }

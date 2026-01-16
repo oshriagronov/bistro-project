@@ -58,7 +58,6 @@ public class GetBillHandler implements RequestHandler {
 				db.changeOrderStatus(res.getPhone_number(), res.getOrderNumber(), Status.COMPLETED);
 				db.updateReservationTimesAfterCompleting(res.getOrderNumber());
 				db.clearTableByResId(res.getOrderNumber());
-
 				response = new BistroResponse(BistroResponseStatus.SUCCESS, res);
 			} else {
 				response = new BistroResponse(BistroResponseStatus.NOT_FOUND, null);

@@ -7,12 +7,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import communication.BistroCommand;
 import communication.BistroRequest;
 import communication.BistroResponse;
 import communication.BistroResponseStatus;
-import communication.RequestFactory;
+import employee.employeeMenu;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
@@ -22,14 +21,13 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.DateCell;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.TextField;
-import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import logic.LoggedUser;
 import logic.Reservation;
 import logic.Status;
 import logic.Subscriber;
 import logic.UserType;
-import logic.Worker;
+import subscriber.SubscriberScreen;
 
 /**
  * Controller for the {@code Order.fxml} view.
@@ -555,20 +553,29 @@ public class OrderScreen {
 
 
 
-	/**
-	 * Handles the "Back" button click event.
-	 * <p>
-	 * Navigates back to the main menu screen.
-	 * </p>
-	 *
-	 * @param event the action event triggered by clicking the back button
-	 */
+    /**
+     * Handles the action when the "Back to MainMenu" button is clicked.
+     * Navigates the application back to the main menu screen.
+     * @param event The ActionEvent triggered by the Back button.
+     */
 	@FXML
 	void back(ActionEvent event) {
 		try {
-			Main.changeRoot(MainMenuScreen.fxmlPath);
+			// Use the static method in Main to switch the scene root
+			Main.changeRoot(getBackFxmlPath());
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
+
+    private String getBackFxmlPath() {
+        UserType type = LoggedUser.getType();
+        if (type == UserType.SUBSCRIBER) {
+            return SubscriberScreen.fxmlPath;
+        }
+        else if (type == UserType.EMPLOYEE || type == UserType.MANAGER) {
+            return employeeMenu.fxmlPath;
+        }
+        return MainMenuScreen.fxmlPath;
+    }
 }
