@@ -11,7 +11,7 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Text?>
 
-<Pane prefHeight="450.0" prefWidth="650.0" styleClass="root" stylesheets="@../../../Css/style.css" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="gui.WaitingListScreen">
+<Pane  styleClass="root" stylesheets="@../../../Css/style.css" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="gui.WaitingListScreen">
 
     <children>
         <Label alignment="CENTER" layoutX="0.0" layoutY="20.0" prefWidth="650.0" styleClass="title" text="Enter Waiting List" />
