@@ -154,3 +154,37 @@
     -fx-background-color: #d1e9f9;
     -fx-background-insets: 0;
 }
+
+/* General styling for the ToggleButton with 'primary' class */
+.primary.toggle-button {
+    -fx-background-color: #5DADE2; /* The light blue color from your UI */
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-background-radius: 20; 
+    -fx-padding: 10 20;
+    -fx-cursor: hand;
+    /* Adding shadow for a 3D effect consistent with your other buttons */
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.2), 5, 0, 0, 2);
+}
+
+/* Hover state: Darker blue when the mouse is over the button */
+.primary.toggle-button:hover {
+    -fx-background-color: #3498DB; 
+}
+
+/* Selected state: When the toggle is clicked and stays "active" */
+.primary.toggle-button:selected {
+    -fx-background-color: #256d9c; /* Even darker blue for the active state */
+    -fx-text-fill: white;
+}
+
+/* Focused state: Maintains the primary color when selected via keyboard/tab */
+.primary.toggle-button:focused {
+    -fx-background-color: #5DADE2;
+    -fx-background-insets: 0; /* Removes the default JavaFX focus ring */
+}
+
+/* Armed state: When the button is being pressed down */
+.primary.toggle-button:armed {
+    -fx-background-color: #1B4F72;
+}

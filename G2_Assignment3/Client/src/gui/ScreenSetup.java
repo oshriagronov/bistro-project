@@ -34,9 +34,9 @@ public class ScreenSetup {
 		
 		Subscriber sub = (Subscriber) response.getData();
 		// Hide fields that are not relevant for subscribers
-		if (nonSubContainer != null) nonSubContainer.setVisible(false);
-		if (workerContainer != null) workerContainer.setVisible(false);
-		if (subContainer != null) subContainer.setVisible(false); // subscriber does NOT need to enter subscriber ID manually
+		setVisibleAndManaged(nonSubContainer, false);
+		setVisibleAndManaged(workerContainer, false);
+		setVisibleAndManaged(subContainer, false); // subscriber does NOT need to enter subscriber ID manually
 		
 		return sub;
 	}
@@ -45,9 +45,9 @@ public class ScreenSetup {
 	 * Configures the screen for a non‑logged guest user.
 	 */
 	public static void setupGuestView(Node nonSubContainer, Node workerContainer, Node subContainer) {
-		if (nonSubContainer != null) nonSubContainer.setVisible(true);
-		if (workerContainer != null) workerContainer.setVisible(false);
-		if (subContainer != null) subContainer.setVisible(false);
+		setVisibleAndManaged(nonSubContainer, true);
+		setVisibleAndManaged(workerContainer, false);
+		setVisibleAndManaged(subContainer, false);
 	}
 
 	/**
@@ -63,16 +63,23 @@ public class ScreenSetup {
 
 		if (response == null || response.getData() == null) {
 			// If something went wrong, hide everything
-			if (nonSubContainer != null) nonSubContainer.setVisible(false);
-			if (workerContainer != null) workerContainer.setVisible(false);
-			if (subContainer != null) subContainer.setVisible(false);
+			setVisibleAndManaged(nonSubContainer, false);
+			setVisibleAndManaged(workerContainer, false);
+			setVisibleAndManaged(subContainer, false);
 			return;
 		}
 		
 		// Hide fields that are not relevant for subscribers
-		if (nonSubContainer != null) nonSubContainer.setVisible(true);
-		if (workerContainer != null) workerContainer.setVisible(true);
-		if (subContainer != null) subContainer.setVisible(false); // worker does NOT need to enter subscriber ID manually
+		setVisibleAndManaged(nonSubContainer, true);
+		setVisibleAndManaged(workerContainer, true);
+		setVisibleAndManaged(subContainer, false); // worker does NOT need to enter subscriber ID manually
 		
+	}
+
+	private static void setVisibleAndManaged(Node node, boolean visible) {
+		if (node != null) {
+			node.setVisible(visible);
+			node.setManaged(visible);
+		}
 	}
 }

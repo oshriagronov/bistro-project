@@ -128,6 +128,9 @@ public class SubscriberLoginScreen {
                     if(subscriberCode instanceof Integer)
                         // Save subscriber globally
                         LoggedUser.setSubscriber((Integer)subscriberCode);
+                    else if (subscriberCode instanceof logic.Subscriber) {
+                        LoggedUser.setSubscriber(((logic.Subscriber)subscriberCode).getSubscriberId());
+                    }
                     // Switch screen
                     Main.changeRoot(SubscriberScreen.fxmlPath);
                 } catch (Exception e) {

@@ -17,7 +17,7 @@
    <children>
       <Label styleClass="title" text="Subscriber Login" />
 
-      <ToggleButton fx:id="switchView" onAction="#handleSwitchView" styleClass="button" text="Switch Login Method" />
+      <ToggleButton fx:id="switchView" onAction="#handleSwitchView" styleClass="primary" text="Switch Login Method" />
 
       <VBox alignment="CENTER" maxWidth="400.0" spacing="20.0" styleClass="form-card">
          <children>

@@ -17,6 +17,7 @@ import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import logic.LoggedUser;
 import logic.Reservation;
+import logic.Subscriber;
 import logic.UserType;
 import subscriber.SubscriberScreen;
 import employee.employeeMenu;
@@ -63,6 +64,7 @@ public class PaymentScreen {
     private Button backBtn;
 
     private boolean isSubscriber = false;
+    private Subscriber sub;
 
     /**
      * Initializes the controller.
@@ -75,7 +77,7 @@ public class PaymentScreen {
         total.setVisible(false);
         UserType type = LoggedUser.getType();
         if (type == UserType.SUBSCRIBER) {
-            ScreenSetup.setupSubscriber(detailsVbox, null, null);
+            this.sub = ScreenSetup.setupSubscriber(detailsVbox, null, null);
             setupSubscriberView();
         } else if (type == UserType.EMPLOYEE || type == UserType.MANAGER) {
             ScreenSetup.setupWorkerView(detailsVbox, null, null);

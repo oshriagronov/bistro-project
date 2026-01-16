@@ -32,7 +32,7 @@
       
       <HBox alignment="CENTER_RIGHT" maxWidth="Infinity" spacing="10.0">
          <children>
-            <Button fx:id="backBtn" onAction="#backToSubscriberScreen" styleClass="button back" text="Back" />
+            <Button fx:id="backBtn" onAction="#backToSubscriberScreen" styleClass="back" text="Back" />
          </children>
       </HBox>
    </children>

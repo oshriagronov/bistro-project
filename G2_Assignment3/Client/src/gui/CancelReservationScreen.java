@@ -12,6 +12,7 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import logic.LoggedUser;
@@ -30,6 +31,8 @@ public class CancelReservationScreen {
     @FXML
     private ResourceBundle resources;
 
+    @FXML
+    private ComboBox<String> prePhone;
 
     @FXML
     private TextField ConfirmationCodeField;
@@ -42,6 +45,14 @@ public class CancelReservationScreen {
 
     @FXML
     private TextField emailField;
+
+
+    @FXML
+    public void initialize(){
+        prePhone.getItems().clear();
+		prePhone.getItems().addAll("050", "052", "053", "054", "055", "058");
+    }
+
     /**
      * Handles the Cancel Reservation button click.
      * Validates the input and sends a cancellation request to the server.
@@ -49,7 +60,7 @@ public class CancelReservationScreen {
     @FXML
     private void cancelReservation(ActionEvent event) {
         String confirmationCode = ConfirmationCodeField.getText().trim();
-        String phone = phoneField.getText().trim();
+        String phone = (prePhone.getValue() + phoneField.getText()).trim();
         String email = emailField.getText().trim();
         
         if (phone.isEmpty() && email.isEmpty()) {
