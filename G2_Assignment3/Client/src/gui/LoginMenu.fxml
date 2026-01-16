@@ -11,7 +11,7 @@
     <children>
           <!-- Title -->
           <Label fx:id="title"
-       text="Login"
+       text="Welcome!"
        styleClass="title"
        alignment="CENTER"
        prefWidth="600"
@@ -23,11 +23,11 @@
           <VBox alignment="CENTER" layoutX="50.0" layoutY="94.0" prefHeight="188.0" prefWidth="500.0" spacing="20.0">
 
               <children>
-                  <Button id="LoginAsCustomerBtn" onAction="#loginAsSubscriber" prefHeight="29.0" prefWidth="180.0" text="Login as Subscriber" />
+                  <Button id="LoginAsCustomerBtn" onAction="#loginAsSubscriber" prefHeight="29.0" prefWidth="190.0" styleClass="primary" text="Login as Subscriber" />
 
-                  <Button id="LoginAsEmplpyeeBtn" onAction="#loginAsEmployee" prefHeight="29.0" prefWidth="180.0" text="Login as Employee" />
+                  <Button id="LoginAsEmplpyeeBtn" onAction="#loginAsEmployee" prefHeight="29.0" prefWidth="190.0" styleClass="primary" text="Login as Employee" />
 
-                  <Button id="ContinueAsGuestBtn" onAction="#continueAsGuest" prefHeight="29.0" prefWidth="180.0" text="Continue as Guest" />
+                  <Button id="ContinueAsGuestBtn" onAction="#continueAsGuest" prefHeight="29.0" prefWidth="190.0" styleClass="primary" text="Continue as Guest" />
               </children>
           </VBox>
     </children>

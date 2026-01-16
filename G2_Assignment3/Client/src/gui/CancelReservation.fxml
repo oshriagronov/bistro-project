@@ -80,7 +80,7 @@
                         <!-- SUBMIT BUTTON -->
                         <Button text="Cancel Reservation"
                                 onAction="#cancelReservation"
-                                styleClass="button primary"
+                                styleClass="primary"
                                 prefWidth="220"/>
 
                     </VBox>
@@ -98,7 +98,7 @@
         <!-- BACK BUTTON -->
         <Button text="Back"
                 onAction="#back"
-                styleClass="button back"
+                styleClass="back"
                 AnchorPane.bottomAnchor="20"
                 AnchorPane.rightAnchor="20"/>
 
