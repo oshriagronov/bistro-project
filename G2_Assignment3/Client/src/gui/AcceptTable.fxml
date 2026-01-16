@@ -114,14 +114,14 @@
                         <Button fx:id="submitBTN"
                                 text="Submit"
                                 onAction="#handleSubmit"
-                                styleClass="button primary"/>
+                                styleClass="primary"/>
 
                         <Button fx:id="getConfirmationBtn"
                                 text="Recover Confirmation Code"
                                 onAction="#handleGetConfirmationCode"
                                 managed="false"
                                 visible="false"
-                                styleClass="button"/>
+                                styleClass="primary"/>
                     </children>
                 </HBox>
 
@@ -147,7 +147,7 @@
         <Button fx:id="backBtn"
                 text="Back"
                 onAction="#back"
-                styleClass="button back"
+                styleClass="back"
                 AnchorPane.bottomAnchor="20.0"
                 AnchorPane.rightAnchor="20.0"/>
 

@@ -35,8 +35,8 @@
                   <Button id="WaitingListBtn"
                           text="Waiting List"
                           onAction="#openWaitingList"
-                          prefWidth="180"
-                          styleClass="button primary"/>
+                          prefWidth="190"
+                          styleClass="primary"/>
                </children>
             </HBox>
 
@@ -45,8 +45,8 @@
                   <Button id="NewReservationBtn"
                           text="New Reservation"
                           onAction="#openNewReservation"
-                          prefWidth="180"
-                          styleClass="button primary"/>
+                          prefWidth="190"
+                          styleClass="primary"/>
                </children>
             </HBox>
 
@@ -55,8 +55,8 @@
                   <Button id="AcceptTable"
                           text="Accept Table"
                           onAction="#AcceptTable"
-                          prefWidth="180"
-                          styleClass="button primary"/>
+                          prefWidth="190"
+                          styleClass="primary"/>
                </children>
             </HBox>
 
@@ -65,8 +65,8 @@
                   <Button id="CancelReservation"
                           text="Cancel Reservation"
                           onAction="#CancelReservationScreen"
-                          prefWidth="180"
-                          styleClass="button primary"/>
+                          prefWidth="190"
+                          styleClass="primary"/>
                </children>
             </HBox>
 
@@ -75,8 +75,8 @@
                   <Button fx:id="paymentBtn"
                           text="Payment"
                           onAction="#openPaymentScreen"
-                          prefWidth="180"
-                          styleClass="button primary"/>
+                          prefWidth="190"
+                          styleClass="primary"/>
                </children>
             </HBox>
 
@@ -88,7 +88,7 @@
               text="Back"
               onAction="#backToLogin"
               prefWidth="80"
-              styleClass="button back"
+              styleClass="back"
               layoutX="520"
               layoutY="350"/>
 
