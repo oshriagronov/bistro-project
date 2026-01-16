@@ -5,6 +5,7 @@
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.PasswordField?>
 <?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.ToggleButton?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Pane?>
 <?import javafx.scene.layout.VBox?>
@@ -18,7 +19,19 @@
             <Font name="Calibri Bold" size="18.0" />
          </font>
       </Text>
-      <VBox layoutX="170.0" layoutY="90.0" prefHeight="150.0" prefWidth="260.0">
+      <ToggleButton fx:id="switchView" contentDisplay="TOP" layoutX="171.0" layoutY="164.0" mnemonicParsing="false" onAction="#handleSwitchView" text="switch View" textAlignment="CENTER" textOverrun="CLIP" />
+      <VBox fx:id="IDlogin" layoutX="170.0" layoutY="71.0" prefHeight="70.0" prefWidth="390.0">
+         <children>
+            <Text strokeType="OUTSIDE" strokeWidth="0.0" text="you want to login by username and password OR by subscriberID?" wrappingWidth="351.10546875" />
+            <HBox prefHeight="65.0" prefWidth="390.0">
+               <children>
+                  <Text strokeType="OUTSIDE" strokeWidth="0.0" text="SubscriberID" />
+                  <TextField fx:id="subIDfield" prefHeight="25.0" prefWidth="134.0" />
+               </children>
+            </HBox>
+         </children>
+      </VBox>
+      <VBox fx:id="usernamelogin" layoutX="170.0" layoutY="200.0" prefHeight="70.0" prefWidth="260.0">
          <children>
             <HBox prefHeight="35.0" prefWidth="260.0">
                <children>
@@ -40,13 +53,10 @@
                   <PasswordField fx:id="codeField" prefWidth="160.0" />
                </children>
             </HBox>
-            <HBox prefHeight="35.0" prefWidth="260.0">
-               <children>
-                  <Button fx:id="loginBtn" defaultButton="true" mnemonicParsing="false" onAction="#handleLogin" text="Login" />
-               </children>
-            </HBox>
+            <HBox prefHeight="35.0" prefWidth="260.0" />
          </children>
       </VBox>
       <Button fx:id="backBtn" layoutX="508.0" layoutY="360.0" mnemonicParsing="false" onAction="#backToLoginMenu" text="Back" />
+      <Button fx:id="loginBtn" defaultButton="true" layoutX="187.0" layoutY="307.0" mnemonicParsing="false" onAction="#handleLogin" text="Login" />
    </children>
 </Pane>

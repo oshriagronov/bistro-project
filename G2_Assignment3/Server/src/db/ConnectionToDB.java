@@ -233,6 +233,15 @@ public class ConnectionToDB {
 
 		return result;
 	}
+	/**
+	 * Resets the waiting list by updating all PENDING reservations to CANCELLED.
+	 *
+	 * @return number of rows affected
+	 */
+	public int resetWaitingList() {
+		String sql = "UPDATE status from reservations SET status = 'CANCELLED' WHERE status = 'PENDING'";
+		return executeWriteQuery(sql);
+	}	
 
 	/**
 	 * Cancels a reservation by confirmation code and either email or phone. Uses
@@ -265,8 +274,8 @@ public class ConnectionToDB {
 	public String insertReservation(Reservation reservation) {
 		String insertSql = """
 				    INSERT INTO reservations
-				    (phone, email, sub_id, start_time, finish_time, order_date, order_status, num_diners, date_of_placing_order)
-				    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+				    (phone, email, sub_id, start_time, finish_time, order_date, order_status, num_diners, date_of_placing_order, waitlist_enter_time)
+				    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 				""";
 
 		MySQLConnectionPool pool = MySQLConnectionPool.getInstance();
@@ -287,6 +296,13 @@ public class ConnectionToDB {
 			insertStmt.setString(7, reservation.getStatus().name());
 			insertStmt.setInt(8, reservation.getNumberOfGuests());
 			insertStmt.setDate(9, java.sql.Date.valueOf(reservation.getDateOfPlacingOrder()));
+			//if it is from Waitinglist, create time stamp. else null
+			if (reservation.getStatus() == Status.PENDING){
+				insertStmt.setTime(10, java.sql.Time.valueOf(reservation.getStart_time()));
+			}
+			else{
+				insertStmt.setTime(10, null);
+			}
 
 			int affected = insertStmt.executeUpdate();
 			if (affected == 0)
@@ -1706,7 +1722,6 @@ public class ConnectionToDB {
 
 		return new SubscriberOrderCounts(year, month, subs, nonsubs);
 	}
-
 	public List<AvgWaitTimePerDay> getDailyAverageWaitTime(int year, int month) {
 
 		String sql = "SELECT " + "  DAY(order_date) AS day_in_month, " + "  AVG(TIMESTAMPDIFF(MINUTE, "

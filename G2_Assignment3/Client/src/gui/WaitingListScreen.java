@@ -2,8 +2,13 @@ package gui;
 
 import javafx.scene.control.TextField;
 import javafx.scene.layout.VBox;
+import javafx.scene.text.Text;
+
+import java.io.IOException;
+import java.sql.Date;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.List;
 import communication.BistroCommand;
 import communication.BistroRequest;
@@ -32,9 +37,13 @@ public class WaitingListScreen {
 	private Worker worker=null;
     Alert alert = new Alert(Alert.AlertType.INFORMATION);
     private volatile boolean isActive = true;
+	private int numofhourstowait = 2;
 
-     @FXML
+    @FXML
     private Button backBtn;
+
+	@FXML
+    private VBox infoVbox;
 
     @FXML
     private ComboBox<String> diners;
@@ -56,6 +65,9 @@ public class WaitingListScreen {
 
     @FXML
     private Button submit;
+
+	 @FXML
+    private Text tableResultText;
 
 	@FXML
     private VBox workerVbox;
@@ -97,7 +109,7 @@ public class WaitingListScreen {
 	void submit(ActionEvent event) {
 		LocalDate today = LocalDate.now();
 		LocalTime now = LocalTime.now();
-		
+		BistroResponse response = null;
 		if (diners.getValue() == null) {
 			showAlert("Error", "Please choose the diners amount");
 		}
@@ -118,13 +130,13 @@ public class WaitingListScreen {
 			
 			if (phone.length() ==  10) {
 				Main.client.accept(new BistroRequest(BistroCommand.SEARCH_SUB_BY_PHONE, phone));
-				BistroResponse response = Main.client.getResponse();
+				response = Main.client.getResponse();
 				if (response.getStatus() == BistroResponseStatus.SUCCESS) {
 					foundSub = (Subscriber) response.getData();
 				}
 			} else if (email != null && !email.isEmpty()) {
 				Main.client.accept(new BistroRequest(BistroCommand.SEARCH_SUB_BY_EMAIL, email));
-				BistroResponse response = Main.client.getResponse();
+				response = Main.client.getResponse();
 				if (response.getStatus() == BistroResponseStatus.SUCCESS) {
 					foundSub = (Subscriber) response.getData();
 				}
@@ -147,14 +159,14 @@ public class WaitingListScreen {
 			String email = emailField.getText();
 			int nonSub = 0;
 
-			if (phone_number.length() > 0 && phone_number.length() < 10) {
+			if (phone_number.length() != 10) {
 				showAlert("Input Error", "Please enter a valid 10-digit phone number.");
 			} else if (phone_number.isEmpty() && (email == null || email.trim().isEmpty())) {
 				showAlert("Input Error", "Please enter identifying information (Phone or Email).");
 			} else {
 				Reservation r = new Reservation(today, num_of_diners, nonSub, today, now, phone_number, Status.PENDING, email);
 				Main.client.accept(new BistroRequest(BistroCommand.ADD_RESERVATION, r));
-				BistroResponse response = Main.client.getResponse();
+				response = Main.client.getResponse();
 				if (response != null && response.getStatus() == BistroResponseStatus.SUCCESS) {
 					showAlert("Reservation Success", "Reservation successfully created.");
 				} else {
@@ -166,7 +178,6 @@ public class WaitingListScreen {
 		try{
 			if (table == true){
 				isActive = false;
-				Main.changeRoot(AcceptTableScreen.fxmlPath);
 			}
 		} catch (Exception e) {
 		e.printStackTrace();
@@ -227,6 +238,70 @@ public class WaitingListScreen {
 	    return null;
 	}
 
+	/**
+	 * Starts a background thread to monitor opening and closing times.
+	 * Resets the waiting list when the restaurant closes.
+	 
+	public static void checkOpeningAndClosingTime() {
+		LocalDate today = LocalDate.now();
+		new Thread(() -> {
+			while (true) {
+				LocalTime now = LocalTime.now();
+				LocalTime[] openingTimes = Restaurant.getOpeningTime(today);
+				if (now.isAfter(openingTimes[1])) {
+					Main.client.accept(RequestFactory.resetWaitingList());
+				}
+				try {
+					Thread.sleep(1800000); // Check every 30 minutes
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+			}
+		}).start();
+
+		Main.client.accept(RequestFactory.getAllPendingReservations());
+		BistroResponse res = Main.client.getResponse();
+		if (res.getStatus() == BistroResponseStatus.SUCCESS) {
+			List<Reservation> pending = (List<Reservation>) res.getData();
+			LocalDate today = LocalDate.now();
+			LocalTime now = LocalTime.now();
+			for (Reservation r : pending) {
+				if (r.getOrderDate().equals(today) && r.getStart_time().plusHours(1).isBefore(now)) {
+					Main.client.accept(RequestFactory.changeStatus(r.getPhone_number(), r.getOrderNumber(), Status.CANCELLED));
+				}
+			}
+		}
+	}
+	*/
+	/**
+	 * Checks with thread the waiting list for pending reservations that already past 1 hour
+	 * If a reservation already past 1 hour, change its status to CANCELLED 
+	 */
+	public void checkWaitingListExpired() {
+		if (!isActive) return;
+		new Thread(() -> {
+			while (isActive) {
+				LocalDate today = LocalDate.now();
+				LocalTime now = LocalTime.now();
+				Main.client.accept(RequestFactory.getAllPendingReservations());
+				BistroResponse res = Main.client.getResponse();
+				if (res.getStatus() == BistroResponseStatus.SUCCESS) {
+					List<Reservation> pending = (List<Reservation>) res.getData();
+					for (Reservation r : pending) {
+						if (r.getOrderDate().equals(today) && r.getStart_time().plusHours(numofhourstowait).isBefore(now)) {
+							Main.client.accept(RequestFactory.changeStatus(r.getPhone_number(), r.getOrderNumber(), Status.CANCELLED));
+						}
+					}
+				}
+				try {
+					Thread.sleep(1800000); // Check every 30 minutes
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+			}
+		}).start();
+	}	
+
 	private void checkWaitingList() {
 		if (!isActive) return;
 		Main.client.accept(RequestFactory.getAllPendingReservations());
@@ -235,14 +310,43 @@ public class WaitingListScreen {
 			List<Reservation> pending = (List<Reservation>) res.getData();
 			Reservation candidate = findCandidateFromWaitingList(pending, LocalDate.now(), LocalTime.now());
 			if (candidate != null) {
-				Main.client.accept(RequestFactory.changeStatus(candidate.getPhone_number(), candidate.getOrderNumber(), Status.ACCEPTED));
+				Main.client.accept(RequestFactory.changeStatus(candidate.getPhone_number(), candidate.getOrderNumber(), Status.CONFIRMED));
+				String code = String.valueOf(candidate.getOrderNumber());
+				ArrayList<String> info = new ArrayList<>();
+				info.add(candidate.getPhone_number());
+				info.add(candidate.getEmail());
+				info.add(candidate.getConfirmationCode());
+				sendRequest(BistroCommand.SEND_CODE_TO_WAITING_LIST, info);
+				BistroResponse response = sendRequest(BistroCommand.GET_TABLE_BY_CONFIRMATION_CODE, code);
 				Platform.runLater(() -> {
 					if (isActive) {
 						showAlert("Waiting List Update", "Reservation for " + candidate.getPhone_number() + " has been automatically accepted.");
+       		 			if (response != null && response.getStatus() == BistroResponseStatus.SUCCESS) {
+            			Object data = response.getData();
+            				if (data != null) {
+								infoVbox.setVisible(false);
+								tableResultText.setText("Your table is: " + data.toString());
+								tableResultText.setVisible(true);
+								return;
+            				}
+       					}
 					}
 				});
 			}
 		}
+	}
+
+	/**
+	 * Sends a request to the server and returns the response.
+	 *
+	 * @param command server command to execute
+	 * @param data request payload
+	 * @return response received from the server
+	 */
+	private BistroResponse sendRequest(BistroCommand command, Object data) {
+		BistroRequest request = new BistroRequest(command, data);
+		Main.client.accept(request);
+		return Main.client.getResponse();
 	}
 
 	/**
