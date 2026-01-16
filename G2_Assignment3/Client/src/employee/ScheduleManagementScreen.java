@@ -142,16 +142,14 @@ public class ScheduleManagementScreen {
 			specialOpenCB.setDisable(isNow);
 			specialCloseCB.setDisable(isNow);
 			if (isNow) {
-			    specialOpenCB.getSelectionModel().clearSelection();
-			    specialCloseCB.getSelectionModel().clearSelection();
-			}
-			else {
+				specialOpenCB.getSelectionModel().clearSelection();
+				specialCloseCB.getSelectionModel().clearSelection();
+			} else {
 				specialOpenCB.getSelectionModel().selectFirst();
 				specialCloseCB.getSelectionModel().selectLast();
 			}
 		});
-		
-		
+
 		// Bind table columns to WeeklySchedule properties by getter names
 		dayCol.setCellValueFactory(new javafx.scene.control.cell.PropertyValueFactory<>("dayOfWeek"));
 		openCol.setCellValueFactory(new javafx.scene.control.cell.PropertyValueFactory<>("open"));
@@ -273,7 +271,7 @@ public class ScheduleManagementScreen {
 	@FXML
 	void menu(ActionEvent event) {
 		try {
-			Main.changeRoot(employeeMenu.fxmlPath, 600, 500);
+			Main.changeRoot(RestaurantManagementScreen.fxmlPath, 600, 500);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

@@ -5,48 +5,64 @@
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.PasswordField?>
 <?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.ToggleButton?>
 <?import javafx.scene.layout.HBox?>
-<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
-<?import javafx.scene.text.Font?>
-<?import javafx.scene.text.Text?>
 
-<Pane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="subscriber.SubscriberLoginScreen">
+<VBox alignment="TOP_CENTER" prefHeight="500.0" prefWidth="600.0" spacing="20.0" styleClass="root" stylesheets="@../../../Css/style.css" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="subscriber.SubscriberLoginScreen">
+   <padding>
+      <Insets bottom="30.0" left="30.0" right="30.0" top="30.0" />
+   </padding>
    <children>
-      <Text fill="#1673f6" layoutX="210.0" layoutY="40.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Subscriber Login">
-         <font>
-            <Font name="Calibri Bold" size="18.0" />
-         </font>
-      </Text>
-      <VBox layoutX="170.0" layoutY="90.0" prefHeight="150.0" prefWidth="260.0">
+      <Label styleClass="title" text="Subscriber Login" />
+
+      <ToggleButton fx:id="switchView" onAction="#handleSwitchView" styleClass="button" text="Switch Login Method" />
+
+      <VBox alignment="CENTER" maxWidth="400.0" spacing="20.0" styleClass="form-card">
          <children>
-            <HBox prefHeight="35.0" prefWidth="260.0">
+            <Label styleClass="subtitle" text="Please enter your credentials" />
+            
+            <StackPane>
                <children>
-                  <Label prefWidth="110.0" text="Username">
-                     <HBox.margin>
-                        <Insets right="10.0" />
-                     </HBox.margin>
-                  </Label>
-                  <TextField fx:id="usernameField" prefWidth="160.0" />
+                  <VBox fx:id="IDlogin" spacing="15.0" alignment="CENTER">
+                     <children>
+                        <HBox alignment="CENTER_LEFT" spacing="10.0">
+                           <children>
+                              <Label minWidth="100.0" text="Subscriber ID:" />
+                              <TextField fx:id="subIDfield" HBox.hgrow="ALWAYS" promptText="Enter ID" />
+                           </children>
+                        </HBox>
+                     </children>
+                  </VBox>
+
+                  <VBox fx:id="usernamelogin" spacing="15.0" alignment="CENTER" visible="false" managed="false">
+                     <children>
+                        <HBox alignment="CENTER_LEFT" spacing="10.0">
+                           <children>
+                              <Label minWidth="100.0" text="Username:" />
+                              <TextField fx:id="usernameField" HBox.hgrow="ALWAYS" promptText="Username" />
+                           </children>
+                        </HBox>
+                        <HBox alignment="CENTER_LEFT" spacing="10.0">
+                           <children>
+                              <Label minWidth="100.0" text="Password:" />
+                              <PasswordField fx:id="codeField" HBox.hgrow="ALWAYS" promptText="Password" />
+                           </children>
+                        </HBox>
+                     </children>
+                  </VBox>
                </children>
-            </HBox>
-            <HBox prefHeight="35.0" prefWidth="260.0">
-               <children>
-                  <Label prefWidth="110.0" text="Password">
-                     <HBox.margin>
-                        <Insets right="10.0" />
-                     </HBox.margin>
-                  </Label>
-                  <PasswordField fx:id="codeField" prefWidth="160.0" />
-               </children>
-            </HBox>
-            <HBox prefHeight="35.0" prefWidth="260.0">
-               <children>
-                  <Button fx:id="loginBtn" defaultButton="true" mnemonicParsing="false" onAction="#handleLogin" text="Login" />
-               </children>
-            </HBox>
+            </StackPane>
+
+            <Button fx:id="loginBtn" defaultButton="true" maxWidth="150.0" onAction="#handleLogin" styleClass="primary" text="Login" />
          </children>
       </VBox>
-      <Button fx:id="backBtn" layoutX="508.0" layoutY="360.0" mnemonicParsing="false" onAction="#backToLoginMenu" text="Back" />
+
+      <VBox alignment="BOTTOM_RIGHT" VBox.vgrow="ALWAYS">
+         <children>
+            <Button fx:id="backBtn" onAction="#backToLoginMenu" styleClass="back" text="Back" />
+         </children>
+      </VBox>
    </children>
-</Pane>
+</VBox>

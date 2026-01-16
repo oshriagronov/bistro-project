@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.CheckBox?>
 <?import javafx.scene.control.ComboBox?>
@@ -10,56 +11,61 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Text?>
 
-<Pane prefHeight="400.0" prefWidth="600.0" styleClass="root" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="gui.WaitingListScreen">
+<Pane prefHeight="450.0" prefWidth="650.0" styleClass="root" stylesheets="@../../../Css/style.css" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="gui.WaitingListScreen">
 
     <children>
-      <Label layoutX="145.0" layoutY="14.0" prefHeight="36.0" prefWidth="162.0">
-         <graphic>
-      
-              <!-- Title -->
-              <Text styleClass="text title" text="Enter Waiting List" />
-         </graphic>
-      </Label>
+        <Label alignment="CENTER" layoutX="0.0" layoutY="20.0" prefWidth="650.0" styleClass="title" text="Enter Waiting List" />
 
-        <!-- Subtitle -->
-        <Text layoutX="150" layoutY="80" styleClass="text subtitle" text="You must enter phone number or email (or both)" wrappingWidth="300" />
+        <VBox fx:id="infoVbox" layoutX="100.0" layoutY="100.0" prefWidth="450.0" spacing="20.0" styleClass="form-card">
+            <padding>
+                <Insets bottom="30.0" left="30.0" right="30.0" top="25.0" />
+            </padding>
+            <children>
 
-        <!-- Form Card -->
-        <VBox layoutX="150" layoutY="110" prefWidth="300" spacing="15" styleClass="form-card">
-
-            <!-- Diners -->
-            <HBox alignment="CENTER_LEFT" spacing="10">
-                <Text styleClass="text" text="Amount of diners" />
-                <ComboBox fx:id="diners" prefWidth="80" />
-            </HBox>
-
-            <!-- Non Subscriber -->
-            <VBox fx:id="nonSubVbox" spacing="10">
-
-                <HBox alignment="CENTER_LEFT" spacing="10">
-                    <Text styleClass="text" text="Phone number" />
-                    <ComboBox fx:id="prePhone" prefWidth="60" />
-                    <TextField fx:id="phoneField" prefWidth="160" />
+                <HBox alignment="CENTER_LEFT" spacing="15.0">
+                    <children>
+                        <Label minWidth="130.0" text="Amount of diners:" />
+                        <ComboBox fx:id="diners" maxWidth="Infinity" HBox.hgrow="ALWAYS" />
+                    </children>
                 </HBox>
 
-                <HBox alignment="CENTER_LEFT" spacing="10">
-                    <Text styleClass="text" text="Email" />
-                    <TextField fx:id="emailField" prefWidth="240" />
+                <VBox fx:id="nonSubVbox" spacing="15.0">
+                    <children>
+                        <Text styleClass="subtitle" text="Please provide contact details below:" wrappingWidth="390.0" />
+
+                        <HBox alignment="CENTER_LEFT" spacing="10.0">
+                            <children>
+                                <Label minWidth="130.0" text="Phone number:" />
+                                <ComboBox fx:id="prePhone" minWidth="100.0" prefWidth="100.0" />
+                                <TextField fx:id="phoneField" maxWidth="Infinity" HBox.hgrow="ALWAYS" />
+                            </children>
+                        </HBox>
+
+                        <HBox alignment="CENTER_LEFT" spacing="10.0">
+                            <children>
+                                <Label minWidth="130.0" text="Email:" />
+                                <TextField fx:id="emailField" maxWidth="Infinity" HBox.hgrow="ALWAYS" />
+                            </children>
+                        </HBox>
+                    </children>
+                </VBox>
+
+                <VBox fx:id="workerVbox">
+                    <children>
+                        <CheckBox fx:id="subCheckBox" text="Register as Subscriber" />
+                    </children>
+                </VBox>
+
+                <HBox alignment="CENTER">
+                    <children>
+                        <Button fx:id="submit" onAction="#submit" prefWidth="180.0" styleClass="primary" text="Submit" />
+                    </children>
                 </HBox>
-
-            </VBox>
-
-            <!-- Worker / Subscriber -->
-            <VBox fx:id="workerVbox">
-                <CheckBox fx:id="subCheckBox" text="Is subscriber?" />
-            </VBox>
-
+            </children>
         </VBox>
 
-        <!-- Buttons -->
-        <Button fx:id="submit" layoutX="260" layoutY="340" onAction="#submit" styleClass="button primary" text="Submit" />
-
-        <Button fx:id="backBtn" layoutX="500" layoutY="350" onAction="#back" styleClass="button back" text="Back" />
-
+        <Button fx:id="backBtn" layoutX="560.0" layoutY="400.0" onAction="#back" styleClass="back" text="Back" />
+        
+        <Text fx:id="tableResultText" layoutX="563.0" layoutY="226.0" strokeType="OUTSIDE" strokeWidth="0.0" visible="false" />
     </children>
 </Pane>

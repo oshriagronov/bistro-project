@@ -1,100 +1,155 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.geometry.Insets?>
-<?import javafx.scene.control.Button?>
-<?import javafx.scene.control.CheckBox?>
-<?import javafx.scene.control.ComboBox?>
-<?import javafx.scene.control.TextField?>
-<?import javafx.scene.layout.HBox?>
-<?import javafx.scene.layout.Pane?>
-<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
 <?import javafx.scene.text.Font?>
 <?import javafx.scene.text.Text?>
 
-<Pane prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="gui.AcceptTableScreen">
+<AnchorPane prefHeight="400.0"
+            prefWidth="600.0"
+            xmlns="http://javafx.com/javafx/23.0.1"
+            xmlns:fx="http://javafx.com/fxml/1"
+            stylesheets="@../../../Css/style.css"
+            fx:controller="gui.AcceptTableScreen">
 
-   <children>
+    <children>
 
-      <Text fill="#4233c6" layoutX="180.0" layoutY="40.0" text="Accept your table here">
-         <font>
-            <Font size="24.0" />
-         </font>
-      </Text>
+        <!-- TITLE -->
+        <Label fx:id="title"
+               text="Accept your table here"
+               styleClass="title"
+               AnchorPane.topAnchor="25.0"
+               AnchorPane.leftAnchor="80.0"/>
 
-      <VBox fx:id="infoVbox" layoutX="157.0" layoutY="74.0" prefHeight="265.0" prefWidth="373.0" spacing="12.0">
-         <children>
+        <!-- FORM CARD -->
+        <VBox fx:id="infoVbox"
+              prefWidth="380"
+              maxWidth="420"
+              spacing="14"
+              styleClass="form-card"
+              AnchorPane.topAnchor="90.0"
+              AnchorPane.leftAnchor="90.0"
+              AnchorPane.rightAnchor="90.0">
 
-            <HBox fx:id="subscriberConfirmationBox" managed="false" prefHeight="52.0" prefWidth="178.0" spacing="10.0" visible="false">
-               <children>
-                  <Text text="confirmation code" />
-                  <ComboBox fx:id="subscriberConfirmationCodes" prefWidth="134.0" />
-               </children>
-            </HBox>
-            <VBox fx:id="detailsVbox" prefHeight="114.0" prefWidth="367.0" spacing="10.0">
-               <children>
-                  <Text fx:id="identifyingDetailsText" managed="false" strokeType="OUTSIDE" strokeWidth="0.0" text="please enter the identifying detail you put when you placed the order" visible="false" wrappingWidth="413.744140625" />
+            <children>
 
-                  <HBox fx:id="confirmationBox" alignment="CENTER_LEFT" prefHeight="35.0" prefWidth="266.0" spacing="10.0">
-                     <children>
-                        <Text text="confirmation code" />
-                        <TextField fx:id="confirmationCode" prefWidth="68.0" />
-                     </children>
-                  </HBox>
-      
-                  <HBox fx:id="phoneBox" alignment="CENTER_LEFT" managed="false" prefHeight="65.0" prefWidth="367.0" spacing="10.0" visible="false">
-                     <children>
-                        <Text text="phone">
-                           <HBox.margin>
-                              <Insets />
-                           </HBox.margin>
-                        </Text>
-                        <ComboBox fx:id="prePhone" prefHeight="26.0" prefWidth="65.0" />
-                        <TextField fx:id="restPhone" prefHeight="11.0" prefWidth="134.0" />
-                     </children>
-                  </HBox>
-                  <HBox fx:id="emailBox" alignment="CENTER_LEFT" managed="false" prefHeight="50.0" prefWidth="367.0" spacing="10.0" visible="false">
-                     <children>
-                        <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Email" />
-                        <TextField fx:id="emailField" />
-                     </children>
-                  </HBox>
-                  <CheckBox fx:id="forgotCheckBox" mnemonicParsing="false" onAction="#handleForgotCheckBox" text="forgot your code?">
-                     <VBox.margin>
-                        <Insets top="6.0" />
-                     </VBox.margin>
-                  </CheckBox>
-                  <Button fx:id="getConfirmationBtn" alignment="CENTER" contentDisplay="CENTER" managed="false" mnemonicParsing="false" onAction="#handleGetConfirmationCode" prefHeight="25.0" prefWidth="165.0" text="Recover Confirmation Code" visible="false">
-                     <HBox.margin>
-                        <Insets top="8.0" />
-                     </HBox.margin>
-                  </Button>
-               </children>
-            </VBox>
+                <!-- SUBSCRIBER CONFIRMATION -->
+                <HBox fx:id="subscriberConfirmationBox"
+                      spacing="10"
+                      managed="false"
+                      visible="false">
+                    <children>
+                        <Text text="confirmation code"/>
+                        <ComboBox fx:id="subscriberConfirmationCodes"/>
+                    </children>
+                </HBox>
 
-            <HBox prefHeight="28.0" prefWidth="168.0">
-               <children>
-                  <Button fx:id="submitBTN" alignment="CENTER" contentDisplay="CENTER" mnemonicParsing="false" onAction="#handleSubmit" prefHeight="25.0" prefWidth="61.0" text="Submit">
-                     <HBox.margin>
-                        <Insets top="8.0" />
-                     </HBox.margin>
-                  </Button>
-               </children>
-            </HBox>
+                <!-- DETAILS -->
+                <VBox fx:id="detailsVbox" spacing="10">
+                    <children>
 
-         </children>
-      </VBox>
+                        <Text fx:id="identifyingDetailsText"
+                              text="please enter the identifying detail you put when you placed the order"
+                              wrappingWidth="340"
+                              managed="false"
+                              visible="false"
+                              styleClass="subtitle"/>
 
-      <HBox alignment="CENTER" layoutX="0.0" layoutY="220.0" mouseTransparent="true" pickOnBounds="false" prefWidth="600.0">
-         <children>
-            <Text fx:id="tableResultText" fill="#4233c6" visible="false">
-               <font>
-                  <Font size="32.0" />
-               </font>
-            </Text>
-         </children>
-      </HBox>
+                        <HBox fx:id="confirmationBox" spacing="10">
+                            <children>
+                                <Text text="confirmation code"/>
+                                <TextField fx:id="confirmationCode"
+						           prefWidth="180"
+						           maxWidth="220"
+						           HBox.hgrow="ALWAYS"/>
 
-      <Button fx:id="backBtn" layoutX="509.0" layoutY="352.0" mnemonicParsing="false" onAction="#back" text="Back" />
-      
-   </children>
-</Pane>
+                            </children>
+                        </HBox>
+
+                        <HBox fx:id="phoneBox"
+					      spacing="10"
+					      managed="false"
+					      visible="false"
+					      alignment="CENTER_LEFT">
+					    <children>
+					        <Text text="phone"/>
+					
+					        <ComboBox fx:id="prePhone"
+					                  prefWidth="100"
+					                  maxWidth="120"
+					                  HBox.hgrow="ALWAYS"/>
+					
+					        <TextField fx:id="restPhone"
+					                   prefWidth="180"
+					                   maxWidth="200"
+					                   HBox.hgrow="ALWAYS"/>
+					    </children>
+					</HBox>
+
+
+                        <HBox fx:id="emailBox"
+                              spacing="10"
+                              managed="false"
+                              visible="false">
+                            <children>
+                                <Text text="Email"/>
+                                <TextField fx:id="emailField"
+						          prefWidth="180"
+						          maxWidth="220"
+						          HBox.hgrow="ALWAYS"/>
+
+                            </children>
+                        </HBox>
+
+                        <CheckBox fx:id="forgotCheckBox"
+                                  text="forgot your code?"
+                                  onAction="#handleForgotCheckBox"/>
+                    </children>
+                </VBox>
+
+                <!-- BUTTONS -->
+                <HBox spacing="10">
+                    <children>
+                        <Button fx:id="submitBTN"
+                                text="Submit"
+                                onAction="#handleSubmit"
+                                styleClass="primary"/>
+
+                        <Button fx:id="getConfirmationBtn"
+                                text="Recover Confirmation Code"
+                                onAction="#handleGetConfirmationCode"
+                                managed="false"
+                                visible="false"
+                                styleClass="primary"/>
+                    </children>
+                </HBox>
+
+            </children>
+        </VBox>
+
+        <!-- RESULT TEXT -->
+        <HBox alignment="CENTER"
+              prefWidth="600"
+              AnchorPane.topAnchor="260.0"
+              mouseTransparent="true">
+            <children>
+                <Text fx:id="tableResultText"
+                      visible="false">
+                    <font>
+                        <Font size="32"/>
+                    </font>
+                </Text>
+            </children>
+        </HBox>
+
+        <!-- BACK BUTTON -->
+        <Button fx:id="backBtn"
+                text="Back"
+                onAction="#back"
+                styleClass="back"
+                AnchorPane.bottomAnchor="20.0"
+                AnchorPane.rightAnchor="20.0"/>
+
+    </children>
+</AnchorPane>

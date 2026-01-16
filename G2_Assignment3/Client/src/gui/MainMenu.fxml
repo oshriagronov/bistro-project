@@ -6,53 +6,91 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 <?import javafx.scene.text.Text?>
+<?import javafx.scene.control.Label?>
 
-<Pane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="gui.MainMenuScreen">
+<Pane prefHeight="400.0" prefWidth="600.0"
+      xmlns="http://javafx.com/javafx/23.0.1"
+      xmlns:fx="http://javafx.com/fxml/1"
+      stylesheets="@../../../Css/style.css"
+      fx:controller="gui.MainMenuScreen">
 
    <children>
 
-      <VBox layoutX="185.0" layoutY="48.0" prefHeight="258.0" prefWidth="224.0" spacing="15.0">
+      <VBox layoutX="185" layoutY="48" spacing="15">
          <children>
-            <HBox alignment="CENTER" prefHeight="61.0" prefWidth="224.0">
+
+            <!-- TITLE -->
+            <HBox alignment="CENTER">
                <children>
-                  <Text fill="#0e91e3" strokeType="OUTSIDE" strokeWidth="0.0" text="Main Menu" wrappingWidth="181.4398193359375">
-                     <font>
-                        <Font name="Calibri Bold" size="36.0" />
-                     </font>
-                  </Text>
+                  <Label text="Main Menu"
+			       styleClass="title"
+			       alignment="CENTER"/>
+
                </children>
             </HBox>
 
-            <HBox alignment="CENTER" prefHeight="45.0" prefWidth="224.0">
+            <!-- BUTTONS -->
+            <HBox alignment="CENTER">
                <children>
-                  <Button id="WaitingListBtn" mnemonicParsing="false" onAction="#openWaitingList" prefHeight="25.0" prefWidth="124.0" text="Waiting List" />
+                  <Button id="WaitingListBtn"
+                          text="Waiting List"
+                          onAction="#openWaitingList"
+                          prefWidth="190"
+                          styleClass="primary"/>
                </children>
             </HBox>
 
-            <HBox alignment="CENTER" prefHeight="28.0" prefWidth="224.0">
+            <HBox alignment="CENTER">
                <children>
-                  <Button id="NewReservationBtn" mnemonicParsing="false" onAction="#openNewReservation" prefHeight="25.0" prefWidth="124.0" text="New Reservation" />
+                  <Button id="NewReservationBtn"
+                          text="New Reservation"
+                          onAction="#openNewReservation"
+                          prefWidth="190"
+                          styleClass="primary"/>
                </children>
             </HBox>
-            <HBox alignment="CENTER" prefHeight="51.0" prefWidth="224.0">
+
+            <HBox alignment="CENTER">
                <children>
-                  <Button id="AcceptTable" mnemonicParsing="false" onAction="#AcceptTable" prefHeight="25.0" prefWidth="124.0" text="Accept Table" />
+                  <Button id="AcceptTable"
+                          text="Accept Table"
+                          onAction="#AcceptTable"
+                          prefWidth="190"
+                          styleClass="primary"/>
                </children>
             </HBox>
-            <HBox alignment="CENTER" prefHeight="100.0" prefWidth="224.0">
+
+            <HBox alignment="CENTER">
                <children>
-                  <Button id="CancelReservation" alignment="CENTER" contentDisplay="CENTER" mnemonicParsing="false" onAction="#CancelReservationScreen" prefHeight="25.0" prefWidth="124.0" text="Cancel Reservation" textAlignment="CENTER" />
+                  <Button id="CancelReservation"
+                          text="Cancel Reservation"
+                          onAction="#CancelReservationScreen"
+                          prefWidth="190"
+                          styleClass="primary"/>
                </children>
             </HBox>
-            <HBox alignment="CENTER" prefHeight="45.0" prefWidth="224.0">
+
+            <HBox alignment="CENTER">
                <children>
-                  <Button fx:id="paymentBtn" mnemonicParsing="false" onAction="#openPaymentScreen" prefHeight="25.0" prefWidth="124.0" text="Payment" />
+                  <Button fx:id="paymentBtn"
+                          text="Payment"
+                          onAction="#openPaymentScreen"
+                          prefWidth="190"
+                          styleClass="primary"/>
                </children>
             </HBox>
-            <HBox alignment="CENTER" prefHeight="45.0" prefWidth="224.0" />
+
          </children>
       </VBox>
-      <Button fx:id="backBtn" layoutX="520.0" layoutY="359.0" mnemonicParsing="false" onAction="#backToLogin" prefHeight="25.0" prefWidth="69.0" text="Back" />
+
+      <!-- BACK BUTTON -->
+      <Button fx:id="backBtn"
+              text="Back"
+              onAction="#backToLogin"
+              prefWidth="80"
+              styleClass="back"
+              layoutX="520"
+              layoutY="350"/>
 
    </children>
 </Pane>

@@ -1,41 +1,59 @@
 package server;
 
 import java.io.*;
-import java.lang.reflect.Array;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.sql.SQLException;
-import java.time.LocalDate;
-import java.time.LocalTime;
-import java.time.YearMonth;
-import java.util.ArrayList;
+import java.util.EnumMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 import service.NotificationService;
-import org.mindrot.jbcrypt.BCrypt;
+import communication.BistroCommand;
 import communication.BistroRequest;
 import communication.BistroResponse;
 import communication.BistroResponseStatus;
-import communication.EventBus;
-import communication.EventType;
-import communication.NewSubscriberInfo;
-import communication.OrdersInRangeRequest;
-import communication.ServerEvent;
-import communication.StatusUpdate;
-import communication.TableSizeUpdate;
-import communication.TableStatusUpdate;
-import communication.WorkerLoginRequest;
 import db.ConnectionToDB;
-import logic.Reservation;
-import logic.SpecialDay;
-import logic.Status;
-import logic.Subscriber;
-import logic.Table;
-import logic.WeeklySchedule;
-import logic.Worker;
+import handlers.AddReservationHandler;
+import handlers.AddSubscriberHandler;
+import handlers.AddTableHandler;
+import handlers.CancelReservationHandler;
+import handlers.ChangeStatusHandler;
+import handlers.ChangeTableSizeHandler;
+import handlers.DeleteTableHandler;
+import handlers.ForgotConfirmationCodeHandler;
+import handlers.GetBillHandler;
+import handlers.GetDailyAverageWaitTimeHandler;
+import handlers.GetOpeningHoursHandler;
+import handlers.GetOrdersInRangeHandler;
+import handlers.GetStayingTimesHandler;
+import handlers.GetSubscriberByIdHandler;
+import handlers.GetSubscriberConfirmationCodeForPaymentHandler;
+import handlers.GetSubscriberHistoryHandler;
+import handlers.GetSubscriberOrdersHandler;
+import handlers.GetSubscribersConfirmationCodesHandler;
+import handlers.GetSubscribersOrdersCountsHandler;
+import handlers.GetTablesHandler;
+import handlers.GetTimingsHandler;
+import handlers.GetWaitingListHandler;
+import handlers.GetWorkerHandler;
+import handlers.LoadDinersHandler;
+import handlers.LoadSpecialDatesHandler;
+import handlers.LoadWeeklyScheduleHandler;
+import handlers.RequestHandler;
+import handlers.ReservationByOrderNumberHandler;
+import handlers.ReservationsByEmailHandler;
+import handlers.ReservationsByPhoneHandler;
+import handlers.SearchSubByEmailHandler;
+import handlers.SearchSubByPhoneHandler;
+import handlers.SendCodeToWaitingListCustomerHandler;
+import handlers.SubscriberLoginHandler;
+import handlers.TableByIdentifierAndCodeHandler;
+import handlers.UpdateRegularScheduleHandler;
+import handlers.UpdateSpecialDayHandler;
+import handlers.UpdateSubscriberInfoHandler;
+import handlers.WorkerLoginHandler;
 import ocsf.server.*;
 
 /**
@@ -44,14 +62,12 @@ import ocsf.server.*;
  */
 public class Server extends AbstractServer {
 	// Class variables *************************************************
-
-	/**
-	 * The default port to listen on.
-	 */
-	public static final int DEFAULT_PORT = 5555;
+	public static final int DEFAULT_PORT = 5555; // The default port to listen on.
 	private static final long CHECK_INTERVAL = 5; // Check every 5 minutes
 	private ScheduledExecutorService checkReservationsService;
 	private ConnectionToDB db;
+	private final Map<BistroCommand, RequestHandler> handlers = new EnumMap<>(BistroCommand.class);
+
 	// Constructors ****************************************************
 
 	/**
@@ -61,16 +77,60 @@ public class Server extends AbstractServer {
 	 */
 	public Server(int port) {
 		super(port);
+		// Reservations
+		handlers.put(BistroCommand.ADD_RESERVATION, new AddReservationHandler());
+		handlers.put(BistroCommand.CANCEL_RESERVATION, new CancelReservationHandler());
+		handlers.put(BistroCommand.CHANGE_STATUS, new ChangeStatusHandler());
+		handlers.put(BistroCommand.GET_BILL, new GetBillHandler());
+
+		handlers.put(BistroCommand.GET_RESERVATION_BY_ORDER_NUMBER, new ReservationByOrderNumberHandler());
+		handlers.put(BistroCommand.GET_RESERVATIONS_BY_EMAIL, new ReservationsByEmailHandler());
+		handlers.put(BistroCommand.GET_ACTIVE_RESERVATIONS_BY_PHONE, new ReservationsByPhoneHandler());
+
+		handlers.put(BistroCommand.GET_TABLE_BY_IDENTIFIER_AND_CODE, new TableByIdentifierAndCodeHandler());
+		handlers.put(BistroCommand.FORGOT_CONFIRMATION_CODE, new ForgotConfirmationCodeHandler());
+		handlers.put(BistroCommand.SEND_CODE_TO_WAITING_LIST, new SendCodeToWaitingListCustomerHandler());
+
+		// Subscribers
+		handlers.put(BistroCommand.ADD_SUBSCRIBER, new AddSubscriberHandler());
+		handlers.put(BistroCommand.SUBSCRIBER_LOGIN, new SubscriberLoginHandler());
+		handlers.put(BistroCommand.SEARCH_SUB_BY_EMAIL, new SearchSubByEmailHandler());
+		handlers.put(BistroCommand.SEARCH_SUB_BY_PHONE, new SearchSubByPhoneHandler());
+		handlers.put(BistroCommand.GET_SUBSCRIBER_BY_ID, new GetSubscriberByIdHandler());
+		handlers.put(BistroCommand.GET_SUBSCRIBER_HISTORY, new GetSubscriberHistoryHandler());
+		handlers.put(BistroCommand.GET_SUBSCRIBER_CONFIRMATION_CODE_FOR_PAYMENT,new GetSubscriberConfirmationCodeForPaymentHandler());
+		handlers.put(BistroCommand.GET_SUBSCRIBER_CONFIRMATION_CODES, new GetSubscribersConfirmationCodesHandler());
+		handlers.put(BistroCommand.GET_SUBSCRIBER_ORDER_COUNTS, new GetSubscribersOrdersCountsHandler());
+		handlers.put(BistroCommand.UPDATE_SUBSCRIBER_INFO, new UpdateSubscriberInfoHandler());
+		handlers.put(BistroCommand.GET_SUB, new GetSubscriberByIdHandler());
+		handlers.put(BistroCommand.GET_SUBSCRIBER_ORDERS, new GetSubscriberOrdersHandler());
+
+		// Tables
+		handlers.put(BistroCommand.GET_TABLES, new GetTablesHandler());
+		handlers.put(BistroCommand.ADD_TABLE, new AddTableHandler());
+		handlers.put(BistroCommand.DELETE_TABLE, new DeleteTableHandler());
+		handlers.put(BistroCommand.CHANGE_TABLE_SIZE, new ChangeTableSizeHandler());
+		handlers.put(BistroCommand.LOAD_DINERS, new LoadDinersHandler());
+
+		// Schedule
+		handlers.put(BistroCommand.LOAD_WEEKLY_SCHEDULE, new LoadWeeklyScheduleHandler());
+		handlers.put(BistroCommand.LOAD_SPECIAL_DATES, new LoadSpecialDatesHandler());
+		handlers.put(BistroCommand.UPDATE_REGULAR_SCHEDULE, new UpdateRegularScheduleHandler());
+		handlers.put(BistroCommand.UPDATE_SPECIAL_DAY, new UpdateSpecialDayHandler());
+		handlers.put(BistroCommand.GET_OPENING_HOURS, new GetOpeningHoursHandler());
+
+		// Reports
+		handlers.put(BistroCommand.GET_TIMINGS, new GetTimingsHandler());
+		handlers.put(BistroCommand.GET_STAYING_TIMES, new GetStayingTimesHandler());
+		handlers.put(BistroCommand.GET_ORDERS_IN_RANGE, new GetOrdersInRangeHandler());
+		handlers.put(BistroCommand.GET_DAILY_AVG_WAIT_TIME, new GetDailyAverageWaitTimeHandler());
+
+		// Worker
+		handlers.put(BistroCommand.WORKER_LOGIN, new WorkerLoginHandler());
+		handlers.put(BistroCommand.GET_WORKER, new GetWorkerHandler());
+		handlers.put(BistroCommand.GET_WAITING_LIST, new GetWaitingListHandler());
 	}
 
-	/**
-	 * Updates the database password used by the server-side connection pool.
-	 *
-	 * @param password database password
-	 */
-	public static void ServerScreen(String password) {
-		ConnectionToDB.setPassword(password);
-	}
 
 	// Handle Messages and parsing methods(override)
 	// ************************************************
@@ -80,431 +140,29 @@ public class Server extends AbstractServer {
 	 * @param msg    The message received from the client.
 	 * @param client The connection from which the message originated.
 	 */
+	@Override
 	public void handleMessageFromClient(Object msg, ConnectionToClient client) {
-		BistroRequest request = (BistroRequest) msg; // try catch for casting
-		Object dbReturnedValue = null;
-		Object data = request.getData();
-		Subscriber subscriber;
-		BistroResponse response;
-		switch (request.getCommand()) {
-		case GET_ACTIVE_RESERVATIONS_BY_PHONE:
-			// Expect String phone; query reservations by phone and return list.
-			if (!(data instanceof String)) {
-				response = new BistroResponse(BistroResponseStatus.FAILURE, "Invalid phone number.");
-				break;
+		if (!(msg instanceof BistroRequest)) {
+			try {
+				client.sendToClient(new BistroResponse(BistroResponseStatus.INVALID_REQUEST, "Expected BistroRequest"));
+			} catch (IOException e) {
+				log("The message is has invalid format.");
 			}
-			dbReturnedValue = db.searchOrdersByPhoneNumberList((String) data);// try catch for casting
-			response = new BistroResponse(BistroResponseStatus.SUCCESS, dbReturnedValue);
-			break;
-		case GET_RESERVATIONS_BY_EMAIL:
-			// Expect String phone; query reservations by email and return list.
-			if (!(data instanceof String)) {
-				response = new BistroResponse(BistroResponseStatus.FAILURE, "Invalid email adress");
-				break;
-			}
-			dbReturnedValue = db.searchOrdersByEmail((String) data);
-			response = new BistroResponse(BistroResponseStatus.SUCCESS, dbReturnedValue);
-			break;
-		case GET_RESERVATION_BY_ORDER_NUMBER:
-			// Expect String order number; parse and return the matching reservation.
-			int orderNumber = handleStringRequest(data);
-			if (orderNumber == -1) {
-				response = new BistroResponse(BistroResponseStatus.FAILURE, "Wrong order number.");
-			}
-			dbReturnedValue = db.searchOrderByOrderNumber(orderNumber);
-			response = new BistroResponse(BistroResponseStatus.SUCCESS, dbReturnedValue);
-			break;
-		case GET_ALL_PENDING_RESERVATIONS:
-			dbReturnedValue = db.getAllPendingReservationsOrdered();
-			response = new BistroResponse(BistroResponseStatus.SUCCESS, dbReturnedValue);
-			break;
-		case GET_TABLE_BY_CONFIRMATION_CODE:
-			// Expect String of confirmation code; fetch reservation then find an available table.
-			if (data instanceof String) {
-				Reservation res = db.getConfirmedReservationByConfirmationCode(Integer.parseInt((String)data));
-				if (res != null) {
-					int tableNum = db.searchAvailableTableBySize(res.getNumberOfGuests());
-					if (tableNum > 0) {
-						db.updateTableResId(tableNum, res.getOrderNumber());
-						db.updateReservationTimesAfterAcceptation(res.getOrderNumber());
-						response = new BistroResponse(BistroResponseStatus.SUCCESS, tableNum);
-					} else {
-						response = new BistroResponse(BistroResponseStatus.NO_AVAILABLE_TABLE, null);
-					}
-				} else {
-					response = new BistroResponse(BistroResponseStatus.NOT_FOUND, null);
-				}
-			} else {
-				response = new BistroResponse(BistroResponseStatus.INVALID_REQUEST, null);
-			}
-			break;
-			
-		case FORGOT_CONFIRMATION_CODE:
-			String phone = null;
-			String email = null;
-			if (data instanceof ArrayList<?>) {
-				ArrayList<?> params = (ArrayList<?>) data;
-				if (params.size() > 0 && params.get(0) instanceof String) {
-					phone = ((String) params.get(0)).trim();
-					if (phone.isEmpty()) {
-						phone = null;
-					}
-				}
-				if (params.size() > 1 && params.get(1) instanceof String) {
-					email = ((String) params.get(1)).trim();
-					if (email.isEmpty()) {
-						email = null;
-					}
-				}
-			}
-			if (hasText(phone) || hasText(email)) {
-				String identifier = hasText(phone) ? phone : email;
-				ArrayList<String> result = db.getForgotConfirmationCode(identifier);
-				if (result != null) {
-					String message = "Your confirmation code is: " + result.get(0) + "\nStart time is: " + result.get(1);
-					NotificationService service = NotificationService.getInstance();
-					if (hasText(phone)) {
-						log(service.sendSmsMessage(phone, message));
-					}
-					if (hasText(email)) {
-						log(service.sendEmailMessage(email, message));
-					}
-					response = new BistroResponse(BistroResponseStatus.SUCCESS, null);
-				} else {
-					response = new BistroResponse(BistroResponseStatus.FAILURE, null);
-				}
-			} else {
-				response = new BistroResponse(BistroResponseStatus.FAILURE, null);
-			}
-			break;
-		case SEARCH_SUB_BY_PHONE:
-			if (data instanceof String) {
-				dbReturnedValue = db.SearchSubscriberByPhone((String) data);
-				response = new BistroResponse(
-						dbReturnedValue != null ? BistroResponseStatus.SUCCESS : BistroResponseStatus.FAILURE,
-						dbReturnedValue);
-			} else {
-				response = new BistroResponse(BistroResponseStatus.FAILURE, "Invalid phone format");
-			}
-			break;
-		case SEARCH_SUB_BY_EMAIL:
-			if (data instanceof String) {
-				dbReturnedValue = db.SearchSubscriberByEmail((String) data);
-				response = new BistroResponse(
-						dbReturnedValue != null ? BistroResponseStatus.SUCCESS : BistroResponseStatus.FAILURE,
-						dbReturnedValue);
-			} else {
-				response = new BistroResponse(BistroResponseStatus.FAILURE, "Invalid email format");
-			}
-			break;
-
-		case ADD_RESERVATION:
-			// Handle adding a new reservation to the database
-			if (data instanceof Reservation) {
-				String success = db.insertReservation((Reservation) data);
-				if(success!=null)
-				{
-					response = new BistroResponse(BistroResponseStatus.SUCCESS, success);
-					sendToAllClients(new ServerEvent(EventType.ORDER_CHANGED));
-				}
-				else
-					response = new BistroResponse(BistroResponseStatus.FAILURE, "Reservation failed");
-			} else {
-				response = new BistroResponse(BistroResponseStatus.FAILURE, "Invalid reservation data");
-			}
-			break;
-			
-		case CANCEL_RESERVATION:
-			// Expect StatusUpdate; update reservation status and return rows affected.
-
-			if (data instanceof StatusUpdate) {
-				StatusUpdate statusUpdate = (StatusUpdate) data;
-				if(statusUpdate.getEmail() == null && statusUpdate.getPhoneNumber() == null)
-					response = new BistroResponse(BistroResponseStatus.FAILURE, "invalid information.");
-				else{
-
-					int result = db.CancelReservation(statusUpdate.getOrderNumber(), statusUpdate.getEmail(), statusUpdate.getPhoneNumber());
-					
-					if (result > 0)
-						response = new BistroResponse(BistroResponseStatus.SUCCESS, "Cancel succeeded.");
-					else
-						response = new BistroResponse(BistroResponseStatus.FAILURE, "Cancel failed."); 
-				}
-			}
-			else
-				response = new BistroResponse(BistroResponseStatus.FAILURE, "Cancel failed.");
-			break;
-		case CHANGE_STATUS:
-			// Expect StatusUpdate; update reservation status and return rows affected.
-			if (data instanceof StatusUpdate) {
-				StatusUpdate statusUpdate = (StatusUpdate) data;
-				dbReturnedValue = db.changeOrderStatus(statusUpdate.getPhoneNumber(), statusUpdate.getOrderNumber(),
-						statusUpdate.getStatus());
-				response = new BistroResponse(BistroResponseStatus.SUCCESS, dbReturnedValue);
-				sendToAllClients(new ServerEvent(EventType.ORDER_CHANGED));
-			} else
-				response = new BistroResponse(BistroResponseStatus.FAILURE, "update failed.");
-			break;
-		case GET_TABLES:
-			// Expect no payload; return all tables with current status from DB.
-			dbReturnedValue = db.loadTables();
-			response = new BistroResponse(BistroResponseStatus.SUCCESS, dbReturnedValue);
-			break;
-		case CHANGE_TABLE_SIZE:
-			// Expect TableSizeUpdate; update table size and return rows affected.
-			if (data instanceof TableSizeUpdate) {
-				dbReturnedValue = db.changeTableSize(((TableSizeUpdate) data).getTable_number(),
-						((TableSizeUpdate) data).getTable_size());
-				response = new BistroResponse(BistroResponseStatus.SUCCESS, dbReturnedValue);
-			} else
-				response = new BistroResponse(BistroResponseStatus.FAILURE, "update failed.");
-			break;
-		case GET_BILL:
-			// Expect ArrayList [identifier, confirmationCode]; fetch reservation then get bill.
-			if (data instanceof String) {
-				int code = Integer.parseInt((String) data);
-				Reservation res = db.getAcceptedReservationByConfirmationCode(code);
-				if (res != null) {
-					db.changeOrderStatus(res.getPhone_number(), res.getOrderNumber(), Status.COMPLETED);
-					db.updateReservationTimesAfterCompleting(res.getOrderNumber());
-					db.clearTableByResId(res.getOrderNumber());
-					response = new BistroResponse(BistroResponseStatus.SUCCESS, res);
-				} else {
-					response = new BistroResponse(BistroResponseStatus.NOT_FOUND, null);
-				}
-			} else {
-				response = new BistroResponse(BistroResponseStatus.INVALID_REQUEST, null);
-			}
-			break;
-		case SUBSCRIBER_LOGIN:
-			// Validates login payload ([subscriberId, rawPassword]) and checks credentials via
-			// db.subscriberLogin; triggered by Client/src/subscriber/SubscriberLoginScreen.java.
-			String username = null;
-			String password = null;
-			// Expect [subscriberId, raw password]; verify and return subscriber id on success.
-			if (data instanceof ArrayList<?>) {
-				ArrayList<?> params = (ArrayList<?>) data;
-				if (params.size() >= 2) {
-					if (params.get(0) instanceof String) {
-						username = ((String) params.get(0)).trim();
-						if (username.isEmpty()) {
-							username = null;
-						}
-					}
-					if (params.get(1) instanceof String) {
-						password = (String) params.get(1);
-						if (!hasText(password)) {
-							password = null;
-						}
-					}
-				}
-			}
-			if (!hasText(username) || !hasText(password)) {
-				response = new BistroResponse(BistroResponseStatus.FAILURE, null);
-				break;
-			}
-			int subscriberId = db.subscriberLogin(username, password);
-			response = new BistroResponse(subscriberId > 0 ? BistroResponseStatus.SUCCESS : BistroResponseStatus.FAILURE, 
-				subscriberId > 0 ? subscriberId :null);
-			break;
-		case GET_SUBSCRIBER_HISTORY:
-			// Expect Subscriber with id+raw password; verify and return reservations list.
-			if (!(data instanceof Integer)) {
-				response = new BistroResponse(BistroResponseStatus.FAILURE, null);
-				break;
-			}
-			int sub_id = (Integer) data;
-			dbReturnedValue = db.getSubscriberHistory(sub_id);
-			response = new BistroResponse(
-					dbReturnedValue != null ? BistroResponseStatus.SUCCESS : BistroResponseStatus.FAILURE,
-					dbReturnedValue);
-			break;
-		// Handles a request to retrieve a subscriber by ID.
-		// Validates the incoming data type, queries the database, and returns the
-		// result.
-		case GET_SUBSCRIBER_BY_ID:
-			// Validate that the received data is an Integer (subscriber ID)
-			if (!(data instanceof Integer)) {
-				response = new BistroResponse(BistroResponseStatus.FAILURE, "Invalid subscriber ID format");
-				break;
-			}
-			// Query the database for the subscriber
-			dbReturnedValue = db.SearchSubscriberById((Integer) data);
-			// Build the response based on whether the subscriber was found
-			response = new BistroResponse(
-					dbReturnedValue != null ? BistroResponseStatus.SUCCESS : BistroResponseStatus.FAILURE,
-					dbReturnedValue);
-			break;
-
-		case GET_SUBSCRIBER_CONFIRMATION_CODES:
-			if (!(data instanceof Integer)) {
-				response = new BistroResponse(BistroResponseStatus.FAILURE, "Invalid subscriber ID format");
-				break;
-			}
-			dbReturnedValue = db.getConfirmedReservationCodesBySubscriber((Integer) data);
-			response = new BistroResponse(
-					dbReturnedValue != null ? BistroResponseStatus.SUCCESS : BistroResponseStatus.FAILURE,
-					dbReturnedValue);
-			break;
-		case GET_SUBSCRIBER_CONFIRMATION_CODE_FOR_PAYMENT:
-			if (!(data instanceof Integer)) {
-				response = new BistroResponse(BistroResponseStatus.FAILURE, "Invalid subscriber ID format");
-				break;
-			}
-			dbReturnedValue = db.getAcceptedReservationCodeBySubscriber((Integer) data);
-			response = new BistroResponse(
-					dbReturnedValue != null ? BistroResponseStatus.SUCCESS : BistroResponseStatus.FAILURE,
-					dbReturnedValue);
-			break;
-		case UPDATE_SUBSCRIBER_INFO:
-			if (!(data instanceof Subscriber)) {
-				response = new BistroResponse(BistroResponseStatus.FAILURE, null);
-				break;
-			}
-			subscriber = (Subscriber) data;
-			if (subscriber.getSubscriberId() == null) {
-				response = new BistroResponse(BistroResponseStatus.FAILURE, "Missing subscriber id.");
-				break;
-			}
-			int updatedRows = db.updateSubscriberInfo(subscriber);
-			response = new BistroResponse(updatedRows >= 1 ? BistroResponseStatus.SUCCESS
-					: BistroResponseStatus.FAILURE, null);
-			break;
-
-		case ADD_TABLE:
-			// Expect Integer table size; insert table and return success.
-			if (data instanceof Integer) {
-
-				dbReturnedValue = db.addTable((int) data);
-				response = new BistroResponse(BistroResponseStatus.SUCCESS, null);
-				sendToAllClients(new ServerEvent(EventType.TABLE_CHANGED));
-			} else
-				response = new BistroResponse(BistroResponseStatus.FAILURE, null);
-			break;
-		case DELETE_TABLE:
-			// Expect Integer table number; delete table and return success.
-			if (data instanceof Integer) {
-				dbReturnedValue = db.deleteTable((int) data);
-				response = new BistroResponse(BistroResponseStatus.SUCCESS, null);
-				sendToAllClients(new ServerEvent(EventType.TABLE_CHANGED));
-			} else
-				response = new BistroResponse(BistroResponseStatus.FAILURE, null);
-			break;
-		case ADD_SUBSCRIBER:
-			// Expect NewSubscriberInfo; hash password, insert subscriber, return success.
-			if (data instanceof NewSubscriberInfo) {
-				NewSubscriberInfo newSubscriberInfo = (NewSubscriberInfo) data;
-				subscriber = newSubscriberInfo.getSubscriber();
-				String rawPassword = newSubscriberInfo.getRawPassword();
-				String hash = BCrypt.hashpw(rawPassword, BCrypt.gensalt());
-				subscriber.setPasswordHash(hash);
-				try {
-					db.addSubscriber(subscriber);
-				} catch (SQLException e) {
-
-					e.printStackTrace();
-				}
-				response = new BistroResponse(BistroResponseStatus.SUCCESS, dbReturnedValue);
-			} else
-				response = new BistroResponse(BistroResponseStatus.FAILURE, "update failed.");
-			break;
-		case WORKER_LOGIN:
-			// Expect WorkerLoginRequest; verify and return Worker on success.
-			if (data instanceof WorkerLoginRequest) {
-				WorkerLoginRequest w = (WorkerLoginRequest) data;
-				Worker res = db.workerLogin(w.getUsername(), w.getPassword());
-				if (res != null)
-					response = new BistroResponse(BistroResponseStatus.SUCCESS, res);
-				else
-					response = new BistroResponse(BistroResponseStatus.FAILURE, "Wrong username or password.");
-			} else
-				response = new BistroResponse(BistroResponseStatus.FAILURE, "Failed to login");
-			break;
-		case GET_WORKER:
-			if (data instanceof Integer) {
-				dbReturnedValue = db.SearchWorkerById((int) data);
-				response = new BistroResponse(
-						dbReturnedValue != null ? BistroResponseStatus.SUCCESS : BistroResponseStatus.FAILURE,
-						dbReturnedValue);
-			} else {
-				response = new BistroResponse(BistroResponseStatus.FAILURE, "Invalid worker ID");
-			}
-			break;
-		case LOAD_DINERS:
-			// Expect no payload; return current diners per table for staff view.
-			dbReturnedValue = db.loadCurrentDiners();
-			response = new BistroResponse(BistroResponseStatus.SUCCESS, dbReturnedValue);
-			break;
-
-		case GET_TIMINGS:
-			if (data instanceof YearMonth)
-				dbReturnedValue = db.getDailySlotStats(((YearMonth) data).getYear(),
-						((YearMonth) data).getMonthValue());
-			response = new BistroResponse(BistroResponseStatus.SUCCESS, dbReturnedValue);
-			break;
-		case GET_STAYING_TIMES:
-			if (data instanceof YearMonth)
-				dbReturnedValue = db.getDailyAverageStay(((YearMonth) data).getYear(),
-						((YearMonth) data).getMonthValue());
-			response = new BistroResponse(BistroResponseStatus.SUCCESS, dbReturnedValue);
-			break;
-		case LOAD_WEEKLY_SCHEDULE:
-			dbReturnedValue = db.loadRegularTimes();
-			response = new BistroResponse(BistroResponseStatus.SUCCESS, dbReturnedValue);
-			break;
-		case LOAD_SPECIAL_DATES:
-			if (data instanceof Integer) {
-				dbReturnedValue = db.loadUpcomingSpecialDates((int) data);
-				response = new BistroResponse(BistroResponseStatus.SUCCESS, dbReturnedValue);
-			}
-			else
-				response = new BistroResponse(BistroResponseStatus.FAILURE, "Failed loading the spedcial dates");
-			break;
-		case UPDATE_REGULAR_SCHEDULE:
-			if (data instanceof WeeklySchedule) {
-				WeeklySchedule ws = (WeeklySchedule) data;
-				dbReturnedValue = db.updateRegularDayTimes(ws.getDayOfWeek().toString(), ws.getOpen(), ws.getClose());
-				response = new BistroResponse(BistroResponseStatus.SUCCESS, dbReturnedValue);
-			} else
-				response = new BistroResponse(BistroResponseStatus.FAILURE, "Failed to update schedule");
-			break;
-		case UPDATE_SPECIAL_DAY:
-			if (data instanceof SpecialDay) {
-				SpecialDay sd = (SpecialDay) data;
-				dbReturnedValue = db.updateSpecialDay(sd.getDay(), sd.getOpen(), sd.getClose());
-				response = new BistroResponse(BistroResponseStatus.SUCCESS, dbReturnedValue);
-			} else
-				response = new BistroResponse(BistroResponseStatus.FAILURE, "Failed to update the chosen date");
-			break;
-			case GET_OPENING_HOURS:
-			if (data instanceof LocalDate) {
-				LocalTime[] times = db.getOpeningHours((LocalDate) data);
-				response = new BistroResponse(BistroResponseStatus.SUCCESS, times);
-			} else {
-				response = new BistroResponse(BistroResponseStatus.FAILURE, null);
-			}
-			break;
-		case GET_ORDERS_IN_RANGE:
-			if (data instanceof OrdersInRangeRequest) {
-				OrdersInRangeRequest req = (OrdersInRangeRequest) data;
-
-				LocalDate date = req.getDate();
-				LocalTime time = req.getTime();
-				dbReturnedValue = db.getNumDinersInTwoHoursWindow(date, time);
-				response = new BistroResponse(BistroResponseStatus.SUCCESS, dbReturnedValue);
-			} else {
-				response = new BistroResponse(BistroResponseStatus.FAILURE, null);
-			}
-			break;
-		default:
-			// Expect unknown/unsupported command; return INVALID_REQUEST.
-			response = new BistroResponse(BistroResponseStatus.INVALID_REQUEST, null);
-			break;
+			return;
 		}
+
+		BistroRequest request = (BistroRequest) msg;
+
+		RequestHandler handler = handlers.get(request.getCommand());
+		BistroResponse response = (handler == null)
+				? new BistroResponse(BistroResponseStatus.INVALID_REQUEST,
+						"No handler for command: " + request.getCommand())
+				: handler.handle(request, client, db, this);
+
 		try {
 			client.sendToClient(response);
 		} catch (IOException e) {
-			System.out.println("Error: Can't send message to client.");
+			log("Method sendToClient failed to send response.");
 		}
 	}
 
@@ -537,6 +195,29 @@ public class Server extends AbstractServer {
 		System.out.println("Server has stopped listening for connections.");
 		checkReservationsService.shutdown();
 	}
+
+		/**
+	 * Updates the database password used by the server-side connection pool.
+	 *
+	 * @param password database password
+	 */
+	public static void ServerScreen(String password) {
+		ConnectionToDB.setPassword(password);
+	}
+
+	/**
+	 * Writes the provided message to the GUI log if available, otherwise stdout.
+	 * 
+	 * @param msg the text to append to the log.
+	 */
+	private void log(String msg) {
+		if (ServerScreen.instance != null)
+			ServerScreen.instance.appendLog(msg);
+		else
+			System.out.println("[SERVER] " + msg);
+	}
+
+
 
 	// Client methods ************************************************
 	/**
@@ -571,42 +252,6 @@ public class Server extends AbstractServer {
 		log(id + " disconnected");
 	}
 
-	// Instance methods ************************************************
-	/**
-	 * Method that take data Object and check if it a string, if not then throw
-	 * exception. if everything alright then return the number in int.
-	 * 
-	 * @param data request payload to parse
-	 * @return parsed integer, or -1 if invalid
-	 */
-	private int handleStringRequest(Object data) {
-		int numberReturned = -1;
-		try {
-			if (!(data instanceof String)) {
-				throw new IllegalArgumentException(
-						"Expected String, got: " + (data == null ? "null" : data.getClass().getName()));
-			}
-			numberReturned = Integer.parseInt((String) data);
-
-		} catch (NumberFormatException e) {
-			log(e.getMessage());
-		} catch (IllegalArgumentException e) {
-			log("Error: handleStringRequest: couldn't parse string to int.");
-		}
-		return numberReturned;
-	}
-
-	/**
-	 * Writes the provided message to the GUI log if available, otherwise stdout.
-	 * 
-	 * @param msg the text to append to the log.
-	 */
-	private void log(String msg) {
-		if (ServerScreen.instance != null)
-			ServerScreen.instance.appendLog(msg);
-		else
-			System.out.println(msg);
-	}
 
 	// *********************** */ Notification service *******************
 	/**
@@ -711,8 +356,8 @@ public class Server extends AbstractServer {
 		if (hasText(email)) {
 			log(service.sendEmailMessage(email, message));
 			sent = true;
-		} 
-		if(!sent) {
+		}
+		if (!sent) {
 			log("Skipping notification: missing phone and email.");
 		}
 	}

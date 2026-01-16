@@ -10,7 +10,10 @@ import java.util.ArrayList;
 import java.util.List;
 import org.mindrot.jbcrypt.BCrypt;
 import communication.AvgStayCounts;
+import communication.AvgWaitTimePerDay;
 import communication.StatusCounts;
+import communication.SubscriberOrderCounts;
+import communication.WaitlistRow;
 import logic.CurrentDinerRow;
 import logic.Reservation;
 import logic.SpecialDay;
@@ -208,31 +211,37 @@ public class ConnectionToDB {
 		String sql = "UPDATE `reservations` SET finish_time = CURTIME() WHERE res_id = ?";
 		return executeWriteQuery(sql, order_number);
 	}
-	
+
 	/**
-	 * Returns all PENDING reservations ordered by reservation date,
-	 * start time, and the time the reservation was placed (oldest first).
+	 * Returns all PENDING reservations ordered by reservation date, start time, and
+	 * the time the reservation was placed (oldest first).
 	 *
 	 * @return ordered list of all pending reservations
 	 */
 	public List<Reservation> getAllPendingReservationsOrdered() {
 
-	    String sql = "SELECT * FROM reservations "
-	               + "WHERE order_status = 'PENDING' "
-	               + "ORDER BY order_date ASC, start_time ASC, date_of_placing_order ASC";
+		String sql = "SELECT * FROM reservations " + "WHERE order_status = 'PENDING' "
+				+ "ORDER BY order_date ASC, start_time ASC, date_of_placing_order ASC";
 
-	    List<List<Object>> rows = executeReadQuery(sql);
+		List<List<Object>> rows = executeReadQuery(sql);
 
-	    List<Reservation> result = new ArrayList<>();
+		List<Reservation> result = new ArrayList<>();
 
-	    for (List<Object> row : rows) {
-	        result.add(buildReservationFromRow(row));
-	    }
+		for (List<Object> row : rows) {
+			result.add(buildReservationFromRow(row));
+		}
 
-	    return result;
+		return result;
 	}
-
-
+	/**
+	 * Resets the waiting list by updating all PENDING reservations to CANCELLED.
+	 *
+	 * @return number of rows affected
+	 */
+	public int resetWaitingList() {
+		String sql = "UPDATE status from reservations SET status = 'CANCELLED' WHERE status = 'PENDING'";
+		return executeWriteQuery(sql);
+	}	
 
 	/**
 	 * Cancels a reservation by confirmation code and either email or phone. Uses
@@ -265,8 +274,8 @@ public class ConnectionToDB {
 	public String insertReservation(Reservation reservation) {
 		String insertSql = """
 				    INSERT INTO reservations
-				    (phone, email, sub_id, start_time, finish_time, order_date, order_status, num_diners, date_of_placing_order)
-				    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+				    (phone, email, sub_id, start_time, finish_time, order_date, order_status, num_diners, date_of_placing_order, waitlist_enter_time)
+				    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 				""";
 
 		MySQLConnectionPool pool = MySQLConnectionPool.getInstance();
@@ -287,6 +296,13 @@ public class ConnectionToDB {
 			insertStmt.setString(7, reservation.getStatus().name());
 			insertStmt.setInt(8, reservation.getNumberOfGuests());
 			insertStmt.setDate(9, java.sql.Date.valueOf(reservation.getDateOfPlacingOrder()));
+			//if it is from Waitinglist, create time stamp. else null
+			if (reservation.getStatus() == Status.PENDING){
+				insertStmt.setTime(10, java.sql.Time.valueOf(reservation.getStart_time()));
+			}
+			else{
+				insertStmt.setTime(10, null);
+			}
 
 			int affected = insertStmt.executeUpdate();
 			if (affected == 0)
@@ -502,9 +518,8 @@ public class ConnectionToDB {
 			Integer diners = toInt(row.get(9));
 			LocalDate placingDate = toLocalDate(row.get(10));
 
-			Reservation res = new Reservation(orderDate, diners != null ? diners : 0,
-					confirmationCode, subId != null ? subId : 0, placingDate, startTime,
-					finishTime, phoneNumber, status, emailValue);
+			Reservation res = new Reservation(orderDate, diners != null ? diners : 0, confirmationCode,
+					subId != null ? subId : 0, placingDate, startTime, finishTime, phoneNumber, status, emailValue);
 
 			if (resId != null)
 				res.setOrderNumber(resId);
@@ -588,16 +603,15 @@ public class ConnectionToDB {
 	}
 
 	/**
-	 * Retrieves a reservation from the database using confirmation code only.
-	 * Uses {@link #executeReadQuery} and maps the first matching row into a
+	 * Retrieves a reservation from the database using confirmation code only. Uses
+	 * {@link #executeReadQuery} and maps the first matching row into a
 	 * {@link Reservation}.
 	 *
 	 * @param confirmationCode the confirmation code of the reservation
 	 * @return a Reservation object if found, otherwise null
 	 */
 	public Reservation getConfirmedReservationByConfirmationCode(int confirmationCode) {
-		String sql = "SELECT * "
-				+ "FROM reservations WHERE confirmation_code = ? " + "AND order_status = 'CONFIRMED' "
+		String sql = "SELECT * " + "FROM reservations WHERE confirmation_code = ? " + "AND order_status = 'CONFIRMED' "
 				+ "AND NOW() >= TIMESTAMP(order_date, start_time) "
 				+ "AND NOW() <= TIMESTAMPADD(MINUTE, 15, TIMESTAMP(order_date, start_time)) LIMIT 1";
 		List<List<Object>> rows = executeReadQuery(sql, confirmationCode);
@@ -605,14 +619,12 @@ public class ConnectionToDB {
 	}
 
 	public Reservation getAcceptedReservationByConfirmationCode(int confirmationCode) {
-		String sql = "SELECT * FROM reservations "
-				+ "WHERE confirmation_code = ? AND order_status = 'ACCEPTED' "
+		String sql = "SELECT * FROM reservations " + "WHERE confirmation_code = ? AND order_status = 'ACCEPTED' "
 				+ "AND NOW() >= TIMESTAMP(order_date, start_time) "
 				+ "AND NOW() <= TIMESTAMP(order_date, finish_time) LIMIT 1";
 		List<List<Object>> rows = executeReadQuery(sql, confirmationCode);
 		return rows.isEmpty() ? null : buildReservationFromRow(rows.get(0));
 	}
-
 
 	public Reservation getOrderByEmailAndCode(String email, int confirmationCode, String status) {
 		String sql = "SELECT res_id, confirmation_code, phone, email, sub_id, start_time, finish_time, "
@@ -900,22 +912,56 @@ public class ConnectionToDB {
 	 * @throws SQLException when the insert fails or no pooled connection is
 	 *                      available
 	 */
-	public void addSubscriber(Subscriber subscriber) throws SQLException {
+	public Integer addSubscriber(Subscriber subscriber) {
 
 		String sql = """
 				INSERT INTO subscriber
 				(username, first_name, last_name, email, phone, password_hash)
 				VALUES (?, ?, ?, ?, ?, ?)
 				""";
-		executeWriteQuery(sql, subscriber.getUsername(), subscriber.getFirstName(), subscriber.getLastName(),
-				subscriber.getEmail(), subscriber.getPhone(), subscriber.getPasswordHash());
+
+		MySQLConnectionPool pool = MySQLConnectionPool.getInstance();
+		PooledConnection pConn = pool.getConnection();
+		if (pConn == null)
+			return null;
+
+		try (PreparedStatement stmt = pConn.getConnection().prepareStatement(sql,
+				java.sql.Statement.RETURN_GENERATED_KEYS)) {
+
+			stmt.setString(1, subscriber.getUsername());
+			stmt.setString(2, subscriber.getFirstName());
+			stmt.setString(3, subscriber.getLastName());
+			stmt.setString(4, subscriber.getEmail());
+			stmt.setString(5, subscriber.getPhone());
+			stmt.setString(6, subscriber.getPasswordHash());
+
+			int affected = stmt.executeUpdate();
+			if (affected == 0)
+				return null;
+
+			try (ResultSet rs = stmt.getGeneratedKeys()) {
+				if (rs.next()) {
+					int subId = rs.getInt(1);
+					subscriber.setSubscriberId(subId);
+					return subId;
+				}
+			}
+
+		} catch (SQLException e) {
+			System.out.println("SQLException: addSubscriber failed.");
+			e.printStackTrace();
+		} finally {
+			pool.releaseConnection(pConn);
+		}
+
+		return null;
 	}
 
 	/**
 	 * Checks subscriber credentials against the DB.
 	 *
-	 * @param username subscriber username(it's unique)
-	 * @param rawPassword  subscriber raw password
+	 * @param username    subscriber username(it's unique)
+	 * @param rawPassword subscriber raw password
 	 * @return subscriber id if credentials match, 0 otherwise
 	 */
 	public int subscriberLogin(String username, String rawPassword) {
@@ -936,12 +982,12 @@ public class ConnectionToDB {
 	}
 
 	/**
-	 * Retrieves all reservations made by a subscriber, filtering out rows that
-	 * lack required data or a valid {@link Status}.
+	 * Retrieves all reservations made by a subscriber, filtering out rows that lack
+	 * required data or a valid {@link Status}.
 	 *
 	 * @param subscriberId database id of the subscriber whose history is needed
-	 * @return list of reservations created by the subscriber, or {@code null} if
-	 *         no rows were found
+	 * @return list of reservations created by the subscriber, or {@code null} if no
+	 *         rows were found
 	 */
 	public List<Reservation> getSubscriberHistory(int subscriberId) {
 		String sql = "SELECT confirmation_code, phone, start_time, finish_time, order_date, order_status, "
@@ -1779,6 +1825,130 @@ public class ConnectionToDB {
 			out.add(new SpecialDay(date, open, close));
 		}
 		return out;
+	}
+
+	public SubscriberOrderCounts getSubscriberOrderCounts(int year, int month) {
+		String sql = """
+				SELECT
+				  SUM(CASE WHEN sub_id IS NOT NULL AND sub_id <> 0 THEN 1 ELSE 0 END) AS subs,
+				  SUM(CASE WHEN sub_id IS NULL OR sub_id = 0 THEN 1 ELSE 0 END) AS nonsubs
+				FROM reservations
+				WHERE YEAR(order_date) = ? AND MONTH(order_date) = ?
+				""";
+
+		List<List<Object>> rows = executeReadQuery(sql, year, month);
+
+		int subs = 0, nonsubs = 0;
+		if (!rows.isEmpty()) {
+			Object a = rows.get(0).get(0);
+			Object b = rows.get(0).get(1);
+			if (a instanceof Number)
+				subs = ((Number) a).intValue();
+			if (b instanceof Number)
+				nonsubs = ((Number) b).intValue();
+		}
+
+		return new SubscriberOrderCounts(year, month, subs, nonsubs);
+	}
+	public List<AvgWaitTimePerDay> getDailyAverageWaitTime(int year, int month) {
+
+		String sql = "SELECT " + "  DAY(order_date) AS day_in_month, " + "  AVG(TIMESTAMPDIFF(MINUTE, "
+				+ "      TIMESTAMP(order_date, waitlist_enter_time), " + "      TIMESTAMP(order_date, start_time) "
+				+ "  )) AS avg_wait_minutes " + "FROM reservations "
+				+ "WHERE YEAR(order_date) = ? AND MONTH(order_date) = ? "
+				+ "  AND order_status IN ('ACCEPTED','COMPLETED') " + "  AND waitlist_enter_time IS NOT NULL "
+				+ "  AND start_time IS NOT NULL " + "GROUP BY DAY(order_date) " + "ORDER BY DAY(order_date)";
+
+		List<AvgWaitTimePerDay> out = new ArrayList<>();
+
+		MySQLConnectionPool pool = MySQLConnectionPool.getInstance();
+		PooledConnection pConn = pool.getConnection();
+		if (pConn == null)
+			return out;
+
+		try (PreparedStatement stmt = pConn.getConnection().prepareStatement(sql)) {
+			stmt.setInt(1, year);
+			stmt.setInt(2, month);
+
+			try (ResultSet rs = stmt.executeQuery()) {
+				while (rs.next()) {
+					int day = rs.getInt("day_in_month");
+					double avgWait = rs.getDouble("avg_wait_minutes");
+					out.add(new AvgWaitTimePerDay(year, month, day, avgWait));
+				}
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} finally {
+			pool.releaseConnection(pConn);
+		}
+
+		return out;
+	}
+
+	public List<WaitlistRow> getTodayWaitlist() {
+
+		String sql = """
+				SELECT
+				    email,
+				    phone,
+				    num_diners,
+				    waitlist_enter_time
+				FROM reservations
+				WHERE order_status = 'PENDING'
+				  AND waitlist_enter_time IS NOT NULL
+				  AND order_date = CURDATE()
+				ORDER BY waitlist_enter_time ASC
+				""";
+
+		List<WaitlistRow> out = new ArrayList<>();
+
+		MySQLConnectionPool pool = MySQLConnectionPool.getInstance();
+		PooledConnection pConn = pool.getConnection();
+		if (pConn == null)
+			return out;
+
+		try (PreparedStatement stmt = pConn.getConnection().prepareStatement(sql); ResultSet rs = stmt.executeQuery()) {
+
+			while (rs.next()) {
+				String email = rs.getString("email");
+				String phone = rs.getString("phone");
+				int diners = rs.getInt("num_diners");
+				LocalTime enteredAt = rs.getObject("waitlist_enter_time", LocalTime.class);
+
+				out.add(new WaitlistRow(email, phone, diners, enteredAt));
+			}
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} finally {
+			pool.releaseConnection(pConn);
+		}
+
+		return out;
+	}
+
+	/**
+	 * Retrieves all reservations for a specific subscriber ID.
+	 *
+	 * @param subscriberId the ID of the subscriber
+	 * @return a list of Reservation objects
+	 */
+	public List<Reservation> getOrdersBySubscriberId(int subscriberId) {
+		String sql = "SELECT res_id, confirmation_code, phone, email, sub_id, start_time, finish_time, "
+				+ "order_date, order_status, num_diners, date_of_placing_order "
+				+ "FROM reservations WHERE sub_id = ? ORDER BY order_date DESC";
+
+		List<List<Object>> rows = executeReadQuery(sql, subscriberId);
+		List<Reservation> reservations = new ArrayList<>();
+
+		for (List<Object> row : rows) {
+			Reservation r = buildReservationFromRow(row);
+			if (r != null) {
+				reservations.add(r);
+			}
+		}
+		return reservations;
 	}
 
 }

@@ -15,30 +15,20 @@ public class employeeMenu {
 	private Button backBtn;
 
 	@FXML
-	private Button ordersBTN;
-
-	@FXML
-	private Button scheduleBtn;
-
-	@FXML
 	private Button reportsBTN;
 
 	@FXML
-	private Button tablesBTN;
-
-	@FXML
-	private Button subscriberBtn;
-
-	@FXML
-	private Button dinersBtn;
-
-	@FXML
 	private Button CostumerBtn;
-	
+
+	@FXML
+	private Button infoBtn;
+
+	@FXML
+	private Button managementBtn;
+
 	@FXML
 	public void initialize() {
-		if(LoggedUser.getType()== UserType.EMPLOYEE)
-		{
+		if (LoggedUser.getType() == UserType.EMPLOYEE) {
 			reportsBTN.setManaged(false);
 		}
 	}
@@ -53,6 +43,24 @@ public class employeeMenu {
 			e.printStackTrace();
 		}
 	}
+	
+	@FXML
+    void manageRestaurant(ActionEvent event) {
+		try {
+			Main.changeRoot(RestaurantManagementScreen.fxmlPath);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+    }
+
+    @FXML
+    void watchInfo(ActionEvent event) {
+		try {
+			Main.changeRoot(RestaurantInfoScreen.fxmlPath);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+    }
 
 	@FXML
 	void goToCostumerManu(ActionEvent event) {
@@ -64,54 +72,9 @@ public class employeeMenu {
 	}
 
 	@FXML
-	void manageOrders(ActionEvent event) {
-		try {
-			Main.changeRoot(OrdersManagementScreen.fxmlPath, 1000, 800);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-
-	@FXML
-	void manageTables(ActionEvent event) {
-		try {
-			Main.changeRoot(TablesManagementScreen.fxmlPath, 1000, 800);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-
-	@FXML
-	void manageSchedule(ActionEvent event) {
-		try {
-			Main.changeRoot(ScheduleManagementScreen.fxmlPath, 1000, 800);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-
-	@FXML
-	void watchDiners(ActionEvent event) {
-		try {
-			Main.changeRoot(CurrentDinersScreen.fxmlPath, 1000, 800);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-
-	@FXML
-	void addSubscriber(ActionEvent event) {
-		try {
-			Main.changeRoot(AddSubscriberScreen.fxmlPath, 1000, 800);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-
-	@FXML
 	void watchReports(ActionEvent event) {
 		try {
-			Main.changeRoot(StatusReportController.fxmlPath, 1000, 800);
+			Main.changeRoot(ReportsMenuScreen.fxmlPath, 600, 500);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

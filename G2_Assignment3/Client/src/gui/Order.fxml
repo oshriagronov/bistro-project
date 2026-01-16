@@ -5,119 +5,93 @@
 <?import javafx.scene.control.CheckBox?>
 <?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.DatePicker?>
+<?import javafx.scene.control.Label?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.HBox?>
-<?import javafx.scene.layout.Pane?>
 <?import javafx.scene.layout.VBox?>
-<?import javafx.scene.text.Font?>
-<?import javafx.scene.text.Text?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
 
-<Pane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="456.0" prefWidth="578.0" stylesheets="@../../../Css/style.css" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="gui.OrderScreen">
+<StackPane prefHeight="520.0" prefWidth="600.0" styleClass="root" stylesheets="@../../../Css/style.css" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="gui.OrderScreen">
    <children>
-      <Text fill="#1673f6" layoutX="173.0" layoutY="46.0" strokeType="OUTSIDE" strokeWidth="0.0" style="-fx-font-size: 36;" text="New reservation">
-         <font>
-            <Font name="Calibri Bold" size="18.0" />
-         </font>
-      </Text>
-      <VBox layoutX="123.0" layoutY="66.0" prefHeight="345.0" prefWidth="298.0">
+      <VBox alignment="TOP_CENTER" maxWidth="400.0" spacing="20.0" styleClass="form-card" StackPane.alignment="CENTER">
+         <padding>
+            <Insets bottom="25.0" left="30.0" right="30.0" top="20.0" />
+         </padding>
          <children>
-            <VBox fx:id="subVbox" prefHeight="130.0" prefWidth="276.0">
+            <Label alignment="CENTER" maxWidth="Infinity" styleClass="title" text="New Reservation" />
+
+            <VBox spacing="12.0">
                <children>
-                  <HBox prefHeight="36.0" prefWidth="249.0">
+                  <VBox fx:id="subVbox" spacing="10.0">
                      <children>
-                        <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Date:">
-                           <HBox.margin>
-                              <Insets right="10.0" />
-                           </HBox.margin>
-                        </Text>
-                        <DatePicker fx:id="orderDate" />
-                     </children>
-                     <opaqueInsets>
-                        <Insets />
-                     </opaqueInsets>
-                  </HBox>
-                  <HBox prefHeight="36.0" prefWidth="249.0">
-                     <children>
-                        <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Amount:">
-                           <HBox.margin>
-                              <Insets right="10.0" />
-                           </HBox.margin>
-                        </Text>
-                        <ComboBox fx:id="dinersAmmount" maxWidth="94.0" prefHeight="39.0" prefWidth="94.0" />
-                     </children>
-                  </HBox>
-                  <HBox prefHeight="42.0" prefWidth="200.0">
-                     <children>
-                        <HBox prefHeight="36.0" prefWidth="249.0">
+                        <HBox alignment="CENTER_LEFT" spacing="10.0">
                            <children>
-                              <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Time:">
-                                 <HBox.margin>
-                                    <Insets right="10.0" />
-                                 </HBox.margin>
-                              </Text>
-                              <ComboBox fx:id="orderHours" maxWidth="133.0" prefHeight="39.0" prefWidth="133.0">
-                                 <HBox.margin>
-                                    <Insets right="20.0" />
-                                 </HBox.margin>
-                              </ComboBox>
+                              <Label minWidth="75.0" text="Date:" />
+                              <DatePicker fx:id="orderDate" maxWidth="Infinity" HBox.hgrow="ALWAYS" />
                            </children>
                         </HBox>
-                     </children></HBox>
-               </children>
-            </VBox>
-            <VBox fx:id="nonSubVbox" prefHeight="72.0" prefWidth="212.0">
-               <children>
-                  <HBox prefHeight="32.0" prefWidth="212.0">
-                     <children>
-                        <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Phone:">
-                           <HBox.margin>
-                              <Insets right="10.0" />
-                           </HBox.margin>
-                        </Text>
-                        <ComboBox fx:id="phoneStart" maxWidth="140.0" prefHeight="39.0" prefWidth="139.0" />
-                        <TextField fx:id="phoneNumber" prefWidth="131.0">
-                           <HBox.margin>
-                              <Insets left="10.0" />
-                           </HBox.margin>
-                        </TextField>
+                        <HBox alignment="CENTER_LEFT" spacing="10.0">
+                           <children>
+                              <Label minWidth="75.0" text="Amount:" />
+                              <ComboBox fx:id="dinersAmmount" maxWidth="Infinity" HBox.hgrow="ALWAYS" />
+                           </children>
+                        </HBox>
+                        <HBox alignment="CENTER_LEFT" spacing="10.0">
+                           <children>
+                              <Label minWidth="75.0" text="Time:" />
+                              <ComboBox fx:id="orderHours" maxWidth="Infinity" HBox.hgrow="ALWAYS" />
+                           </children>
+                        </HBox>
                      </children>
-                  </HBox>
-                  <HBox prefHeight="31.0" prefWidth="200.0">
+                  </VBox>
+
+                  <VBox fx:id="nonSubVbox" spacing="10.0">
                      <children>
-                        <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Email:">
-                           <HBox.margin>
-                              <Insets right="10.0" />
-                           </HBox.margin>
-                        </Text>
-                        <TextField fx:id="orderEmail" />
+                        <HBox alignment="CENTER_LEFT" spacing="10.0">
+                           <children>
+                              <Label minWidth="75.0" text="Phone:" />
+                              <ComboBox fx:id="phoneStart" minWidth="100.0" prefWidth="100.0" />
+                              <TextField fx:id="phoneNumber" HBox.hgrow="ALWAYS" />
+                           </children>
+                        </HBox>
+                        <HBox alignment="CENTER_LEFT" spacing="10.0">
+                           <children>
+                              <Label minWidth="75.0" text="Email:" />
+                              <TextField fx:id="orderEmail" HBox.hgrow="ALWAYS" />
+                           </children>
+                        </HBox>
                      </children>
-                  </HBox>
-               </children>
-            </VBox>
-            <VBox fx:id="workerVbox" prefHeight="72.0" prefWidth="175.0">
-               <children>
-                  <HBox prefHeight="42.0" prefWidth="175.0">
+                  </VBox>
+
+                  <VBox fx:id="workerVbox">
                      <children>
-                        <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Are you subbed?">
-                           <HBox.margin>
-                              <Insets right="10.0" />
-                           </HBox.margin>
-                        </Text>
-                        <CheckBox fx:id="checkBox" mnemonicParsing="false"  />
+                        <HBox alignment="CENTER_LEFT" spacing="10.0">
+                           <children>
+                              <Label text="Is subscriber?" />
+                              <CheckBox fx:id="checkBox" />
+                           </children>
+                        </HBox>
                      </children>
-                  </HBox>
-               </children>
-            </VBox>
-            <VBox fx:id="btnVbox" prefHeight="57.0" prefWidth="175.0">
-               <children>
-                  <Button fx:id="orderBtn" contentDisplay="TOP" mnemonicParsing="false" onAction="#clickOrder" text="Order">
-                     <VBox.margin>
-                        <Insets bottom="10.0" />
-                     </VBox.margin></Button>
+                  </VBox>
+
+                  <VBox fx:id="btnVbox" alignment="CENTER">
+                     <padding>
+                        <Insets top="10.0" />
+                     </padding>
+                     <children>
+                        <Button fx:id="orderBtn" onAction="#clickOrder" prefWidth="180.0" styleClass="primary" text="Order" />
+                     </children>
+                  </VBox>
                </children>
             </VBox>
          </children>
       </VBox>
-      <Button fx:id="backBtn" layoutX="467.0" layoutY="406.0" mnemonicParsing="false" onAction="#back" prefHeight="34.0" prefWidth="92.0" text="Back" />
+
+      <Button fx:id="backBtn" onAction="#back" styleClass="back" text="Back" StackPane.alignment="BOTTOM_RIGHT">
+         <StackPane.margin>
+            <Insets bottom="20.0" right="20.0" />
+         </StackPane.margin>
+      </Button>
    </children>
-</Pane>
+</StackPane>
