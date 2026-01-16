@@ -33,7 +33,7 @@ public class Main extends Application {
 		}
 		// Initialize the client connection with host name and default port.
 		// Set up the scene and display the stage
-		Scene s = new Scene(root, 600, 500);
+		Scene s = new Scene(root);
 		primaryStage.setScene(s);
 		primaryStage.setOnCloseRequest(event -> {
 

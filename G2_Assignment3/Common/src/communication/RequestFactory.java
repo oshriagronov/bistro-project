@@ -243,6 +243,11 @@ public final class RequestFactory {
 	public static BistroRequest getAllPendingReservations() {
 		return noPayload(BistroCommand.GET_ALL_PENDING_RESERVATIONS);
 	}
+	
+	
+	public static BistroRequest getTodaysReservations() {
+		return noPayload(BistroCommand.GET_TODAYS_ORDERS);
+	}
 
 	// -------------------------------------------------------------------------
 	// Subscribers

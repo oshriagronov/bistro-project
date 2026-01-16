@@ -3,6 +3,8 @@ package handlers;
 import communication.BistroRequest;
 import communication.BistroResponse;
 import communication.BistroResponseStatus;
+import communication.EventType;
+import communication.ServerEvent;
 import communication.TableSizeUpdate;
 import db.ConnectionToDB;
 import ocsf.server.ConnectionToClient;
@@ -39,6 +41,7 @@ public class ChangeTableSizeHandler implements RequestHandler {
 			Object dbReturnedValue = db.changeTableSize(update.getTable_number(), update.getTable_size());
 
 			response = new BistroResponse(BistroResponseStatus.SUCCESS, dbReturnedValue);
+			server.sendToAllClients(new ServerEvent(EventType.TABLE_CHANGED));
 		} else {
 			response = new BistroResponse(BistroResponseStatus.FAILURE, "update failed.");
 		}

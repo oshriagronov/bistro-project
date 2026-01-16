@@ -36,6 +36,7 @@ import handlers.GetSubscribersConfirmationCodesHandler;
 import handlers.GetSubscribersOrdersCountsHandler;
 import handlers.GetTablesHandler;
 import handlers.GetTimingsHandler;
+import handlers.GetTodaysReservationsHandler;
 import handlers.GetWaitingListHandler;
 import handlers.GetWorkerHandler;
 import handlers.LoadDinersHandler;
@@ -86,6 +87,7 @@ public class Server extends AbstractServer {
 		handlers.put(BistroCommand.GET_RESERVATION_BY_ORDER_NUMBER, new ReservationByOrderNumberHandler());
 		handlers.put(BistroCommand.GET_RESERVATIONS_BY_EMAIL, new ReservationsByEmailHandler());
 		handlers.put(BistroCommand.GET_ACTIVE_RESERVATIONS_BY_PHONE, new ReservationsByPhoneHandler());
+		handlers.put(BistroCommand.GET_TODAYS_ORDERS, new GetTodaysReservationsHandler());
 
 		handlers.put(BistroCommand.GET_TABLE_BY_IDENTIFIER_AND_CODE, new TableByIdentifierAndCodeHandler());
 		handlers.put(BistroCommand.FORGOT_CONFIRMATION_CODE, new ForgotConfirmationCodeHandler());
@@ -280,7 +282,7 @@ public class Server extends AbstractServer {
 				sb.append("Reservation Id: " + reservation.get(0) + "\nwith confirmation code: " + reservation.get(4)
 				+ "\nat " + reservation.get(3));
 				db.setRemindedFieldToTrue(Integer.valueOf(reservation.get(0)));
-				sendReminder(phone, email, sb.toString());
+				sendNotification(phone, email, sb.toString());
 			}
 			if(reservationsToSendPaymentReminder.size() == db.setReservationsAsReminded(reservationsToSendPaymentReminder)){
 				log("[SYSTEM] All reservation that got reminders marked as REMINDED.");
@@ -297,7 +299,7 @@ public class Server extends AbstractServer {
 				String email = reservation.get(2);
 				sb.append("Sent receipt for your reservation.\n");
 				sb.append("Reservation Id: " + reservation.get(0));
-				sendReminder(phone, email, sb.toString());
+				sendNotification(phone, email, sb.toString());
 			}
 			if(reservationsToSendPaymentReminder.size() == db.setReservationAfterEndTimeAsCompleted(reservationsToSendPaymentReminder)){
 				log("[SYSTEM] All reservation that exceed the finish time are got the bill and cleared the tables.");
@@ -314,7 +316,7 @@ public class Server extends AbstractServer {
 				String email = reservation.get(2);
 				sb.append("Customer is 15 minutes late, reservation is canceled.\n");
 				sb.append("Reservation Id: " + reservation.get(0));
-				sendReminder(phone, email, sb.toString());
+				sendNotification(phone, email, sb.toString());
 			}
 			if(reservationsToCancel.size() == db.setReservationToCancelIfCustomerLate(reservationsToCancel)){
 				log("[SYSTEM] All the reservations that customer is late are canceled.");
@@ -346,7 +348,7 @@ public class Server extends AbstractServer {
 	 * @param email   email to send to if phone is missing
 	 * @param message reminder text to send
 	 */
-	private void sendReminder(String phone, String email, String message) {
+	public void sendNotification(String phone, String email, String message) {
 		NotificationService service = NotificationService.getInstance();
 		boolean sent = false;
 		if (hasText(phone)) {

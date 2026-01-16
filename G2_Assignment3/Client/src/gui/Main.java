@@ -55,9 +55,8 @@ public class Main extends Application {
 		// Initialize the client connection with host name and default port.
 		client = ClientController.getInstance(host, ClientController.DEFAULT_PORT);
 		// Set up the scene and display the stage
-		Scene s = new Scene(root, 600, 500);
+		Scene s = new Scene(root);
 		primaryStage.setScene(s);
-
 		primaryStage.setOnCloseRequest(event ->{
 			client.quit();
 			System.exit(0);
@@ -85,7 +84,6 @@ public class Main extends Application {
 	    Parent newRoot = FXMLLoader.load(Main.class.getResource(fxmlName));
 	    primaryStage.getScene().setRoot(newRoot);
 	}
-
 	public static void changeRoot(String fxmlName, int width, int height) throws IOException {
         Parent newRoot = FXMLLoader.load(Main.class.getResource(fxmlName));
         primaryStage.getScene().setRoot(newRoot);

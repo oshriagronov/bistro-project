@@ -33,7 +33,7 @@ CREATE TABLE `reservations` (
   `start_time` time NOT NULL,
   `finish_time` time NOT NULL,
   `order_date` date NOT NULL,
-  `order_status` enum('PENDING', 'CONFIRMED','CANCELLED','COMPLETED', 'ACCEPTED') DEFAULT NULL,
+  `order_status` enum('PENDING', 'CONFIRMED','CANCELLED','COMPLETED', 'ACCEPTED','LATE_CANCEL') DEFAULT NULL,
   `reminded` boolean NOT NULL DEFAULT false,
   `num_diners` int NOT NULL,
   `date_of_placing_order` date NOT NULL,
@@ -80,9 +80,7 @@ UNLOCK TABLES;
 --
 -- Table structure for table `subscriber`
 --
-/*
-  subscriber for test is: sub_id = 5, hash_password = test
-*/
+
 DROP TABLE IF EXISTS `subscriber`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
@@ -101,9 +99,7 @@ CREATE TABLE `subscriber` (
 --
 -- Dumping data for table `subscriber`
 --
-/*
-  subscriber for test is: sub_id = 5, password = test
-*/
+
 LOCK TABLES `subscriber` WRITE;
 /*!40000 ALTER TABLE `subscriber` DISABLE KEYS */;
 INSERT INTO `subscriber` VALUES 
@@ -152,9 +148,7 @@ UNLOCK TABLES;
 --
 -- Table structure for table `workers`
 --
-/*
-  employee for test is: sub_id = 5, hash_password = test
-*/
+
 DROP TABLE IF EXISTS `workers`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
@@ -163,7 +157,15 @@ CREATE TABLE `workers` (
   `username` varchar(50) NOT NULL,
   `password_hash` varchar(255) NOT NULL,
   `worker_type` enum('employee','manager') NOT NULL,
-  PRIMARY KEY (`worker_id`)
+
+  `manager_guard` tinyint
+    GENERATED ALWAYS AS (
+      CASE WHEN `worker_type` = 'manager' THEN 1 ELSE NULL END
+    ) STORED,
+
+  PRIMARY KEY (`worker_id`),
+  UNIQUE KEY `uq_single_manager` (`manager_guard`),
+  UNIQUE KEY `uq_workers_username` (`username`)
 ) ENGINE=InnoDB AUTO_INCREMENT=90866 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -173,14 +175,16 @@ CREATE TABLE `workers` (
 
 LOCK TABLES `workers` WRITE;
 /*!40000 ALTER TABLE `workers` DISABLE KEYS */;
-INSERT INTO `workers` VALUES 
-('12345', 'test', '$2a$10$zGVDSeVGYOhcShbBB9ZwF.73fM6B3yIR6xkm3atXzy69X0RHYDWMy', 'employee'),
- (15357,'lior22','$2a$10$liorhash','manager'),
- (74839,'shira7','$2a$10$shirahash','employee'),
- (86096,'yael99','$2a$10$yaelhash','employee'),
- (90865,'omer_x','$2a$10$omerhash','employee'),
- (90866, 'talmetz100', '$2a$10$AkIaIxSA67DBz3KWKzFBWONifu9eYOXsXLpaeGSx7gUilCX3CE7jC', 'manager'),
- (54321, 'worker', '12345', 'employee');
+INSERT INTO `workers`
+(`worker_id`, `username`, `password_hash`, `worker_type`)
+VALUES
+(12345, 'test', '$2a$10$zGVDSeVGYOhcShbBB9ZwF.73fM6B3yIR6xkm3atXzy69X0RHYDWMy', 'employee'),
+(15357,'lior22','$2a$10$liorhash','employee'),
+(74839,'shira7','$2a$10$shirahash','employee'),
+(86096,'yael99','$2a$10$yaelhash','employee'),
+(90865,'omer_x','$2a$10$omerhash','employee'),
+(90866,'talmetz100','$2a$10$AkIaIxSA67DBz3KWKzFBWONifu9eYOXsXLpaeGSx7gUilCX3CE7jC','manager'),
+(54321,'worker','12345','employee');
 /*!40000 ALTER TABLE `workers` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -242,10 +246,10 @@ INSERT INTO `specialdates`
 (`date`, `opening_time`, `closing_time`)
 VALUES 
 ('2026-04-01', '09:00:00', '13:00:00'), 
-('2026-04-02', NULL, NULL),             
-('2026-04-08', NULL, NULL),
+('2026-04-02', '00:00:00', '00:00:00'),             
+('2026-04-08', '00:00:00', '00:00:00'),
 ('2026-07-22', '10:00:00', '19:00:00'), 
-('2026-07-23', NULL, NULL);
+('2026-07-23','00:00:00', '00:00:00');
 /*!40000 ALTER TABLE `specialdates` ENABLE KEYS */;
 UNLOCK TABLES;
 

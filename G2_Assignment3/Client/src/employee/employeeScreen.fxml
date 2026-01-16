@@ -31,7 +31,6 @@
                   <Insets bottom="10.0" />
                </VBox.margin>
             </Button>
-            <Button fx:id="backBtn" mnemonicParsing="false" onAction="#backToLoginMenu" prefHeight="40.0" prefWidth="170.0" text="Log out" />
          </children>
       </VBox>
       <Text fill="#0838bc" layoutX="215.0" layoutY="44.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Employee Menu">
@@ -39,5 +38,6 @@
             <Font name="Calibri Bold" size="24.0" />
          </font>
       </Text>
+      <Button fx:id="backBtn" layoutX="487.0" layoutY="338.0" mnemonicParsing="false" onAction="#backToLoginMenu" prefHeight="40.0" prefWidth="90.0" text="Log out" />
    </children>
 </Pane>

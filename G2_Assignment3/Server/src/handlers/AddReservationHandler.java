@@ -35,13 +35,16 @@ public class AddReservationHandler implements RequestHandler {
 	public BistroResponse handle(BistroRequest request, ConnectionToClient client, ConnectionToDB db, Server server) {
 
 		Object data = request.getData();
+		Reservation res = (Reservation) data;
 		BistroResponse response;
 
 		// Handle adding a new reservation to the database
 		if (data instanceof Reservation) {
-			String success = db.insertReservation((Reservation) data);
+			String success = db.insertReservation(res);
 			if (success != null) {
 				response = new BistroResponse(BistroResponseStatus.SUCCESS, success);
+				server.sendNotification(res.getPhone_number(), res.getEmail(),
+						"Reservation confirmed!\nconfirmation code: " + res.getConfirmationCode());
 				if (((Reservation) data).getStatus() == Status.PENDING)
 					server.sendToAllClients(new ServerEvent(EventType.WAITLIST_CHANGED));
 				else

@@ -11,6 +11,7 @@ import java.util.List;
 import org.mindrot.jbcrypt.BCrypt;
 import communication.AvgStayCounts;
 import communication.AvgWaitTimePerDay;
+import communication.CancelledReservationInfo;
 import communication.StatusCounts;
 import communication.SubscriberOrderCounts;
 import communication.WaitlistRow;
@@ -233,6 +234,7 @@ public class ConnectionToDB {
 
 		return result;
 	}
+
 	/**
 	 * Resets the waiting list by updating all PENDING reservations to CANCELLED.
 	 *
@@ -241,7 +243,7 @@ public class ConnectionToDB {
 	public int resetWaitingList() {
 		String sql = "UPDATE status from reservations SET status = 'CANCELLED' WHERE status = 'PENDING'";
 		return executeWriteQuery(sql);
-	}	
+	}
 
 	/**
 	 * Cancels a reservation by confirmation code and either email or phone. Uses
@@ -296,11 +298,10 @@ public class ConnectionToDB {
 			insertStmt.setString(7, reservation.getStatus().name());
 			insertStmt.setInt(8, reservation.getNumberOfGuests());
 			insertStmt.setDate(9, java.sql.Date.valueOf(reservation.getDateOfPlacingOrder()));
-			//if it is from Waitinglist, create time stamp. else null
-			if (reservation.getStatus() == Status.PENDING){
+			// if it is from Waitinglist, create time stamp. else null
+			if (reservation.getStatus() == Status.PENDING) {
 				insertStmt.setTime(10, java.sql.Time.valueOf(reservation.getStart_time()));
-			}
-			else{
+			} else {
 				insertStmt.setTime(10, null);
 			}
 
@@ -339,6 +340,44 @@ public class ConnectionToDB {
 			pool.releaseConnection(pConn);
 		}
 	}
+	
+	/**
+	 * Retrieves all reservations for the current day (based on the DB server date).
+	 * <p>
+	 * This method executes a read-only query to fetch today's reservations from the
+	 * {@code reservations} table, ordered by {@code start_time} (earliest first) and
+	 * then by {@code date_of_placing_order} (oldest first) to provide a stable order.
+	 * </p>
+	 * <p>
+	 * The query returns reservation columns in the same shape expected by
+	 * {@link #buildReservationFromRow(List)}, and each row is mapped into a
+	 * {@link Reservation} object. Rows that cannot be mapped (e.g., missing required
+	 * fields or invalid {@link Status}) are skipped.
+	 * </p>
+	 *
+	 * @return a list of {@link Reservation} objects for today; an empty list if none
+	 *         are found or on failure
+	 */
+	public List<Reservation> getTodayReservations() {
+	    String sql = """
+	        SELECT res_id, confirmation_code, phone, email, sub_id, start_time, finish_time,
+	               order_date, order_status, num_diners, date_of_placing_order
+	        FROM reservations
+	        WHERE order_date = CURDATE()
+	        ORDER BY start_time ASC, date_of_placing_order ASC
+	        """;
+
+	    List<List<Object>> rows = executeReadQuery(sql);
+	    List<Reservation> out = new ArrayList<>();
+
+	    for (List<Object> row : rows) {
+	        Reservation r = buildReservationFromRow(row);
+	        if (r != null) out.add(r);
+	    }
+
+	    return out;
+	}
+
 
 	/**
 	 * TODO: FIX LATER Finds the first PENDING reservation that fits the table
@@ -1437,7 +1476,6 @@ public class ConnectionToDB {
 		return out;
 	}
 
-
 	/**
 	 * Retrieves confirmed reservations that have finished and are past due for
 	 * payment reminders.
@@ -1445,9 +1483,11 @@ public class ConnectionToDB {
 	 * @return list of rows as strings (res_id, phone, email), or null if none found
 	 */
 	/**
-	 * Returns confirmed reservations that are at least 15 minutes late and not in the waitlist.
+	 * Returns confirmed reservations that are at least 15 minutes late and not in
+	 * the waitlist.
 	 *
-	 * @return rows of reservation data (res_id, phone, email) or null when none found
+	 * @return rows of reservation data (res_id, phone, email) or null when none
+	 *         found
 	 */
 	public List<List<String>> getLateReservationToCancel() {
 		String sql = """
@@ -1472,22 +1512,25 @@ public class ConnectionToDB {
 	}
 
 	/**
-	 * Marks reservations whose recorded end times are in the past as completed, already sent them the bill.
+	 * Marks reservations whose recorded end times are in the past as completed,
+	 * already sent them the bill.
 	 *
-	 * <p>The rows in {@code reservationIds} are expected to match the shape returned
+	 * <p>
+	 * The rows in {@code reservationIds} are expected to match the shape returned
 	 * by {@link #getReservationToSendPaymentReminder()}, with the reservation id in
 	 * index 0 and the customer's phone in index 1. For each valid row the method
-	 * sets {@link Status#COMPLETED} via {@link #changeOrderStatus(String, int, Status)}
-	 * and then releases any table held by that reservation with
-	 * {@link #clearTableByResId(int)}.</p>
+	 * sets {@link Status#COMPLETED} via
+	 * {@link #changeOrderStatus(String, int, Status)} and then releases any table
+	 * held by that reservation with {@link #clearTableByResId(int)}.
+	 * </p>
 	 *
 	 * @param reservationIds rows of reservation data (id + contact info)
 	 * @return number of reservations whose status was updated
 	 */
-	public int setReservationAfterEndTimeAsCompleted(List<List<String>> reservationIds){
+	public int setReservationAfterEndTimeAsCompleted(List<List<String>> reservationIds) {
 		int result = 0;
-		if (reservationIds != null && !(reservationIds.isEmpty())){
-			for(List<String> reservation : reservationIds){
+		if (reservationIds != null && !(reservationIds.isEmpty())) {
+			for (List<String> reservation : reservationIds) {
 				if (reservation == null || reservation.isEmpty())
 					continue;
 				String stringReservationId = reservation.get(0);
@@ -1496,18 +1539,19 @@ public class ConnectionToDB {
 				int reservationId = toInteger(stringReservationId);
 				result += this.changeOrderStatus(reservation.get(1), reservationId, Status.COMPLETED);
 				this.clearTableByResId(reservationId);
-			}	
+			}
 		}
 		return result;
 	}
 
 	/**
-	 * Sets the `reminded` flag on a reservation row so we can track who received reminders.
+	 * Sets the `reminded` flag on a reservation row so we can track who received
+	 * reminders.
 	 *
 	 * @param reservationId primary key of the reservation to update
 	 * @return number of rows affected (should be 1 when the row exists)
 	 */
-	public int setRemindedFieldToTrue(int reservationId){
+	public int setRemindedFieldToTrue(int reservationId) {
 		String sql = "UPDATE reservations SET reminded = true WHERE res_id = ?";
 		return executeWriteQuery(sql, reservationId);
 	}
@@ -1515,25 +1559,28 @@ public class ConnectionToDB {
 	/**
 	 * Cancels late reservations and releases their tables.
 	 *
-	 * <p>Each row in {@code reservationIds} should provide the reservation id at
-	 * index 0 and contact info at index 1. For each valid row, the reservation
-	 * status is changed to {@link Status#CANCELLED} and the table is freed.</p>
+	 * <p>
+	 * Each row in {@code reservationIds} should provide the reservation id at index
+	 * 0 and contact info at index 1. For each valid row, the reservation status is
+	 * changed to {@link Status#CANCELLED} and the table is freed.
+	 * </p>
 	 *
 	 * @param reservationIds rows of reservation data (id + contact info)
 	 * @return number of reservations whose status was updated
 	 */
-	public int setReservationToCancelIfCustomerLate(List<List<String>> reservationIds){
+	public int setReservationToCancelIfCustomerLate(List<List<String>> reservationIds) {
 		int result = 0;
-		if (reservationIds != null && !(reservationIds.isEmpty())){
-			for(List<String> reservation : reservationIds){
+		if (reservationIds != null && !(reservationIds.isEmpty())) {
+			for (List<String> reservation : reservationIds) {
 				if (reservation == null || reservation.isEmpty())
 					continue;
 				String stringReservationId = reservation.get(0);
 				if (stringReservationId == null || stringReservationId.trim().isEmpty())
 					continue;
-				result += this.changeOrderStatus(reservation.get(1), Integer.valueOf(reservation.get(0)), Status.CANCELLED);
+				result += this.changeOrderStatus(reservation.get(1), Integer.valueOf(reservation.get(0)),
+						Status.CANCELLED);
 				this.clearTableByResId(toInteger(stringReservationId));
-			}	
+			}
 		}
 		return result;
 	}
@@ -1541,30 +1588,33 @@ public class ConnectionToDB {
 	/**
 	 * Marks reservations as having received a reminder message.
 	 *
-	 * <p>The rows in {@code reservationIds} are expected to match the shape returned
+	 * <p>
+	 * The rows in {@code reservationIds} are expected to match the shape returned
 	 * by {@link #getReservationToSendPaymentReminder()}, with the reservation id in
 	 * index 0 and customer contact data in index 1. For every valid row the method
 	 * advances the reservation status to {@link Status#REMINDED} using
 	 * {@link #changeOrderStatus(String, int, Status)} so the reminder workflow
-	 * knows this customer has already been notified.</p>
+	 * knows this customer has already been notified.
+	 * </p>
 	 *
 	 * @param reservationIds rows of reservation data (id + contact info)
 	 * @return number of reservations whose status was updated
 	 */
-	public int setReservationsAsReminded(List<List<String>> reservationIds){
+	public int setReservationsAsReminded(List<List<String>> reservationIds) {
 		int result = 0;
-		if (reservationIds != null && !(reservationIds.isEmpty())){
-			for(List<String> reservation : reservationIds){
+		if (reservationIds != null && !(reservationIds.isEmpty())) {
+			for (List<String> reservation : reservationIds) {
 				if (reservation == null || reservation.isEmpty())
 					continue;
 				String stringReservationId = reservation.get(0);
 				if (stringReservationId == null || stringReservationId.trim().isEmpty())
 					continue;
 				result += this.setRemindedFieldToTrue(toInteger(stringReservationId));
-			}	
+			}
 		}
 		return result;
 	}
+
 	/**
 	 * Executes a write query with positional parameters.
 	 *
@@ -1850,6 +1900,7 @@ public class ConnectionToDB {
 
 		return new SubscriberOrderCounts(year, month, subs, nonsubs);
 	}
+
 	public List<AvgWaitTimePerDay> getDailyAverageWaitTime(int year, int month) {
 
 		String sql = "SELECT " + "  DAY(order_date) AS day_in_month, " + "  AVG(TIMESTAMPDIFF(MINUTE, "
@@ -1949,6 +2000,179 @@ public class ConnectionToDB {
 			}
 		}
 		return reservations;
+	}
+
+	public List<communication.CancelledReservationInfo> cancelReservationsSpecialDay(LocalDate day, LocalTime opening,
+			LocalTime closing) {
+		if (day == null || opening == null || closing == null) {
+			return new ArrayList<>();
+		}
+
+		boolean closedAllDay = opening.equals(closing);
+
+		// If the restaurant is open, the latest valid reservation start time
+		// is two hours before closing
+		LocalTime lastValidStart = closedAllDay ? null : closing.minusHours(2);
+
+		String selectSql;
+		List<List<Object>> rows;
+
+		if (closedAllDay) {
+			selectSql = """
+					    SELECT res_id, phone, email, confirmation_code, order_date, start_time
+					    FROM reservations
+					    WHERE order_date = ?
+					      AND order_status IN ('CONFIRMED','PENDING')
+					      AND TIMESTAMP(order_date, start_time) >= NOW()
+					""";
+			rows = executeReadQuery(selectSql, day);
+		} else {
+			selectSql = """
+					    SELECT res_id, phone, email, confirmation_code, order_date, start_time
+					    FROM reservations
+					    WHERE order_date = ?
+					      AND order_status IN ('CONFIRMED','PENDING')
+					      AND TIMESTAMP(order_date, start_time) >= NOW()
+					      AND (start_time < ? OR start_time > ?)
+					""";
+			rows = executeReadQuery(selectSql, day, opening, lastValidStart);
+		}
+
+		if (rows.isEmpty()) {
+			return new ArrayList<>();
+		}
+
+		List<communication.CancelledReservationInfo> cancelled = new ArrayList<>();
+
+		for (List<Object> row : rows) {
+			if (row == null || row.size() < 6)
+				continue;
+
+			Integer resId = toInteger(row.get(0));
+			String phone = toStr(row.get(1));
+			String email = toStr(row.get(2));
+			String code = toStr(row.get(3));
+			LocalDate orderDate = toLocalDate(row.get(4));
+			LocalTime startTime = toLocalTime(row.get(5));
+
+			if (resId == null || orderDate == null || startTime == null)
+				continue;
+
+			cancelled.add(new communication.CancelledReservationInfo(resId, phone, email, code, orderDate, startTime));
+		}
+
+		// Cancel the reservations by primary key
+		StringBuilder sb = new StringBuilder("UPDATE reservations SET order_status = 'CANCELLED' WHERE res_id IN (");
+		for (int i = 0; i < cancelled.size(); i++) {
+			if (i > 0)
+				sb.append(",");
+			sb.append("?");
+		}
+		sb.append(")");
+
+		Object[] ids = cancelled.stream().map(c -> c.getResId()).toArray();
+
+		executeWriteQuery(sb.toString(), ids);
+
+		return cancelled;
+	}
+
+	public List<CancelledReservationInfo> cancelReservationsRegularSchedule(
+	        DayOfWeek dayOfWeek, LocalTime opening, LocalTime closing
+	) {
+	    List<CancelledReservationInfo> cancelled = new ArrayList<>();
+
+	    if (dayOfWeek == null || opening == null || closing == null) {
+	        return cancelled;
+	    }
+
+	    boolean closedAllDay = opening.equals(closing);
+	    LocalTime lastValidStart = closedAllDay ? null : closing.minusHours(2);
+
+	    String selectSql;
+	    List<List<Object>> rows;
+
+	    if (closedAllDay) {
+	        selectSql = """
+	            SELECT r.res_id, r.phone, r.email, r.confirmation_code, r.order_date, r.start_time
+	            FROM reservations r
+	            WHERE r.order_status IN ('CONFIRMED','PENDING')
+	              AND r.order_date > CURDATE()
+	              AND r.order_date <= DATE_ADD(CURDATE(), INTERVAL 30 DAY)
+	              AND DAYOFWEEK(r.order_date) = ?
+	              AND NOT EXISTS (
+	                    SELECT 1 FROM specialdates sd
+	                    WHERE sd.date = r.order_date
+	              )
+	        """;
+	        rows = executeReadQuery(selectSql, toMysqlDayOfWeek(dayOfWeek));
+	    } else {
+	        selectSql = """
+	            SELECT r.res_id, r.phone, r.email, r.confirmation_code, r.order_date, r.start_time
+	            FROM reservations r
+	            WHERE r.order_status IN ('CONFIRMED','PENDING')
+	              AND r.order_date > CURDATE()
+	              AND r.order_date <= DATE_ADD(CURDATE(), INTERVAL 30 DAY)
+	              AND DAYOFWEEK(r.order_date) = ?
+	              AND (r.start_time < ? OR r.start_time > ?)
+	              AND NOT EXISTS (
+	                    SELECT 1 FROM specialdates sd
+	                    WHERE sd.date = r.order_date
+	              )
+	        """;
+	        rows = executeReadQuery(selectSql, toMysqlDayOfWeek(dayOfWeek), opening, lastValidStart);
+	    }
+
+	    if (rows.isEmpty()) {
+	        return cancelled;
+	    }
+
+	    List<Integer> ids = new ArrayList<>();
+
+	    for (List<Object> row : rows) {
+	        Integer resId = toInteger(row.get(0));
+	        if (resId == null) continue;
+
+	        ids.add(resId);
+
+	        cancelled.add(new CancelledReservationInfo(
+	                resId,
+	                toStr(row.get(1)),
+	                toStr(row.get(2)),
+	                toStr(row.get(3)),
+	                toLocalDate(row.get(4)),
+	                toLocalTime(row.get(5))
+	        ));
+	    }
+
+	    if (!ids.isEmpty()) {
+	        StringBuilder sb = new StringBuilder(
+	                "UPDATE reservations SET order_status = 'CANCELLED' WHERE res_id IN ("
+	        );
+	        for (int i = 0; i < ids.size(); i++) {
+	            if (i > 0) sb.append(",");
+	            sb.append("?");
+	        }
+	        sb.append(")");
+
+	        Object[] params = ids.toArray(new Object[0]);
+	        executeWriteQuery(sb.toString(), params);
+	    }
+
+	    return cancelled;
+	}
+
+
+	private static int toMysqlDayOfWeek(DayOfWeek dow) {
+		return switch (dow) {
+		case SUNDAY -> 1;
+		case MONDAY -> 2;
+		case TUESDAY -> 3;
+		case WEDNESDAY -> 4;
+		case THURSDAY -> 5;
+		case FRIDAY -> 6;
+		case SATURDAY -> 7;
+		};
 	}
 
 }

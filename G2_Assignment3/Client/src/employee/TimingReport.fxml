@@ -14,39 +14,41 @@
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox prefHeight="667.0" prefWidth="666.0" spacing="14" styleClass="root" stylesheets="@../../../Css/style.css" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="employee.StatusReportController">
+<VBox prefHeight="650" prefWidth="980" spacing="14" style="-fx-background-color: #F6F7FB;" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="employee.StatusReportController">
 
 	<padding>
 		<Insets bottom="18" left="18" right="18" top="18" />
 	</padding>
 
 	<!-- Header "card" -->
-	<VBox spacing="6">
-    <Label fx:id="reportTitle" styleClass="title" text="Timing Report" />
+	<VBox spacing="6" style="-fx-background-color: white; -fx-background-radius: 14; -fx-padding: 16; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 18, 0.2, 0, 6);">
+		<Label fx:id="reportTitle" style="-fx-font-size: 20px; -fx-font-weight: 700; -fx-text-fill: #111827;" text="Timing Report" />
 
-    <Label styleClass="subtitle" text="Monthly overview of reservation timing patterns." />
+		<Label style="-fx-font-size: 12.5px; -fx-text-fill: #6B7280;" text="Monthly overview of reservation timing patterns." />
 
-    <Separator opacity="0.35" />
+		<Separator opacity="0.35" />
 
-    <HBox alignment="CENTER_LEFT" spacing="10.0" VBox.vgrow="ALWAYS">
-        <Label style="-fx-font-size: 13px; -fx-text-fill: #374151;" text="Year:" />
+		<!-- Filters row -->
+		<HBox alignment="CENTER_LEFT" spacing="10">
+			<Label style="-fx-font-size: 13px; -fx-text-fill: #374151;" text="Year:" />
 
-        <ComboBox fx:id="yearComboBox" maxWidth="100.0" prefWidth="130.0" HBox.hgrow="ALWAYS" />
+			<ComboBox fx:id="yearComboBox" prefWidth="140" style="-fx-background-radius: 10; -fx-font-size: 13px;" />
+         <Label prefHeight="19.0" prefWidth="49.0" style="-fx-font-size: 13px; -fx-text-fill: #374151;" text="Month:" />
+         <ComboBox fx:id="monthComboBox" prefHeight="27.0" prefWidth="131.0" style="-fx-background-radius: 10; -fx-font-size: 13px;" />
 
-        <Label text="Month:" />
-        <ComboBox fx:id="monthComboBox" maxWidth="100.0" prefWidth="131" HBox.hgrow="ALWAYS" />
+			<Label style="-fx-font-size: 13px; -fx-text-fill: #374151;" text="Report:" />
 
-        <Label text="Report:" />
-        <ComboBox fx:id="reportTypeComboBox" maxWidth="100.0" prefWidth="102.0" HBox.hgrow="ALWAYS" />
-        <Button fx:id="menuBtn" onAction="#backToMenu" prefHeight="34.0" prefWidth="110.0" styleClass="back" text="Back" />
-    </HBox>
-</VBox>
+			<ComboBox fx:id="reportTypeComboBox" prefWidth="180" style="-fx-background-radius: 10; -fx-font-size: 13px;" />
 
+			<Region HBox.hgrow="ALWAYS" />
+         <Button fx:id="menuBtn" onAction="#backToMenu" style="-fx-background-color: #111827; -fx-text-fill: white; -fx-background-radius: 10; -fx-padding: 8 14; -fx-font-weight: 600;" text="back" />
+		</HBox>
+	</VBox>
 
 	<!-- Chart "card" -->
-	<VBox spacing="10">
+	<VBox spacing="10" style="-fx-background-color: white; -fx-background-radius: 14; -fx-padding: 16; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 18, 0.2, 0, 6);">
 		<HBox alignment="CENTER_LEFT">
-			<Label text="Status over time" />
+			<Label style="-fx-font-size: 14px; -fx-font-weight: 700; -fx-text-fill: #111827;" text="Status over time" />
 			<Region HBox.hgrow="ALWAYS" />
 		</HBox>
 
@@ -54,7 +56,7 @@
 		<StackPane prefHeight="460" VBox.vgrow="ALWAYS">
 
 			<!-- Existing chart (arrival / current) -->
-			<BarChart fx:id="statusBarChart" animated="false" legendVisible="true" prefHeight="460">
+			<BarChart fx:id="statusBarChart" animated="false" legendVisible="true" prefHeight="460" style="-fx-background-color: transparent;">
 				<xAxis>
 					<CategoryAxis label="Month" />
 				</xAxis>
@@ -63,7 +65,7 @@
 				</yAxis>
 			</BarChart>
 
-			<LineChart fx:id="departureLineChart" animated="false" legendVisible="true" managed="false" prefHeight="460" visible="false">
+			<LineChart fx:id="departureLineChart" animated="false" legendVisible="true" managed="false" prefHeight="460" style="-fx-background-color: transparent;" visible="false">
 				<xAxis>
 					<CategoryAxis label="Month" />
 				</xAxis>

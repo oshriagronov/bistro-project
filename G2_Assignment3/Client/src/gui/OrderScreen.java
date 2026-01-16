@@ -1,5 +1,6 @@
 package gui;
 
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -12,6 +13,9 @@ import communication.BistroCommand;
 import communication.BistroRequest;
 import communication.BistroResponse;
 import communication.BistroResponseStatus;
+import communication.EventBus;
+import communication.EventListener;
+import communication.EventType;
 import communication.RequestFactory;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -67,6 +71,9 @@ public class OrderScreen {
 
 	/** FXML path for the order screen. */
 	public static final String fxmlPath = "/gui/Order.fxml";
+	
+	private final EventListener tableListener = t ->tablesSizes = Restaurant.getTableSizes();
+	private final EventListener scheduleListener = t -> updateAvailableTime(t);
 
 	/** Loaded subscriber data when the logged-in user is a subscriber. */
 	private Subscriber sub = null;
@@ -143,6 +150,8 @@ public class OrderScreen {
 	 */
 	@FXML
 	public void initialize() {
+		EventBus.getInstance().subscribe(EventType.TABLE_CHANGED, tableListener);
+		EventBus.getInstance().subscribe(EventType.SCHEDULE_CHANGED, scheduleListener);
 		if (LoggedUser.getType()==UserType.SUBSCRIBER) {
         	this.sub = ScreenSetup.setupSubscriber(nonSubVbox, workerVbox, null);
         }
@@ -552,6 +561,35 @@ public class OrderScreen {
 			return open == null || close == null || open.equals(close);
 		});
 	}
+	
+	private void updateAvailableTime(Object payload) {
+	    LocalDate selected = orderDate.getValue();
+	    if (selected == null) return;
+
+	    if (payload instanceof LocalDate) {
+	        LocalDate changedDate = (LocalDate) payload;
+
+	        closedCache.remove(changedDate);
+
+	        if (changedDate.equals(selected)) {
+	            showOnlyAvailableTime(selected);
+	        }
+	        return;
+	    }
+	    
+	    if (payload instanceof DayOfWeek) {
+	        DayOfWeek changedDow = (DayOfWeek) payload;
+
+	        if (selected.getDayOfWeek() == changedDow) {
+	            closedCache.remove(selected);
+	            showOnlyAvailableTime(selected);
+	        }
+	        return;
+	    }
+	    
+	    closedCache.clear();
+	    showOnlyAvailableTime(selected);
+	}
 
 
 
@@ -571,4 +609,11 @@ public class OrderScreen {
 			e.printStackTrace();
 		}
 	}
+	
+	public void onClose() {
+	    EventBus.getInstance().unsubscribe(EventType.TABLE_CHANGED, tableListener);
+	    EventBus.getInstance().unsubscribe(EventType.SCHEDULE_CHANGED, scheduleListener);
+
+	}
+	
 }

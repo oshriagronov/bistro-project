@@ -110,12 +110,12 @@ public class WorkersLogInScreen {
 			Main.client.accept(RequestFactory.workerLogin(username, pass));
 			BistroResponse response = Main.client.getResponse();
 			if ((response != null && response.getStatus() == BistroResponseStatus.SUCCESS)) {
-				showAlert("Success", "Login Successful");
 				Worker w = (Worker) response.getData();
 				new LoggedUser(w.getWorkerId(), UserType.valueOf(w.getWorkerType().name()));
 				try {
 					Main.changeRoot(employeeMenu.fxmlPath);
 				} catch (Exception e) {
+					showAlert("Screen change error", "Failed changing screens");
 					e.printStackTrace();
 				}
 

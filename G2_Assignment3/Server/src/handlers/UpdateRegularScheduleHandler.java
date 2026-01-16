@@ -1,12 +1,19 @@
 package handlers;
 
+import java.util.List;
+
 import communication.BistroRequest;
 import communication.BistroResponse;
 import communication.BistroResponseStatus;
+import communication.CancelledReservationInfo;
+import communication.EventType;
+import communication.ServerEvent;
 import db.ConnectionToDB;
+import logic.SpecialDay;
 import logic.WeeklySchedule;
 import ocsf.server.ConnectionToClient;
 import server.Server;
+import service.NotificationService;
 
 /**
  * Handles a request to update the regular (weekly) opening and closing times
@@ -35,10 +42,33 @@ public class UpdateRegularScheduleHandler implements RequestHandler {
 			WeeklySchedule ws = (WeeklySchedule) data;
 
 			Object result = db.updateRegularDayTimes(ws.getDayOfWeek().toString(), ws.getOpen(), ws.getClose());
+			List<CancelledReservationInfo> cancelled = db.cancelReservationsRegularSchedule(ws.getDayOfWeek(),
+					ws.getOpen(), ws.getClose());
 
+			if (cancelled != null && !cancelled.isEmpty()) {
+
+				for (CancelledReservationInfo info : cancelled) {
+					if (info == null)
+						continue;
+
+					String msg = buildCancelMessage(info);
+
+					String phone = info.getPhone();
+					String email = info.getEmail();
+
+					server.sendNotification(phone,email,msg);
+				}
+			}
+
+			server.sendToAllClients(new ServerEvent(EventType.SCHEDULE_CHANGED, ws.getDayOfWeek()));
 			return new BistroResponse(BistroResponseStatus.SUCCESS, result);
 		}
 
 		return new BistroResponse(BistroResponseStatus.FAILURE, "Failed to update schedule");
+	}
+
+	private static String buildCancelMessage(CancelledReservationInfo info) {
+		return "Your reservation was cancelled due to updated opening hours.\n" + "Date: " + info.getOrderDate()
+				+ " Time: " + info.getStartTime() + "\n" + "Code: " + info.getConfirmationCode();
 	}
 }
