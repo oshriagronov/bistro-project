@@ -85,6 +85,10 @@ public final class RequestFactory {
 	public static BistroRequest getWaitingList() {
 		return noPayload(BistroCommand.GET_WAITING_LIST);
 	}
+	
+	public static BistroRequest getCurrentDiners() {
+		return noPayload(BistroCommand.LOAD_DINERS);
+	}
 
 	// -------------------------------------------------------------------------
 	// Tables

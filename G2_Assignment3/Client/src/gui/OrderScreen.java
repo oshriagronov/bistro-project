@@ -17,6 +17,8 @@ import communication.EventBus;
 import communication.EventListener;
 import communication.EventType;
 import communication.RequestFactory;
+import javafx.application.Platform;
+import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
@@ -71,13 +73,10 @@ public class OrderScreen {
 
 	/** FXML path for the order screen. */
 	public static final String fxmlPath = "/gui/Order.fxml";
-	
-	private final EventListener tableListener = t ->tablesSizes = Restaurant.getTableSizes();
-	private final EventListener scheduleListener = t -> updateAvailableTime(t);
+	private boolean suppressDateListener = false;
 
 	/** Loaded subscriber data when the logged-in user is a subscriber. */
 	private Subscriber sub = null;
-
 
 	/** Alert dialog used to display information and error messages. */
 	private final Alert alert = new Alert(Alert.AlertType.INFORMATION);
@@ -127,6 +126,19 @@ public class OrderScreen {
 	 * especially while DatePicker cells are being rendered.
 	 */
 	private final Map<LocalDate, Boolean> closedCache = new HashMap<>();
+	private final EventListener tableListener = t -> {
+		tablesSizes = Restaurant.getTableSizes();
+
+		Platform.runLater(() -> {
+			LocalDate d = orderDate.getValue();
+			if (d == null)
+				return;
+
+			populateAvailableTimesForCurrentAmount(d);
+			handleNoTimesUI(d);
+		});
+	};
+	private final EventListener scheduleListener = t -> updateAvailableTime(t);
 
 	/**
 	 * Initializes the Order screen.
@@ -150,17 +162,19 @@ public class OrderScreen {
 	 */
 	@FXML
 	public void initialize() {
+		orderBtn.setDisable(true);
+		orderHours.setDisable(true);
+		orderHours.getItems().clear();
+		orderHours.setPromptText("Loading...");
 		EventBus.getInstance().subscribe(EventType.TABLE_CHANGED, tableListener);
 		EventBus.getInstance().subscribe(EventType.SCHEDULE_CHANGED, scheduleListener);
-		if (LoggedUser.getType()==UserType.SUBSCRIBER) {
-        	this.sub = ScreenSetup.setupSubscriber(nonSubVbox, workerVbox, null);
-        }
-        else if (LoggedUser.getType()==UserType.EMPLOYEE || LoggedUser.getType()==UserType.MANAGER) {
-        	ScreenSetup.setupWorkerView(nonSubVbox, workerVbox, null);
-        }
-        else {
-            ScreenSetup.setupGuestView(nonSubVbox, workerVbox, null);
-        }
+		if (LoggedUser.getType() == UserType.SUBSCRIBER) {
+			this.sub = ScreenSetup.setupSubscriber(nonSubVbox, workerVbox, null);
+		} else if (LoggedUser.getType() == UserType.EMPLOYEE || LoggedUser.getType() == UserType.MANAGER) {
+			ScreenSetup.setupWorkerView(nonSubVbox, workerVbox, null);
+		} else {
+			ScreenSetup.setupGuestView(nonSubVbox, workerVbox, null);
+		}
 		orderDate.setDayCellFactory(d -> new DateCell() {
 			@Override
 			public void updateItem(LocalDate item, boolean empty) {
@@ -193,41 +207,128 @@ public class OrderScreen {
 			}
 		});
 
+		orderDate.valueProperty().addListener((obs, oldDate, newDate) -> {
+			if (newDate == null)
+				return;
+			if (suppressDateListener)
+				return;
+
+			orderDate.setDisable(true);
+			orderBtn.setDisable(true);
+			orderHours.setDisable(true);
+			orderHours.getItems().clear();
+			orderHours.setPromptText("Loading...");
+
+			Task<Void> task = new Task<>() {
+				@Override
+				protected Void call() {
+					try {
+						Map<LocalTime, List<Integer>> map = Restaurant.buildDinersByTime(newDate);
+						List<Integer> tables = Restaurant.getTableSizes();
+
+						Platform.runLater(() -> {
+							dinersByTime = map;
+							tablesSizes = tables;
+
+							populateAvailableTimesForCurrentAmount(newDate);
+							handleNoTimesUI(newDate);
+
+							boolean hasTimes = !orderHours.getItems().isEmpty();
+							orderHours.setDisable(!hasTimes);
+							orderBtn.setDisable(!hasTimes);
+							orderHours.setPromptText(null);
+
+							if (hasTimes)
+								orderHours.getSelectionModel().selectFirst();
+						});
+					} finally {
+						Platform.runLater(() -> orderDate.setDisable(false));
+					}
+					return null;
+				}
+			};
+
+			Thread t = new Thread(task);
+			t.setDaemon(true);
+			t.start();
+		});
+		
+		
+
+		dinersAmmount.valueProperty().addListener((obs, o, v) -> {
+			LocalDate d = orderDate.getValue();
+			if (d != null && v != null) {
+				populateAvailableTimesForCurrentAmount(d);
+				handleNoTimesUI(d);
+				if (!orderHours.getItems().isEmpty()) {
+					orderHours.getSelectionModel().selectFirst();
+				}
+			}
+		});
+
 		dinersAmmount.getItems().clear();
 		for (int i = 1; i <= 10; i++) {
 			dinersAmmount.getItems().add(String.valueOf(i));
 		}
 
-		orderDate.valueProperty().addListener((obs, oldDate, newDate) -> {
-			if (newDate != null) {
-				showOnlyAvailableTime(newDate);
-				if (!orderHours.getItems().isEmpty()) {
-					orderHours.getSelectionModel().selectFirst();
-				} else {
-					orderHours.getSelectionModel().clearSelection();
-				}
-			}
-		});
-
 		phoneStart.getItems().clear();
 		phoneStart.getItems().addAll("050", "052", "053", "054", "055", "058");
-
-		LocalDate today = LocalDate.now();
-		LocalDate firstOpen = findNextOpenDate(today);
-
-		if (firstOpen == null) {
-			orderDate.setDisable(true);
-			orderHours.setDisable(true);
-			orderBtn.setDisable(true);
-			showAlert("Closed", "No available days in the next month.");
-			return;
-		}
-
-		orderDate.setValue(firstOpen);
-		showOnlyAvailableTime(firstOpen);
 		orderHours.getSelectionModel().selectFirst();
 		phoneStart.getSelectionModel().selectFirst();
 		dinersAmmount.getSelectionModel().selectFirst();
+		loadInitialDataInBackground();
+	}
+	
+	
+
+	private void loadInitialDataInBackground() {
+		Task<Void> task = new Task<>() {
+			@Override
+			protected Void call() {
+
+				LocalDate today = LocalDate.now();
+				LocalDate firstOpen = findNextOpenDate(today);
+
+				if (firstOpen == null) {
+					Platform.runLater(() -> {
+						orderDate.setDisable(true);
+						orderHours.setDisable(true);
+						orderBtn.setDisable(true);
+						showAlert("Closed", "No available days in the next month.");
+					});
+					return null;
+				}
+
+				Map<LocalTime, List<Integer>> map = Restaurant.buildDinersByTime(firstOpen);
+				List<Integer> tables = Restaurant.getTableSizes();
+
+				Platform.runLater(() -> {
+					dinersByTime = map;
+					tablesSizes = tables;
+
+					suppressDateListener = true;
+					orderDate.setValue(firstOpen);
+					suppressDateListener = false;
+
+					populateAvailableTimesForCurrentAmount(firstOpen);
+					handleNoTimesUI(firstOpen);
+
+					orderHours.setDisable(orderHours.getItems().isEmpty());
+					orderBtn.setDisable(orderHours.getItems().isEmpty());
+					orderHours.setPromptText(null);
+
+					if (!orderHours.getItems().isEmpty()) {
+						orderHours.getSelectionModel().selectFirst();
+					}
+				});
+
+				return null;
+			}
+		};
+
+		Thread t = new Thread(task);
+		t.setDaemon(true);
+		t.start();
 	}
 
 	/**
@@ -248,10 +349,6 @@ public class OrderScreen {
 		return null;
 	}
 
-
-
-	
-
 	/**
 	 * Handles the subscriber CheckBox click event.
 	 * <p>
@@ -262,7 +359,7 @@ public class OrderScreen {
 	 */
 	@FXML
 	public void checkClicked(ActionEvent e) {
-		
+
 	}
 
 	/**
@@ -308,7 +405,7 @@ public class OrderScreen {
 	 */
 	@FXML
 	public void clickOrder(ActionEvent event) {
-		//TODO need??
+		// TODO need??
 		LocalDateTime now = LocalDateTime.now();
 		LocalDateTime oneHourFromNow = LocalDateTime.now().plusHours(1);
 
@@ -339,7 +436,7 @@ public class OrderScreen {
 		} else {
 			amount = Integer.parseInt(amountStr);
 		}
-		
+
 		// 5) Time selection
 		String hourStr = orderHours.getValue();
 		if (hourStr == null) {
@@ -349,72 +446,42 @@ public class OrderScreen {
 			selected = LocalTime.parse(hourStr);
 		}
 
-		// 6) Availability check + suggestions
-		List<Integer> diners = dinersByTime.get(selected);
-		if (diners == null) {
-			diners = new ArrayList<>();
-		}
+		List<Integer> diners = dinersByTime.getOrDefault(selected, new ArrayList<>());
 		List<Integer> test = new ArrayList<>(diners);
 		test.add(amount);
 		test.sort(Integer::compareTo);
-		StringBuilder suggestions = new StringBuilder();
-		if (!Restaurant.isAvailable(test,tablesSizes)) {
-			errors.append("Chosen time isn't available, please choose another\n");
-			valid = false;
-			LocalTime plus = selected.plusMinutes(30);
-			diners = dinersByTime.get(plus);
-			if (diners != null) {
-				test = new ArrayList<>(diners);
-				if (!(date.equals(LocalDate.now()) && plus.isBefore(LocalTime.now().plusHours(1))) && diners != null) {
-					test.add(amount);
-					test.sort(Integer::compareTo);
-					System.out.println("plus:" + tablesSizes.toString());
-					System.out.println(test.toString());
-					if (Restaurant.isAvailable(test,tablesSizes)) {
-						suggestions.append("• ").append(plus).append("\n");
-					}
-				}
-			}
 
-			LocalTime minus = selected.minusMinutes(30);
-			diners = dinersByTime.get(minus);
-			if (diners != null) {
-				test = new ArrayList<>(diners);
-				if (!(date.equals(LocalDate.now()) && minus.isBefore(LocalTime.now().plusHours(1))) && diners != null) {
-					test.add(amount);
-					test.sort(Integer::compareTo);
-					System.out.println("minus:" + tablesSizes.toString());
-					System.out.println(test.toString());
-					if (Restaurant.isAvailable(test,tablesSizes)) {
-						suggestions.append("• ").append(minus).append("\n");
-					}
-				}
-			}
+		if (!Restaurant.isAvailable(test, tablesSizes)) {
+			showAlert("Reservation Failure", "The selected time is no longer available.\nPlease choose another time.");
 
-			if (suggestions.length() > 0) {
-				errors.append("Suggested times:\n").append(suggestions);
+			// Refresh UI to a valid choice
+			populateAvailableTimesForCurrentAmount(date);
+			handleNoTimesUI(date);
+			if (!orderHours.getItems().isEmpty()) {
+				orderHours.getSelectionModel().selectFirst();
+				orderBtn.setDisable(false);
+			} else {
+				orderHours.getSelectionModel().clearSelection();
+				orderBtn.setDisable(true);
 			}
-		}
-
-		if (!valid) {
-			showAlert("Reservation Failure", errors.toString());
 			return;
 		}
 
 		// 4) Contact fields
 		if (LoggedUser.getType() == UserType.SUBSCRIBER) {
 			subId = LoggedUser.getId();
-			email =sub.getEmail();
-			phone =sub.getPhone();
-			
-		} else if((LoggedUser.getType() == UserType.EMPLOYEE|| LoggedUser.getType() == UserType.MANAGER)&& checkBox.isSelected()){
-			phone="";
-			phone+=(String)phoneStart.getValue();
-			phone+=(String)phoneNumber.getText();
+			email = sub.getEmail();
+			phone = sub.getPhone();
+
+		} else if ((LoggedUser.getType() == UserType.EMPLOYEE || LoggedUser.getType() == UserType.MANAGER)
+				&& checkBox.isSelected()) {
+			phone = "";
+			phone += (String) phoneStart.getValue();
+			phone += (String) phoneNumber.getText();
 			email = orderEmail.getText();
 			Subscriber foundSub = null;
-			
-			if (phone.length() ==  10) {
+
+			if (phone.length() == 10) {
 				Main.client.accept(new BistroRequest(BistroCommand.SEARCH_SUB_BY_PHONE, phone));
 				BistroResponse response = Main.client.getResponse();
 				if (response.getStatus() == BistroResponseStatus.SUCCESS) {
@@ -425,111 +492,116 @@ public class OrderScreen {
 				BistroResponse response = Main.client.getResponse();
 				if (response.getStatus() == BistroResponseStatus.SUCCESS) {
 					foundSub = (Subscriber) response.getData();
-				}
-				else {
+				} else {
 					showAlert("Error", "Please enter phone or email to place the order.");
 				}
 			}
-			phone=foundSub.getPhone();
-			email=foundSub.getEmail();
-			subId=foundSub.getSubscriberId();
-			
-		}
-		else {
+			if (foundSub == null) {
+			    showAlert("Error", "Subscriber not found. Please enter valid phone/email.");
+			    return;
+			}
+			phone = foundSub.getPhone();
+			email = foundSub.getEmail();
+			subId = foundSub.getSubscriberId();
+
+		} else {
 			email = orderEmail.getText();
+
 			String phonePrefix = phoneStart.getValue() != null ? phoneStart.getValue() : "";
-			String phoneNumberText = phoneNumber.getText();
-			phone = phonePrefix + phoneNumberText;
+			String phoneNumberText = phoneNumber.getText() != null ? phoneNumber.getText().trim() : "";
 
+			boolean phoneProvided = !phoneNumberText.isBlank();
 			boolean emailProvided = email != null && !email.isBlank();
-			boolean phoneProvided = phone != null && !phone.isBlank();
-			// At least one contact method must be provided
+
 			if (!emailProvided && !phoneProvided) {
-			    errors.append("Please enter at least an Email or a Phone number\n");
-			    valid = false;
+				errors.append("Please enter at least an Email or a Phone number\n");
+				valid = false;
 			}
 
-			// If an email was provided – validate its format
 			if (emailProvided && !email.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$")) {
-			    errors.append("Please enter a valid Email\n");
-			    valid = false;
+				errors.append("Please enter a valid Email\n");
+				valid = false;
 			}
 
-			// If a phone number was provided – validate its format
 			if (phoneProvided) {
-			    if (phone.length() != 10 || !phone.matches("\\d+")) {
-			        errors.append("Please enter a valid 10-digit phone number\n");
-			        valid = false;
-			    }
+				String fullPhone = phonePrefix + phoneNumberText;
+				if (fullPhone.length() != 10 || !fullPhone.matches("\\d+")) {
+					errors.append("Please enter a valid 10-digit phone number\n");
+					valid = false;
+				}
+				phone = fullPhone;
+			} else {
+				phone = ""; // או null אם ה-Reservation מאפשר
 			}
 
 		}
-		
-		Reservation r = new Reservation(date, amount,subId , today, selected, phone, Status.CONFIRMED,
-				email);
+
+		if (!valid) {
+			showAlert("Form error", errors.toString());
+			return;
+		}
+
+		Reservation r = new Reservation(date, amount, subId, today, selected, phone, Status.CONFIRMED, email);
 
 		BistroRequest req = new BistroRequest(BistroCommand.ADD_RESERVATION, r);
 		Main.client.accept(req);
 
 		BistroResponse response = Main.client.getResponse();
 		if (response != null && response.getStatus() == BistroResponseStatus.SUCCESS) {
-			dinersByTime = Restaurant.buildDinersByTime(date);
+			applyLocalReservationToMap(selected, amount);
+			populateAvailableTimesForCurrentAmount(date);
+			handleNoTimesUI(date);
+			orderHours.getSelectionModel().selectFirst();
 			showAlert("Reservation Success", "Your confirmation code is : " + response.getData());
 		} else {
 			showAlert("Error", "Failed placing the order");
 		}
 	}
 
-	/**
-	 * Rebuilds and populates the available time slots for the given date.
-	 * <p>
-	 * The method fetches:
-	 * </p>
-	 * <ul>
-	 * <li>The diners-per-time mapping via
-	 * {@link Restaurant#buildDinersByTime(LocalDate)}</li>
-	 * <li>The table capacities via {@link Restaurant#getTableSizes()}</li>
-	 * </ul>
-	 *
-	 * <p>
-	 * Only time slots that satisfy both conditions are shown:
-	 * </p>
-	 * <ul>
-	 * <li>If {@code date} is today, the slot must be at least one hour from
-	 * now</li>
-	 * <li>The current diners list for that slot can be seated using
-	 * {@link #isAvailable(List)}</li>
-	 * </ul>
-	 *
-	 * @param date the reservation date for which to compute and display available
-	 *             times
-	 */
-	private void showOnlyAvailableTime(LocalDate date) {
+	private void populateAvailableTimesForCurrentAmount(LocalDate date) {
 		orderHours.getItems().clear();
+		if (dinersByTime == null || tablesSizes == null)
+			return;
 
-		dinersByTime = Restaurant.buildDinersByTime(date);
-		tablesSizes = Restaurant.getTableSizes();
+		String amountStr = dinersAmmount.getValue();
+		if (amountStr == null)
+			return;
+		int amount = Integer.parseInt(amountStr);
 
 		for (LocalTime time : dinersByTime.keySet()) {
+			if (date.equals(LocalDate.now()) && time.isBefore(LocalTime.now().plusHours(1)))
+				continue;
+
 			List<Integer> diners = dinersByTime.get(time);
-			if (!(date.equals(LocalDate.now()) && time.isBefore(LocalTime.now().plusHours(1)))
-					&& diners.size() < tablesSizes.size() && Restaurant.isAvailable(diners,tablesSizes)) {
+
+			List<Integer> test = new ArrayList<>(diners);
+			test.add(amount);
+			test.sort(Integer::compareTo);
+
+			if (Restaurant.isAvailable(test, tablesSizes)) {
 				orderHours.getItems().add(time.toString());
 			}
 		}
-		
-	    boolean hasTimes = !orderHours.getItems().isEmpty();
-
-	    orderHours.setDisable(!hasTimes);
-	    orderBtn.setDisable(!hasTimes);
-
-	    if (hasTimes) {
-	        orderHours.getSelectionModel().selectFirst();
-	    } else {
-	        orderHours.getSelectionModel().clearSelection();
-	    }
 	}
 
+	private void handleNoTimesUI(LocalDate date) {
+	    boolean hasTimes = orderHours != null && !orderHours.getItems().isEmpty();
+
+	    if (!hasTimes) {
+	        orderHours.getSelectionModel().clearSelection();
+	        orderHours.setDisable(true);
+	        orderBtn.setDisable(true);
+	        orderHours.setPromptText("No available times for this day");
+	        return;
+	    }
+
+	    orderHours.setDisable(false);
+	    orderBtn.setDisable(false);
+	    if (orderHours.getValue() == null) {
+	        orderHours.getSelectionModel().selectFirst();
+	    }
+	    orderHours.setPromptText(null);
+	}
 
 	/**
 	 * Checks whether the restaurant is closed on the given date.
@@ -551,47 +623,95 @@ public class OrderScreen {
 	 * @return {@code true} if the restaurant is closed; otherwise {@code false}
 	 */
 	private boolean isClosedDay(LocalDate date) {
-		return closedCache.computeIfAbsent(date, d -> {
-			LocalTime[] hours = Restaurant.getOpeningTime(d);
-			if (hours == null || hours.length < 2) {
-				return true;
+		Boolean cached = closedCache.get(date);
+		if (cached != null)
+			return cached;
+
+		LocalTime[] hours = Restaurant.getOpeningTime(date);
+
+		if (hours == null || hours.length < 2) {
+			return true;
+		}
+
+		LocalTime open = hours[0];
+		LocalTime close = hours[1];
+		boolean closed = open == null || close == null || open.equals(close);
+
+		closedCache.put(date, closed);
+		return closed;
+	}
+
+	private void updateAvailableTime(Object payload) {
+		LocalDate selected = orderDate.getValue();
+		if (selected == null)
+			return;
+
+		if (payload instanceof LocalDate) {
+			LocalDate changedDate = (LocalDate) payload;
+
+			closedCache.remove(changedDate);
+
+			if (changedDate.equals(selected)) {
+				Platform.runLater(() -> {
+					suppressDateListener = true;
+					orderDate.setValue(null);
+					suppressDateListener = false;
+					orderDate.setValue(selected);
+				});
 			}
-			LocalTime open = hours[0];
-			LocalTime close = hours[1];
-			return open == null || close == null || open.equals(close);
+			return;
+		}
+
+		if (payload instanceof DayOfWeek) {
+			DayOfWeek changedDow = (DayOfWeek) payload;
+
+			if (selected.getDayOfWeek() == changedDow) {
+				closedCache.remove(selected);
+				Platform.runLater(() -> {
+					suppressDateListener = true;
+					orderDate.setValue(null);
+					suppressDateListener = false;
+					orderDate.setValue(selected);
+				});
+			}
+			return;
+		}
+
+		closedCache.clear();
+		Platform.runLater(() -> {
+			suppressDateListener = true;
+			orderDate.setValue(null);
+			suppressDateListener = false;
+			orderDate.setValue(selected);
 		});
 	}
-	
-	private void updateAvailableTime(Object payload) {
-	    LocalDate selected = orderDate.getValue();
-	    if (selected == null) return;
 
-	    if (payload instanceof LocalDate) {
-	        LocalDate changedDate = (LocalDate) payload;
-
-	        closedCache.remove(changedDate);
-
-	        if (changedDate.equals(selected)) {
-	            showOnlyAvailableTime(selected);
-	        }
-	        return;
-	    }
-	    
-	    if (payload instanceof DayOfWeek) {
-	        DayOfWeek changedDow = (DayOfWeek) payload;
-
-	        if (selected.getDayOfWeek() == changedDow) {
-	            closedCache.remove(selected);
-	            showOnlyAvailableTime(selected);
-	        }
-	        return;
-	    }
-	    
-	    closedCache.clear();
-	    showOnlyAvailableTime(selected);
+	private static int toMinutes(LocalTime t) {
+	    return t.getHour() * 60 + t.getMinute();
 	}
 
+	private void applyLocalReservationToMap(LocalTime selected, int amount) {
+	    if (dinersByTime == null) return;
 
+	    int sMin = toMinutes(selected);
+	    int eMin = sMin + 120; 
+
+	    List<LocalTime> keys = new ArrayList<>(dinersByTime.keySet());
+
+	    for (LocalTime t : keys) {
+	        int tMin = toMinutes(t);
+	        int tEnd = tMin + 120;
+
+	        boolean overlaps = tMin < eMin && tEnd > sMin; 
+	        if (!overlaps) continue;
+
+	        List<Integer> slot = dinersByTime.getOrDefault(t, new ArrayList<>());
+	        List<Integer> updated = new ArrayList<>(slot);
+	        updated.add(amount);
+	        updated.sort(Integer::compareTo);
+	        dinersByTime.put(t, updated);
+	    }
+	}
 
 	/**
 	 * Handles the "Back" button click event.
@@ -609,11 +729,11 @@ public class OrderScreen {
 			e.printStackTrace();
 		}
 	}
-	
+
 	public void onClose() {
-	    EventBus.getInstance().unsubscribe(EventType.TABLE_CHANGED, tableListener);
-	    EventBus.getInstance().unsubscribe(EventType.SCHEDULE_CHANGED, scheduleListener);
+		EventBus.getInstance().unsubscribe(EventType.TABLE_CHANGED, tableListener);
+		EventBus.getInstance().unsubscribe(EventType.SCHEDULE_CHANGED, scheduleListener);
 
 	}
-	
+
 }

@@ -36,6 +36,7 @@ public class Restaurant {
 	 * The cache is lazily loaded on first access via {@link #getTableSizes()}.
 	 */
 	private static final List<Integer> tableSizes = new ArrayList<>();
+	private static final Object CLIENT_LOCK = new Object();
 
 	/**
 	 * Builds a time-to-diners mapping for the given date.
@@ -73,13 +74,16 @@ public class Restaurant {
 		}
 
 		for (LocalTime t : map.keySet()) {
-			Main.client.accept(RequestFactory.getOrderIn4HoursRange(date, t));
-			Object data = Main.client.getResponse().getData();
+			synchronized (CLIENT_LOCK) {
 
-			if (data instanceof List<?>) {
-				List<Integer> diners = (List<Integer>) data;
-				diners.sort(Integer::compareTo);
-				map.put(t, diners);
+				Main.client.accept(RequestFactory.getOrderIn4HoursRange(date, t));
+				Object data = Main.client.getResponse().getData();
+
+				if (data instanceof List<?>) {
+					List<Integer> diners = (List<Integer>) data;
+					diners.sort(Integer::compareTo);
+					map.put(t, diners);
+				}
 			}
 		}
 
@@ -136,21 +140,23 @@ public class Restaurant {
 	 * The resulting sizes list is sorted in ascending order.
 	 */
 	private static void loadTables() {
-		Main.client.accept(RequestFactory.getTables());
-		BistroResponse response = Main.client.getResponse();
-		Object data = response.getData();
+		synchronized (CLIENT_LOCK) {
+			Main.client.accept(RequestFactory.getTables());
+			BistroResponse response = Main.client.getResponse();
+			Object data = response.getData();
 
-		tableSizes.clear();
+			tableSizes.clear();
 
-		if (data instanceof List<?>) {
+			if (data instanceof List<?>) {
 
-			List<Table> list = (List<Table>) data;
+				List<Table> list = (List<Table>) data;
 
-			for (Table t : list) {
-				tableSizes.add(t.getTable_size());
+				for (Table t : list) {
+					tableSizes.add(t.getTable_size());
+				}
+
+				tableSizes.sort(Integer::compareTo);
 			}
-
-			tableSizes.sort(Integer::compareTo);
 		}
 	}
 
@@ -162,12 +168,13 @@ public class Restaurant {
 	 * @return a new list containing all cached table sizes in ascending order
 	 */
 	public static List<Integer> getTableSizes() {
-		if (tableSizes.isEmpty()) {
-			loadTables();
+		synchronized (CLIENT_LOCK) {
+			if (tableSizes.isEmpty()) {
+				loadTables();
+			}
 		}
 		return new ArrayList<>(tableSizes);
 	}
-
 
 	/**
 	 * Fetches the opening and closing times for a given date.
@@ -177,8 +184,10 @@ public class Restaurant {
 	 *         {@code null}
 	 */
 	public static LocalTime[] getOpeningTime(LocalDate date) {
-		Main.client.accept(RequestFactory.getOpeningHours(date));
-		Object data = Main.client.getResponse().getData();
-		return (data instanceof LocalTime[]) ? (LocalTime[]) data : null;
+		synchronized (CLIENT_LOCK) {
+			Main.client.accept(RequestFactory.getOpeningHours(date));
+			Object data = Main.client.getResponse().getData();
+			return (data instanceof LocalTime[]) ? (LocalTime[]) data : null;
+		}
 	}
 }

@@ -52,7 +52,7 @@ public class AddSubscriberHandler implements RequestHandler {
 		if (subId == null) {
 			return new BistroResponse(BistroResponseStatus.FAILURE, "Failed to add subscriber");
 		}
-
+		server.sendNotification(subscriber.getPhone(),subscriber.getEmail(), "Successfully signed up!\nyour code is: "+String.format("%05d",subscriber.getSubscriberId()));
 		return new BistroResponse(BistroResponseStatus.SUCCESS, subId);
 	}
 
