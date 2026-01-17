@@ -34,6 +34,7 @@ import handlers.GetSubscriberHistoryHandler;
 import handlers.GetSubscriberOrdersHandler;
 import handlers.GetSubscribersConfirmationCodesHandler;
 import handlers.GetSubscribersOrdersCountsHandler;
+import handlers.GetTableByConfirmationCodeHnadler;
 import handlers.GetTablesHandler;
 import handlers.GetTimingsHandler;
 import handlers.GetWaitingListHandler;
@@ -111,6 +112,7 @@ public class Server extends AbstractServer {
 		handlers.put(BistroCommand.DELETE_TABLE, new DeleteTableHandler());
 		handlers.put(BistroCommand.CHANGE_TABLE_SIZE, new ChangeTableSizeHandler());
 		handlers.put(BistroCommand.LOAD_DINERS, new LoadDinersHandler());
+		handlers.put(BistroCommand.GET_TABLE_BY_CONFIRMATION_CODE, new GetTableByConfirmationCodeHnadler());
 
 		// Schedule
 		handlers.put(BistroCommand.LOAD_WEEKLY_SCHEDULE, new LoadWeeklyScheduleHandler());

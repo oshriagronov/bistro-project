@@ -17,6 +17,7 @@ import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import logic.LoggedUser;
 import logic.Reservation;
+import logic.Subscriber;
 import logic.UserType;
 import subscriber.SubscriberScreen;
 import employee.employeeMenu;
@@ -73,14 +74,22 @@ public class PaymentScreen {
     @FXML
     void initialize() {
         total.setVisible(false);
+        bindManagedToVisible(detailsVbox);
+        bindManagedToVisible(subscriberConfirmationBox);
         UserType type = LoggedUser.getType();
-        if (type == UserType.SUBSCRIBER) {
-            ScreenSetup.setupSubscriber(null, null, subscriberConfirmationBox);
-            setupSubscriberView();
+        isSubscriber = type == UserType.SUBSCRIBER;
+        if (isSubscriber) {
+            Subscriber sub = ScreenSetup.setupSubscriber(detailsVbox, null, null);
+            if (sub == null) {
+                isSubscriber = false;
+                ScreenSetup.setupGuestView(detailsVbox, null, subscriberConfirmationBox);
+            } else {
+                populateSubscriberConfirmationCodes();
+            }
         } else if (type == UserType.EMPLOYEE || type == UserType.MANAGER) {
-            ScreenSetup.setupWorkerView(null, detailsVbox, null);
+            ScreenSetup.setupWorkerView(detailsVbox, null, subscriberConfirmationBox);
         } else {
-            ScreenSetup.setupGuestView(detailsVbox, null, null);
+            ScreenSetup.setupGuestView(detailsVbox, null, subscriberConfirmationBox);
         }
     }
 
@@ -113,66 +122,33 @@ public class PaymentScreen {
             return;
         }
         BistroResponse response = sendRequest(BistroCommand.GET_BILL, code);
-        if (response != null && response.getStatus() == BistroResponseStatus.SUCCESS) {
-            Object data = response.getData();
-            if (data != null && data instanceof Reservation) {
-            	Reservation res = (Reservation) data;
-            	int num_guests=res.getNumberOfGuests();
-            	int sub_id = res.getSubscriberId();
-            	double pay = PAYMENT_PER_DINER * num_guests;            	
-            	if(sub_id > 0)
-            		pay = pay * 0.9;
-                toggleNode(infoVbox, false);
-                total.setText("Total to pay: " + pay);
-                toggleNode(total, true);
+        if (response != null) {
+            switch (response.getStatus()) {
+                case SUCCESS:                    
+                    Object data = response.getData();
+                    if (data != null && data instanceof Reservation) {
+                        Reservation res = (Reservation) data;
+                        int num_guests=res.getNumberOfGuests();
+                        int sub_id = res.getSubscriberId();
+                        double pay = PAYMENT_PER_DINER * num_guests;            	
+                        if(sub_id > 0)
+                            pay = pay * 0.9;
+                        toggleNode(infoVbox, false);
+                        total.setText("Total to pay: " + pay);
+                        toggleNode(total, true);
+                    }
+                    break;
+                case NOT_FOUND:
+                    showAlert("Error", "Could not find bill for these details.");
+                    break;
+                default:
+                    showAlert("Error", "The server could not process your request.");
+                    break;
             }
-        } else {
-            showAlert("Error", "Could not find bill for these details.");
         }
-    }
-
-    /**
-     * Handles the back button action and routes to the appropriate previous screen.
-     * @param event The ActionEvent triggered by the Back button.
-     */
-    @FXML
-    void back(ActionEvent event) {
-        try {
-            Main.changeRoot(getBackFxmlPath());
-        } catch (Exception e) {
-            e.printStackTrace();
+        else{
+            showAlert("Error", "There was error sending the request to the server.");
         }
-    }
-
-    /**
-     * Resolves the FXML path to return to based on the logged-in user type.
-     * @return fxml path for the previous screen
-     */
-    private String getBackFxmlPath() {
-        UserType type = LoggedUser.getType();
-        if (type == UserType.SUBSCRIBER) {
-            return SubscriberScreen.fxmlPath;
-        } else if (type == UserType.EMPLOYEE || type == UserType.MANAGER) {
-            return employeeMenu.fxmlPath;
-        }
-        return MainMenuScreen.fxmlPath;
-    }
-
-    /**
-     * Configures the UI for non-subscriber flows.
-     */
-    private void setupDefaultView() {
-        isSubscriber = false;
-        applyUserView();
-    }
-
-    /**
-     * Configures the UI for subscriber flows and loads confirmation codes.
-     */
-    private void setupSubscriberView() {
-        isSubscriber = true;
-        applyUserView();
-        populateSubscriberConfirmationCodes();
     }
 
     /**
@@ -181,7 +157,6 @@ public class PaymentScreen {
     private void populateSubscriberConfirmationCodes() {
         if (subscriberConfirmationCodes == null) {
             showAlert("Error", "Could not load subscriber confirmation codes.");
-            setupDefaultView();
             return;
         }
         subscriberConfirmationCodes.getItems().clear();
@@ -201,17 +176,10 @@ public class PaymentScreen {
         }
     }
 
-    /**
-     * Applies the UI visibility rules based on the current user type.
-     */
-    private void applyUserView() {
-        if (isSubscriber) {
-            toggleNode(detailsVbox, false);
-            toggleNode(subscriberConfirmationBox, true);
-            return;
+    private void bindManagedToVisible(Node node) {
+        if (node != null) {
+            node.managedProperty().bind(node.visibleProperty());
         }
-        toggleNode(detailsVbox, true);
-        toggleNode(subscriberConfirmationBox, false);
     }
 
     /**
@@ -263,4 +231,33 @@ public class PaymentScreen {
         }
         return code;
     }
+
+
+    /**
+     * Handles the back button action and routes to the appropriate previous screen.
+     * @param event The ActionEvent triggered by the Back button.
+     */
+    @FXML
+    void back(ActionEvent event) {
+        try {
+            Main.changeRoot(getBackFxmlPath());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Resolves the FXML path to return to based on the logged-in user type.
+     * @return fxml path for the previous screen
+     */
+    private String getBackFxmlPath() {
+        UserType type = LoggedUser.getType();
+        if (type == UserType.SUBSCRIBER) {
+            return SubscriberScreen.fxmlPath;
+        } else if (type == UserType.EMPLOYEE || type == UserType.MANAGER) {
+            return employeeMenu.fxmlPath;
+        }
+        return MainMenuScreen.fxmlPath;
+    }
+
 }
