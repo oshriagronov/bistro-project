@@ -1,6 +1,8 @@
 package gui;
 
 import java.util.ArrayList;
+
+import client.AlertUtil;
 import communication.BistroCommand;
 import communication.BistroRequest;
 import communication.BistroResponse;
@@ -28,9 +30,6 @@ import employee.employeeMenu;
 public class PaymentScreen {
 	public static final int PAYMENT_PER_DINER=100;
     public static final String fxmlPath = "/gui/Payment.fxml";
-    /** Alert object used to display success or failure messages to the user. */
-    Alert alert = new Alert(Alert.AlertType.INFORMATION);
-
     @FXML
     private HBox codeHbox;
 
@@ -112,18 +111,6 @@ public class PaymentScreen {
     }
 
     /**
-     * Displays an information alert to the user.
-     * @param title The title of the alert window.
-     * @param body The content text of the alert.
-     */
-    public void showAlert(String title, String body) {
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.setContentText(body);
-        alert.showAndWait();
-    }
-
-    /**
      * Handles the submit button action.
      * Validates the confirmation code, sends it to the server,
      * and displays the total bill amount if found (including subscriber discount).
@@ -135,7 +122,7 @@ public class PaymentScreen {
         StringBuilder errors = new StringBuilder();
         String code = resolveConfirmationCode(errors);
         if (errors.length() > 0) {
-            showAlert("Input Error", errors.toString());
+            AlertUtil.showAlert(Alert.AlertType.INFORMATION, "Input Error", errors.toString());
             return;
         }
         BistroResponse response = sendRequest(BistroCommand.GET_BILL, code);
@@ -155,15 +142,15 @@ public class PaymentScreen {
                     }
                     break;
                 case NOT_FOUND:
-                    showAlert("Error", "Could not find bill for these details.");
+                    AlertUtil.showAlert(Alert.AlertType.INFORMATION, "Error", "Could not find bill for these details.");
                     break;
                 default:
-                    showAlert("Error", "The server could not process your request.");
+                    AlertUtil.showAlert(Alert.AlertType.INFORMATION, "Error", "The server could not process your request.");
                     break;
             }
         }
         else{
-            showAlert("Error", "There was error sending the request to the server.");
+            AlertUtil.showAlert(Alert.AlertType.INFORMATION, "Error", "There was error sending the request to the server.");
         }
     }
 
@@ -172,7 +159,7 @@ public class PaymentScreen {
      */
     private void populateSubscriberConfirmationCodes() {
         if (subscriberConfirmationCodes == null) {
-            showAlert("Error", "Could not load subscriber confirmation codes.");
+            AlertUtil.showAlert(Alert.AlertType.INFORMATION, "Error", "Could not load subscriber confirmation codes.");
             return;
         }
         subscriberConfirmationCodes.getItems().clear();
@@ -194,17 +181,17 @@ public class PaymentScreen {
                             subscriberConfirmationCodes.getSelectionModel().selectFirst();
                         }
                         else{
-                            showAlert("Message", "There is no reservations for this subscriber to pay.");
+                            AlertUtil.showAlert(Alert.AlertType.INFORMATION, "Message", "There is no reservations for this subscriber to pay.");
                         }
                     }
                     else{
                         System.out.println(response.getStatus());
-                        showAlert("Error", "Could not load subscriber confirmation codes.");
+                        AlertUtil.showAlert(Alert.AlertType.INFORMATION, "Error", "Could not load subscriber confirmation codes.");
                     }
                     break;
             
                 default:
-                    showAlert("Error", "The server could not process your request.");
+                    AlertUtil.showAlert(Alert.AlertType.INFORMATION, "Error", "The server could not process your request.");
                     break;
             }
         }
