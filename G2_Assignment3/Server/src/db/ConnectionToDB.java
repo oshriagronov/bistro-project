@@ -141,8 +141,8 @@ public class ConnectionToDB {
 		LocalTime finishTime = toLocalTime(row.get(6));
 		LocalDate orderDate = toLocalDate(row.get(7));
 		Status status = toStatus(row.get(8));
-		Integer diners = toInteger(row.get(9));
-		LocalDate placingDate = toLocalDate(row.get(10));
+		Integer diners = toInteger(row.get(10));
+		LocalDate placingDate = toLocalDate(row.get(11));
 
 		if (status == null)
 			return null;
@@ -1115,9 +1115,10 @@ public class ConnectionToDB {
 	}
 
 	public ArrayList<String> getAcceptedReservationCodeBySubscriber(int subscriberId) {
-		String sql = "SELECT confirmation_code FROM reservations " + "WHERE sub_id = ? AND order_status = 'ACCEPTED' "
+		String sql = "SELECT confirmation_code FROM reservations "
+		 		+ "WHERE sub_id = ? AND order_status = 'ACCEPTED' "
 				+ "AND NOW() >= TIMESTAMP(order_date, start_time) "
-				+ "AND NOW() <= TIMESTAMPADD(MINUTE, 15, TIMESTAMP(order_date, start_time))";
+				+ "AND NOW() <= TIMESTAMP(order_date, finish_time)";
 		List<List<Object>> rows = executeReadQuery(sql, subscriberId);
 		ArrayList<String> codes = new ArrayList<>();
 		for (List<Object> row : rows) {

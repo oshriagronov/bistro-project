@@ -1,5 +1,4 @@
 package handlers;
-
 import communication.BistroRequest;
 import communication.BistroResponse;
 import communication.BistroResponseStatus;

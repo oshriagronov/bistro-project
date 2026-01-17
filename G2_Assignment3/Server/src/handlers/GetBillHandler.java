@@ -1,7 +1,5 @@
 package handlers;
 
-import java.util.ArrayList;
-
 import communication.BistroRequest;
 import communication.BistroResponse;
 import communication.BistroResponseStatus;
@@ -13,47 +11,34 @@ import server.Server;
 
 /**
  * Handles {@code GET_BILL} requests.
- * <p>
- * Expects the request payload ({@link BistroRequest#getData()}) to be an
- * {@link ArrayList} containing:
- * <ol>
- * <li>identifier (phone or email)</li>
- * <li>confirmation code (string)</li>
- * </ol>
- * If a matching reservation in {@link Status#ACCEPTED} is found, it is marked
- * {@link Status#COMPLETED}, finish time is updated, and the assigned table is
- * cleared.
- * </p>
+ * Expects the request payload ({@link BistroRequest#getData()}) to be a
+ * confirmation code {@link String}. If a matching reservation in
+ * {@link Status#ACCEPTED} is found, it is marked {@link Status#COMPLETED},
+ * finish time is updated, and the assigned table is cleared.
  */
 public class GetBillHandler implements RequestHandler {
 
 	/**
-	 * Processes an incoming {@link BistroRequest} to retrieve a bill for an
-	 * accepted reservation and mark it as completed.
+	 * Processes a {@link BistroRequest} containing a confirmation code string,
+	 * retrieves the accepted reservation, marks it completed, updates finish
+	 * time, and clears the assigned table.
 	 *
-	 * @param request the request containing identifier and confirmation code
+	 * @param request the request containing the confirmation code string
 	 * @param client  the client connection that sent the request
 	 * @param db      database access layer
 	 * @param server  the running server instance
 	 * @return a {@link BistroResponse} with the matching {@link Reservation} on
-	 *         success
+	 *         success, {@link BistroResponseStatus#NOT_FOUND} when no accepted
+	 *         reservation matches, or {@link BistroResponseStatus#INVALID_REQUEST}
+	 *         when the payload is not a {@link String}
 	 */
 	@Override
 	public BistroResponse handle(BistroRequest request, ConnectionToClient client, ConnectionToDB db, Server server) {
-
 		Object data = request.getData();
 		BistroResponse response;
-
-		if (data instanceof ArrayList) {
-			ArrayList<?> params = (ArrayList<?>) data;
-
-			String identifier = (String) params.get(0);
-			int code = Integer.parseInt((String) params.get(1));
-
-			Reservation res = identifier.contains("@")
-					? db.getOrderByEmailAndCode(identifier, code, Status.ACCEPTED.name())
-					: db.getOrderByPhoneAndCode(identifier, code, Status.ACCEPTED.name());
-
+		if (data instanceof String) {
+			int code = Integer.parseInt((String) data);
+			Reservation res = db.getAcceptedReservationByConfirmationCode(code);
 			if (res != null) {
 				db.changeOrderStatus(res.getPhone_number(), res.getOrderNumber(), Status.COMPLETED);
 				db.updateReservationTimesAfterCompleting(res.getOrderNumber());
@@ -65,7 +50,6 @@ public class GetBillHandler implements RequestHandler {
 		} else {
 			response = new BistroResponse(BistroResponseStatus.INVALID_REQUEST, null);
 		}
-
 		return response;
 	}
 }

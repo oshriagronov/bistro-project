@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import communication.BistroCommand;
 import communication.BistroRequest;
 import communication.BistroResponse;
-import communication.BistroResponseStatus;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
@@ -116,7 +115,6 @@ public class PaymentScreen {
     void handleSubmit(ActionEvent event) {
         StringBuilder errors = new StringBuilder();
         String code = isSubscriber ? resolveSubscriberCode(errors) : resolveGuestCode(errors);
-
         if (errors.length() > 0) {
             showAlert("Input Error", errors.toString());
             return;
@@ -128,12 +126,11 @@ public class PaymentScreen {
                     Object data = response.getData();
                     if (data != null && data instanceof Reservation) {
                         Reservation res = (Reservation) data;
-                        int num_guests=res.getNumberOfGuests();
-                        int sub_id = res.getSubscriberId();
-                        double pay = PAYMENT_PER_DINER * num_guests;            	
-                        if(sub_id > 0)
-                            pay = pay * 0.9;
-                        toggleNode(infoVbox, false);
+                        double pay = PAYMENT_PER_DINER * res.getNumberOfGuests();                        
+                        pay = res.getSubscriberId() > 0 ? pay * 0.9 : pay;
+                        toggleNode(detailsVbox, false);
+                        toggleNode(subscriberConfirmationBox, false);
+                        toggleNode(submitHbox, false);
                         total.setText("Total to pay: " + pay);
                         toggleNode(total, true);
                     }
@@ -161,17 +158,35 @@ public class PaymentScreen {
         }
         subscriberConfirmationCodes.getItems().clear();
         BistroResponse response = sendRequest(BistroCommand.GET_SUBSCRIBER_CONFIRMATION_CODE_FOR_PAYMENT, LoggedUser.getId());
-        if (response != null && response.getStatus() == BistroResponseStatus.SUCCESS
-                && response.getData() instanceof ArrayList<?>) {
-            ArrayList<String> codes = new ArrayList<>();
-            for (Object obj : (ArrayList<?>) response.getData()) {
-                if (obj instanceof String) {
-                    codes.add(String.valueOf(obj));
-                }
-            }
-            subscriberConfirmationCodes.getItems().addAll(codes);
-            if (!codes.isEmpty()) {
-                subscriberConfirmationCodes.getSelectionModel().selectFirst();
+        if (response != null) {
+            Object data = response.getData();
+            switch (response.getStatus()) {
+                case SUCCESS:
+                    if(data instanceof ArrayList<?>){
+                        
+                        ArrayList<String> codes = new ArrayList<>();
+                        for (Object obj : (ArrayList<?>) response.getData()) {
+                            if (obj instanceof String) {
+                                codes.add(String.valueOf(obj));
+                            }
+                        }
+                        subscriberConfirmationCodes.getItems().addAll(codes);
+                        if (!codes.isEmpty()) {
+                            subscriberConfirmationCodes.getSelectionModel().selectFirst();
+                        }
+                        else{
+                            showAlert("Message", "There is no reservations for this subscriber to pay.");
+                        }
+                    }
+                    else{
+                        System.out.println(response.getStatus());
+                        showAlert("Error", "Could not load subscriber confirmation codes.");
+                    }
+                    break;
+            
+                default:
+                    showAlert("Error", "The server could not process your request.");
+                    break;
             }
         }
     }
@@ -190,7 +205,9 @@ public class PaymentScreen {
     private void toggleNode(Node node, boolean show) {
         if (node != null) {
             node.setVisible(show);
-            node.setManaged(show);
+            if (!node.managedProperty().isBound()) {
+                node.setManaged(show);
+            }
         }
     }
 
