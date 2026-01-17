@@ -743,8 +743,9 @@ public class ConnectionToDB {
 	 * @return the table number of the best-fitting table, or 0 if none found
 	 */
 	public int searchAvailableTableBySize(int number_of_guests) {
-		String sql = "SELECT table_number FROM tablestable WHERE res_id IS NULL AND size >= ? "
-				+ "ORDER BY size ASC, table_number ASC LIMIT 1";
+		String sql = "SELECT table_number FROM tablestable "
+				+ "WHERE (res_id IS NULL OR res_id = 0) AND CAST(CAST(size AS CHAR) AS UNSIGNED) >= ? "
+				+ "ORDER BY CAST(CAST(size AS CHAR) AS UNSIGNED) ASC, table_number ASC LIMIT 1";
 		List<List<Object>> rows = executeReadQuery(sql, number_of_guests);
 		if (rows.isEmpty() || rows.get(0).isEmpty()) {
 			return 0;
@@ -1635,15 +1636,14 @@ public class ConnectionToDB {
 	 * @return list of status counts per day (empty if none found)
 	 */
 	public List<StatusCounts> getDailySlotStats(int year, int month) {
-		String sql = "SELECT " + "DAY(order_date) AS day_in_month, "
-				+ "  SUM(CASE WHEN order_status IN ('ACCEPTED','COMPLETED') "
-				+ "           AND MOD(MINUTE(start_time), 30) = 0 THEN 1 ELSE 0 END) AS on_time, "
-				+ "  SUM(CASE WHEN order_status IN ('ACCEPTED','COMPLETED') "
-				+ "           AND MOD(MINUTE(start_time), 30) <> 0 THEN 1 ELSE 0 END) AS late, "
-				+ "  SUM(CASE WHEN order_status = 'CANCELLED' "
-				+ "           AND MOD(MINUTE(start_time), 30) > 15 THEN 1 ELSE 0 END) AS cancelled "
-				+ "FROM reservations " + "WHERE YEAR(order_date) = ? AND MONTH(order_date) = ? "
-				+ "GROUP BY DAY(order_date) " + "ORDER BY DAY(order_date)";
+		String sql = "SELECT " + "  DAY(order_date) AS day_in_month, "
+                + "  SUM(CASE WHEN order_status IN ('ACCEPTED','COMPLETED') "
+                + "           AND MOD(MINUTE(start_time), 30) = 0 THEN 1 ELSE 0 END) AS on_time, "
+                + "  SUM(CASE WHEN order_status IN ('ACCEPTED','COMPLETED') "
+                + "           AND MOD(MINUTE(start_time), 30) <> 0 THEN 1 ELSE 0 END) AS late, "
+                + "  SUM(CASE WHEN order_status = 'LATE_CANCEL' THEN 1 ELSE 0 END) AS cancelled " + "FROM reservations "
+                + "WHERE YEAR(order_date) = ? AND MONTH(order_date) = ? " + "GROUP BY DAY(order_date) "
+                + "ORDER BY DAY(order_date)";
 
 		List<StatusCounts> out = new ArrayList<>();
 
