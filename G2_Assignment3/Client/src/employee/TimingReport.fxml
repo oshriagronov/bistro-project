@@ -41,8 +41,6 @@
 			<ComboBox fx:id="reportTypeComboBox" prefWidth="180" style="-fx-background-radius: 10; -fx-font-size: 13px;" />
 
 			<Region HBox.hgrow="ALWAYS" />
-
-			<Button fx:id="refreshBtn" onAction="#onRefresh" style="-fx-background-color: #111827; -fx-text-fill: white; -fx-background-radius: 10; -fx-padding: 8 14; -fx-font-weight: 600;" text="Refresh" />
          <Button fx:id="menuBtn" onAction="#backToMenu" style="-fx-background-color: #111827; -fx-text-fill: white; -fx-background-radius: 10; -fx-padding: 8 14; -fx-font-weight: 600;" text="back" />
 		</HBox>
 	</VBox>

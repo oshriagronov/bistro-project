@@ -33,9 +33,9 @@ public class OrdersManagementScreen {
 
 	@FXML
 	private Button clearBTN;
-	
-    @FXML
-    private TableColumn<Reservation, String> confirmationCodeCol;
+
+	@FXML
+	private TableColumn<Reservation, String> confirmationCodeCol;
 
 	@FXML
 	private ComboBox<String> inputChoiceCB;
@@ -87,14 +87,14 @@ public class OrdersManagementScreen {
 
 	@FXML
 	public void initialize() {
-		
+
 		ordersTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
 
 		inputChoiceCB.setItems(FXCollections.observableArrayList("Phone number:", "email:"));
 		inputChoiceCB.getSelectionModel().selectFirst();
 
 		orderIdCol.setCellValueFactory(new PropertyValueFactory<>("orderNumber"));
-		
+
 		confirmationCodeCol.setCellValueFactory(new PropertyValueFactory<>("confirmationCode"));
 
 		statusCol.setCellValueFactory(new PropertyValueFactory<>("status"));
@@ -113,6 +113,9 @@ public class OrdersManagementScreen {
 
 		EventBus.getInstance().subscribe(EventType.ORDER_CHANGED, ordersListener);
 
+		Main.client.accept(RequestFactory.getTodaysReservations());
+		getResponseFromServer();
+
 	}
 
 	@FXML
@@ -121,7 +124,6 @@ public class OrdersManagementScreen {
 		inputTXT.clear();
 		ordersTable.getItems().clear();
 	}
-
 
 	@FXML
 	void clickMenu(ActionEvent event) {
@@ -141,7 +143,7 @@ public class OrdersManagementScreen {
 		String inputChoice = inputChoiceCB.getValue();
 		if (inputChoice.equals("Phone number:")) {
 			String phone_number = inputTXT.getText();
-			if (phone_number == null || phone_number.isBlank() || phone_number.length()!=10) {
+			if (phone_number == null || phone_number.isBlank() || phone_number.length() != 10) {
 				showAlert("Error", "Please enter a valid phone number");
 				return;
 			}

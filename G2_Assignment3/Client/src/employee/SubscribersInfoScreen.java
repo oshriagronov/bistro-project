@@ -16,6 +16,7 @@ import gui.Main;
 import javafx.collections.FXCollections;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
@@ -31,6 +32,7 @@ public class SubscribersInfoScreen {
 
 	public static final String fxmlPath = "/employee/SubscriberInfo.fxml";
 	private final EventListener ordersListener = t -> loadResults();
+	private final Alert alert = new Alert(Alert.AlertType.INFORMATION);
 
 	@FXML
 	private ImageView BarcodeIMG;
@@ -91,6 +93,13 @@ public class SubscribersInfoScreen {
 		finishTimeCol.setCellValueFactory(new PropertyValueFactory<>("finishTime"));
 		EventBus.getInstance().subscribe(EventType.ORDER_CHANGED, ordersListener);
 	}
+	
+	public void showAlert(String title, String body) {
+		alert.setTitle(title);
+		alert.setHeaderText(null);
+		alert.setContentText(body);
+		alert.showAndWait();
+	}
 
 	private void loadResults() {
 		String s = inputTXT.getText();
@@ -109,6 +118,7 @@ public class SubscribersInfoScreen {
 		BistroResponse response = Main.client.getResponse();
 
 		if (response == null || response.getData() == null) {
+			showAlert("Error","No subscriber with this number exists");
 			return;
 		}
 

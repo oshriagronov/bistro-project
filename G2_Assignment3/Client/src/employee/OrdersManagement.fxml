@@ -9,6 +9,7 @@
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
 
 <BorderPane style="-fx-background-color: #f6f7fb;" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="employee.OrdersManagementScreen">
@@ -29,6 +30,7 @@
 					<Button fx:id="searchBTN" onAction="#clickSearch" style="-fx-background-color: #2f5bea;                                    -fx-text-fill: white;                                    -fx-font-weight: 700;                                    -fx-background-radius: 8;                                    -fx-padding: 6 14;" text="Search" />
 
 					<Button fx:id="clearBTN" onAction="#clickClear" style="-fx-background-color: #eef1f7;                                    -fx-text-fill: #1f2a44;                                    -fx-font-weight: 700;                                    -fx-background-radius: 8;                                    -fx-padding: 6 14;" text="Clear" />
+               <Region prefHeight="33.0" prefWidth="295.0" />
       
       			<Button fx:id="menuBTN" onAction="#clickMenu" style="-fx-background-color: #eef1f7;                            -fx-text-fill: #1f2a44;                            -fx-font-weight: 700;                            -fx-background-radius: 8;                            -fx-padding: 8 14;" text="Back to menu" />
 				</HBox>
