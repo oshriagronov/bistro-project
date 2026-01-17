@@ -23,7 +23,6 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.ImageView;
-import logic.Reservation;
 import logic.Status;
 import logic.Subscriber;
 
@@ -118,7 +117,7 @@ public class SubscribersInfoScreen {
 		BarcodeIMG.setImage(BarcodeUtil.createQr(String.format("%05d", subId), 220));
 		BarcodeIMG.setVisible(true);
 
-		Main.client.accept(RequestFactory.getSubscriberOrders(subId));
+		Main.client.accept(RequestFactory.getSubscriberReservationHistory(subId));
 		Object data = Main.client.getResponse().getData();
 		if (data instanceof List<?>) {
 			ArrayList<SubscriberOrderRow> reservations = (ArrayList<SubscriberOrderRow>) data;

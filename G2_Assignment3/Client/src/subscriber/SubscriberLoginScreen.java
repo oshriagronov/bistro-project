@@ -1,11 +1,9 @@
 package subscriber;
 
 import java.util.ArrayList;
-
-import communication.BistroCommand;
-import communication.BistroRequest;
 import communication.BistroResponse;
 import communication.BistroResponseStatus;
+import communication.RequestFactory;
 import gui.LoginMenuScreen;
 import gui.Main;
 import javafx.event.ActionEvent;
@@ -115,9 +113,8 @@ public class SubscriberLoginScreen {
                 errors.append("Please scan your card again\n");
             }
             else{
-            int sub_id = Integer.parseInt(subID);
-            Main.client.accept(new BistroRequest(BistroCommand.GET_SUBSCRIBER_BY_ID, sub_id));
-            response = Main.client.getResponse();
+                Main.client.accept(RequestFactory.getSubscriberById(Integer.parseInt(subID)));
+                response = Main.client.getResponse();
             }
         }
         else {
@@ -133,7 +130,7 @@ public class SubscriberLoginScreen {
             ArrayList<String> subscriberLoginInfo = new ArrayList<>();
             subscriberLoginInfo.add(username);
             subscriberLoginInfo.add(password);
-            Main.client.accept(new BistroRequest(BistroCommand.SUBSCRIBER_LOGIN, subscriberLoginInfo));
+            Main.client.accept(RequestFactory.subscriberLogin(username, password));
             response = Main.client.getResponse();
         }
         if (ok && response.getStatus() == BistroResponseStatus.SUCCESS) {

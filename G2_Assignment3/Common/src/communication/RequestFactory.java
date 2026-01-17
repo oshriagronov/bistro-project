@@ -232,6 +232,13 @@ public final class RequestFactory {
 		return noPayload(BistroCommand.GET_ALL_PENDING_RESERVATIONS);
 	}
 
+	public static BistroRequest restoreConfirmationCode(String phone, String email) {
+		ArrayList<String> search = new ArrayList<>(2);
+		search.add(phone);
+		search.add(email);
+		return withPayload(BistroCommand.FORGOT_CONFIRMATION_CODE, search);
+	}
+
 	// -------------------------------------------------------------------------
 	// Subscribers
 	// -------------------------------------------------------------------------
@@ -250,14 +257,23 @@ public final class RequestFactory {
 	 * @return a {@link BistroRequest} for {@link BistroCommand#GET_SUBSCRIBER_ORDERS}
 	 * @throws IllegalArgumentException if {@code subscriberId <= 0}
 	 */
-	public static BistroRequest getSubscriberOrders(int subscriberId) {
+	public static BistroRequest getSubscriberReservationHistory(int subscriberId) {
 	    if (subscriberId <= 0) {
 	        throw new IllegalArgumentException("Subscriber id must be positive");
 	    }
-	    return withPayload(BistroCommand.GET_SUBSCRIBER_ORDERS, subscriberId);
+	    return withPayload(BistroCommand.GET_SUBSCRIBER_HISTORY, subscriberId);
 	}
 
+	public static BistroRequest subscriberLogin(String username, String password){
+		ArrayList<String> payload = new ArrayList<>(2);
+		payload.add(username);
+		payload.add(password);
+		return withPayload(BistroCommand.SUBSCRIBER_LOGIN, payload);
+	}
 
+	public static BistroRequest getUpdateSubscriberInfo(Subscriber subscriber){
+		return withPayload(BistroCommand.UPDATE_SUBSCRIBER_INFO, subscriber);
+	}
 	// -------------------------------------------------------------------------
 	// Accept table
 	// -------------------------------------------------------------------------

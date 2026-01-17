@@ -4,8 +4,8 @@ import java.util.ArrayList;
 
 import client.AlertUtil;
 import communication.BistroCommand;
-import communication.BistroRequest;
 import communication.BistroResponse;
+import communication.RequestFactory;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
@@ -126,7 +126,8 @@ public class PaymentScreen {
             AlertUtil.showAlert(Alert.AlertType.INFORMATION, "Input Error", errors.toString());
             return;
         }
-        BistroResponse response = sendRequest(BistroCommand.GET_BILL, code);
+        Main.client.accept(RequestFactory.withPayload(BistroCommand.GET_BILL, code));
+        BistroResponse response = Main.client.getResponse();
         if (response != null) {
             switch (response.getStatus()) {
                 case SUCCESS:                    
@@ -164,7 +165,8 @@ public class PaymentScreen {
             return;
         }
         subscriberConfirmationCodes.getItems().clear();
-        BistroResponse response = sendRequest(BistroCommand.GET_SUBSCRIBER_CONFIRMATION_CODE_FOR_PAYMENT, LoggedUser.getId());
+        Main.client.accept(RequestFactory.withPayload(BistroCommand.GET_SUBSCRIBER_CONFIRMATION_CODE_FOR_PAYMENT, LoggedUser.getId()));
+        BistroResponse response = Main.client.getResponse();
         if (response != null) {
             Object data = response.getData();
             switch (response.getStatus()) {
@@ -196,19 +198,6 @@ public class PaymentScreen {
                     break;
             }
         }
-    }
-
-
-    /**
-     * Sends a request to the server and returns the response.
-     * @param command server command to execute
-     * @param data request payload
-     * @return server response, or null if unavailable
-     */
-    private BistroResponse sendRequest(BistroCommand command, Object data) {
-        BistroRequest request = new BistroRequest(command, data);
-        Main.client.accept(request);
-        return Main.client.getResponse();
     }
 
 
