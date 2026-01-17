@@ -16,7 +16,6 @@ import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import logic.LoggedUser;
 import logic.Reservation;
-import logic.Subscriber;
 import logic.UserType;
 import subscriber.SubscriberScreen;
 import employee.employeeMenu;
@@ -62,8 +61,6 @@ public class PaymentScreen {
     @FXML
     private Button backBtn;
 
-    private boolean isSubscriber = false;
-
     /**
      * Initializes the controller.
      * This method is automatically called after the FXML file has been loaded.
@@ -75,21 +72,43 @@ public class PaymentScreen {
         total.setVisible(false);
         bindManagedToVisible(detailsVbox);
         bindManagedToVisible(subscriberConfirmationBox);
-        UserType type = LoggedUser.getType();
-        isSubscriber = type == UserType.SUBSCRIBER;
-        if (isSubscriber) {
-            Subscriber sub = ScreenSetup.setupSubscriber(detailsVbox, null, null);
-            if (sub == null) {
-                isSubscriber = false;
-                ScreenSetup.setupGuestView(detailsVbox, null, subscriberConfirmationBox);
-            } else {
-                populateSubscriberConfirmationCodes();
-            }
-        } else if (type == UserType.EMPLOYEE || type == UserType.MANAGER) {
-            ScreenSetup.setupWorkerView(detailsVbox, null, subscriberConfirmationBox);
-        } else {
-            ScreenSetup.setupGuestView(detailsVbox, null, subscriberConfirmationBox);
+        bindManagedToVisible(submitHbox);
+        bindManagedToVisible(total);
+        if (setupUserView()) {
+            populateSubscriberConfirmationCodes();
         }
+    }
+
+    /**
+     * Binds a node's managed property to its visible property.
+     * @param node node to bind
+     */
+    private void bindManagedToVisible(Node node) {
+        if (node != null) {
+            node.managedProperty().bind(node.visibleProperty());
+        }
+    }
+
+
+    /**
+     * Applies the view configuration for the current user type using ScreenSetup.
+     * @return true when the subscriber view is active and subscriber data is available
+     */
+    private boolean setupUserView() {
+        UserType type = LoggedUser.getType();
+        if (type == UserType.SUBSCRIBER) {
+            boolean hasSubscriber = ScreenSetup.setupSubscriber(detailsVbox, null, null) != null;
+            if (!hasSubscriber) {
+                ScreenSetup.setupGuestView(detailsVbox, null, subscriberConfirmationBox);
+            }
+            return hasSubscriber;
+        }
+        if (type == UserType.EMPLOYEE || type == UserType.MANAGER) {
+            ScreenSetup.setupWorkerView(detailsVbox, null, subscriberConfirmationBox);
+            return false;
+        }
+        ScreenSetup.setupGuestView(detailsVbox, null, subscriberConfirmationBox);
+        return false;
     }
 
     /**
@@ -114,7 +133,7 @@ public class PaymentScreen {
     @FXML
     void handleSubmit(ActionEvent event) {
         StringBuilder errors = new StringBuilder();
-        String code = isSubscriber ? resolveSubscriberCode(errors) : resolveGuestCode(errors);
+        String code = resolveConfirmationCode(errors);
         if (errors.length() > 0) {
             showAlert("Input Error", errors.toString());
             return;
@@ -128,11 +147,11 @@ public class PaymentScreen {
                         Reservation res = (Reservation) data;
                         double pay = PAYMENT_PER_DINER * res.getNumberOfGuests();                        
                         pay = res.getSubscriberId() > 0 ? pay * 0.9 : pay;
-                        toggleNode(detailsVbox, false);
-                        toggleNode(subscriberConfirmationBox, false);
-                        toggleNode(submitHbox, false);
+                        detailsVbox.setVisible(false);
+                        subscriberConfirmationBox.setVisible(false);
+                        submitHbox.setVisible(false);
                         total.setText("Total to pay: " + pay);
-                        toggleNode(total, true);
+                        total.setVisible(true);
                     }
                     break;
                 case NOT_FOUND:
@@ -191,25 +210,6 @@ public class PaymentScreen {
         }
     }
 
-    private void bindManagedToVisible(Node node) {
-        if (node != null) {
-            node.managedProperty().bind(node.visibleProperty());
-        }
-    }
-
-    /**
-     * Toggles visibility and layout management for a node.
-     * @param node node to show or hide
-     * @param show true to show, false to hide
-     */
-    private void toggleNode(Node node, boolean show) {
-        if (node != null) {
-            node.setVisible(show);
-            if (!node.managedProperty().isBound()) {
-                node.setManaged(show);
-            }
-        }
-    }
 
     /**
      * Sends a request to the server and returns the response.
@@ -223,25 +223,21 @@ public class PaymentScreen {
         return Main.client.getResponse();
     }
 
-    /**
-     * Reads the confirmation code selected by a subscriber and validates it.
-     * @param errors collector for validation messages
-     * @return confirmation code, or null if missing/invalid
-     */
-    private String resolveSubscriberCode(StringBuilder errors) {
-        String code = subscriberConfirmationCodes != null ? subscriberConfirmationCodes.getValue() : null;
-        if (code == null || code.isBlank() || !code.matches("\\d+")) {
-            errors.append("Please select a valid confirmation code\n");
-        }
-        return code;
-    }
+
 
     /**
-     * Reads the confirmation code entered by a guest user and validates it.
+     * Reads and validates the confirmation code based on which input is visible.
      * @param errors collector for validation messages
      * @return confirmation code, or null if missing/invalid
      */
-    private String resolveGuestCode(StringBuilder errors) {
+    private String resolveConfirmationCode(StringBuilder errors) {
+        if (subscriberConfirmationBox != null && subscriberConfirmationBox.isVisible()) {
+            String code = subscriberConfirmationCodes != null ? subscriberConfirmationCodes.getValue() : null;
+            if (code == null || code.isBlank() || !code.matches("\\d+")) {
+                errors.append("Please select a valid confirmation code\n");
+            }
+            return code;
+        }
         String code = confirmationCode != null ? confirmationCode.getText().trim() : null;
         if (code == null || code.isBlank() || !code.matches("\\d+")) {
             errors.append("Please enter a valid confirmation code\n");
