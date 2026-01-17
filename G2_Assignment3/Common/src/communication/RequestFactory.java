@@ -8,7 +8,6 @@ import java.util.ArrayList;
 
 import logic.SpecialDay;
 import logic.Subscriber;
-import logic.WeekDay;
 import logic.WeeklySchedule;
 
 /**
