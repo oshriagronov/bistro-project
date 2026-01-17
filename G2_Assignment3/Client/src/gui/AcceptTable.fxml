@@ -135,10 +135,8 @@
               mouseTransparent="true">
             <children>
                 <Text fx:id="tableResultText"
-                      visible="false">
-                    <font>
-                        <Font size="32"/>
-                    </font>
+                      visible="false"
+                      styleClass="subtitle, result-text">
                 </Text>
             </children>
         </HBox>

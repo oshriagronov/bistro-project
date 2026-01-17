@@ -36,9 +36,7 @@ public class ReservationByOrderNumberHandler implements RequestHandler {
 		if (orderNumber == -1) {
 			return new BistroResponse(BistroResponseStatus.FAILURE, "Bad order number.");
 		}
-
 		Object reservation = db.searchOrderByOrderNumber(orderNumber);
-
 		return new BistroResponse(BistroResponseStatus.SUCCESS, reservation);
 	}
 }

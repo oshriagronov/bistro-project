@@ -9,31 +9,25 @@
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
 
-<BorderPane style="-fx-background-color: #f6f7fb;" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="employee.CurrentDinersScreen">
+<BorderPane stylesheets="@../../../Css/style.css" styleClass="root" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="employee.CurrentDinersScreen">
 
-    <!-- TOP: Header card -->
     <top>
         <VBox style="-fx-padding: 18;">
-            <VBox prefHeight="95.0" prefWidth="863.0" spacing="8" style="-fx-background-color: white;                          -fx-padding: 14;                          -fx-background-radius: 12;                          -fx-border-radius: 12;                          -fx-border-color: #e6e8f0;">
-                <Label style="-fx-font-size: 22px; -fx-font-weight: 800;" text="Tables &amp; Current Reservations" textFill="#2f0ceb" />
-            <HBox prefHeight="100.0" prefWidth="200.0">
-               <children>
-      
-                      <Label prefHeight="17.0" prefWidth="523.0" style="-fx-text-fill: #6a7286;" text="Live snapshot of current diners per table." />
-                  <Region prefHeight="100.0" prefWidth="439.0" />
-      
-                       <Button fx:id="menuBtn" onAction="#menu" prefHeight="34" prefWidth="233.0" style="-fx-background-color: #eef1f7;                                    -fx-text-fill: #1f2a44;                                    -fx-font-weight: 700;                                    -fx-background-radius: 8;                                    -fx-padding: 6 14;" text="Back to menu" />
-               </children>
-            </HBox>
+            <VBox prefHeight="95.0" prefWidth="863.0" spacing="8" styleClass="form-card">
+                <Label styleClass="title" text="Tables &amp; Current Reservations" />
+                <HBox prefHeight="100.0" prefWidth="200.0">
+                    <children>
+                        <Label prefHeight="17.0" prefWidth="523.0" styleClass="subtitle" text="Live snapshot of current diners per table." />
+                    </children>
+                </HBox>
             </VBox>
         </VBox>
     </top>
 
-    <!-- CENTER: Table card -->
     <center>
         <VBox style="-fx-padding: 0 18 18 18;">
-            <VBox spacing="10" style="-fx-background-color: white;                          -fx-padding: 14;                          -fx-background-radius: 12;                          -fx-border-radius: 12;                          -fx-border-color: #e6e8f0;">
-                <TableView fx:id="tableView" prefHeight="470" style="-fx-background-radius: 10; -fx-border-radius: 10;" VBox.vgrow="ALWAYS">
+            <VBox spacing="10" styleClass="form-card" VBox.vgrow="ALWAYS">
+                <TableView fx:id="tableView" prefHeight="470" VBox.vgrow="ALWAYS">
                     <columns>
                         <TableColumn fx:id="tableNumberCol" prefWidth="110" text="Table #" />
                         <TableColumn fx:id="orderNumberCol" prefWidth="120" text="Order ID" />
@@ -43,10 +37,13 @@
                         <TableColumn fx:id="dinersCol" prefWidth="160" text="Number of diners" />
                     </columns>
                 </TableView>
-
-                <!-- Footer buttons -->
-                <HBox spacing="10" style="-fx-padding: 6 0 0 0;" />
             </VBox>
+                <HBox spacing="10" style="-fx-padding: 6 0 0 0;">
+                    <children>
+                        <Region HBox.hgrow="ALWAYS" />
+                        <Button fx:id="menuBtn" onAction="#menu" prefHeight="34" prefWidth="233.0" styleClass="back" text="Back to menu" />
+                    </children>
+                </HBox>
         </VBox>
     </center>
 

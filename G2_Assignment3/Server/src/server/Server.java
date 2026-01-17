@@ -18,6 +18,7 @@ import db.ConnectionToDB;
 import handlers.AddReservationHandler;
 import handlers.AddSubscriberHandler;
 import handlers.AddTableHandler;
+import handlers.CancelReservationByIdHandler;
 import handlers.CancelReservationHandler;
 import handlers.ChangeStatusHandler;
 import handlers.ChangeTableSizeHandler;
@@ -34,6 +35,7 @@ import handlers.GetSubscriberHistoryHandler;
 import handlers.GetSubscriberOrdersHandler;
 import handlers.GetSubscribersConfirmationCodesHandler;
 import handlers.GetSubscribersOrdersCountsHandler;
+import handlers.GetTableByConfirmationCodeHnadler;
 import handlers.GetTablesHandler;
 import handlers.GetTimingsHandler;
 import handlers.GetTodaysReservationsHandler;
@@ -43,6 +45,7 @@ import handlers.LoadDinersHandler;
 import handlers.LoadSpecialDatesHandler;
 import handlers.LoadWeeklyScheduleHandler;
 import handlers.RequestHandler;
+import handlers.ReservationByCodeHandler;
 import handlers.ReservationByOrderNumberHandler;
 import handlers.ReservationsByEmailHandler;
 import handlers.ReservationsByPhoneHandler;
@@ -83,12 +86,15 @@ public class Server extends AbstractServer {
 		handlers.put(BistroCommand.CANCEL_RESERVATION, new CancelReservationHandler());
 		handlers.put(BistroCommand.CHANGE_STATUS, new ChangeStatusHandler());
 		handlers.put(BistroCommand.GET_BILL, new GetBillHandler());
-
+		
+		handlers.put(BistroCommand.GET_ACTIVE_RESERVATION_BY_CODE, new ReservationByCodeHandler());
 		handlers.put(BistroCommand.GET_RESERVATION_BY_ORDER_NUMBER, new ReservationByOrderNumberHandler());
 		handlers.put(BistroCommand.GET_RESERVATIONS_BY_EMAIL, new ReservationsByEmailHandler());
 		handlers.put(BistroCommand.GET_ACTIVE_RESERVATIONS_BY_PHONE, new ReservationsByPhoneHandler());
 		handlers.put(BistroCommand.GET_TODAYS_ORDERS, new GetTodaysReservationsHandler());
+		handlers.put(BistroCommand.CANCEL_RESERVATION_BY_ID, new CancelReservationByIdHandler());
 
+		
 		handlers.put(BistroCommand.GET_TABLE_BY_IDENTIFIER_AND_CODE, new TableByIdentifierAndCodeHandler());
 		handlers.put(BistroCommand.FORGOT_CONFIRMATION_CODE, new ForgotConfirmationCodeHandler());
 		handlers.put(BistroCommand.SEND_CODE_TO_WAITING_LIST, new SendCodeToWaitingListCustomerHandler());
@@ -104,7 +110,6 @@ public class Server extends AbstractServer {
 		handlers.put(BistroCommand.GET_SUBSCRIBER_CONFIRMATION_CODES, new GetSubscribersConfirmationCodesHandler());
 		handlers.put(BistroCommand.GET_SUBSCRIBER_ORDER_COUNTS, new GetSubscribersOrdersCountsHandler());
 		handlers.put(BistroCommand.UPDATE_SUBSCRIBER_INFO, new UpdateSubscriberInfoHandler());
-		handlers.put(BistroCommand.GET_SUB, new GetSubscriberByIdHandler());
 		handlers.put(BistroCommand.GET_SUBSCRIBER_ORDERS, new GetSubscriberOrdersHandler());
 
 		// Tables
@@ -113,6 +118,7 @@ public class Server extends AbstractServer {
 		handlers.put(BistroCommand.DELETE_TABLE, new DeleteTableHandler());
 		handlers.put(BistroCommand.CHANGE_TABLE_SIZE, new ChangeTableSizeHandler());
 		handlers.put(BistroCommand.LOAD_DINERS, new LoadDinersHandler());
+		handlers.put(BistroCommand.GET_TABLE_BY_CONFIRMATION_CODE, new GetTableByConfirmationCodeHnadler());
 
 		// Schedule
 		handlers.put(BistroCommand.LOAD_WEEKLY_SCHEDULE, new LoadWeeklyScheduleHandler());
@@ -262,7 +268,7 @@ public class Server extends AbstractServer {
 	private void startCheckReservationsTimer() {
 		checkReservationsService = Executors.newSingleThreadScheduledExecutor();
 		checkReservationsService.scheduleAtFixedRate(this::checkReservations, CHECK_INTERVAL, CHECK_INTERVAL,
-				TimeUnit.SECONDS);
+				TimeUnit.MINUTES);
 	}
 
 	/**
@@ -285,10 +291,10 @@ public class Server extends AbstractServer {
 				sendNotification(phone, email, sb.toString());
 			}
 			if(reservationsToSendPaymentReminder.size() == db.setReservationsAsReminded(reservationsToSendPaymentReminder)){
-				log("[SYSTEM] All reservation that got reminders marked as REMINDED.");
+				log("[All reservation that got reminders marked as REMINDED.");
 			}
 			else{
-				log("[SYSTEM] There was some problem with mark reservations as reminded.");
+				log("There was some problem with mark reservations as reminded.");
 			}
 		}
 		// ** send the bill to the customer of the reservation that past the endtime and clear the tables
@@ -302,13 +308,13 @@ public class Server extends AbstractServer {
 				sendNotification(phone, email, sb.toString());
 			}
 			if(reservationsToSendPaymentReminder.size() == db.setReservationAfterEndTimeAsCompleted(reservationsToSendPaymentReminder)){
-				log("[SYSTEM] All reservation that exceed the finish time are got the bill and cleared the tables.");
+				log("All reservation that exceed the finish time are got the bill and cleared the tables.");
 			}
 			else{
-				log("[SYSTEM] There was some problem with clearing the tables or set reservations as completed.");
+				log("There was some problem with clearing the tables or set reservations as completed.");
 			}
 		}
-
+		// ** send the a message telling the customer that the reservation is canceled because it is past 15min late.
 		if (reservationsToCancel != null) {
 			for (List<String> reservation : reservationsToCancel){
 				StringBuilder sb = new StringBuilder();
@@ -319,35 +325,23 @@ public class Server extends AbstractServer {
 				sendNotification(phone, email, sb.toString());
 			}
 			if(reservationsToCancel.size() == db.setReservationToCancelIfCustomerLate(reservationsToCancel)){
-				log("[SYSTEM] All the reservations that customer is late are canceled.");
+				log("All the reservations that customer is late are canceled.");
 			}
 			else{
-				log("[SYSTEM] There was some problem with clearing the tables or set reservations as cancel.");
+				log("There was some problem with clearing the tables or set reservations as cancel.");
 			}
 		}
 	}
 
-	/**
-	 * Returns whether the given value contains non-blank text that is not "null".
-	 *
-	 * @param value candidate string to check
-	 * @return true when value is non-null, trimmed non-empty, and not "null"
-	 */
-	private static boolean hasText(String value) {
-		if (value == null)
-			return false;
-		String trimmed = value.trim();
-		return !trimmed.isEmpty() && !"null".equalsIgnoreCase(trimmed);
-	}
-
+	
 	/**
 	 * Sends the reminder message via SMS when a phone number is available;
 	 * otherwise falls back to email if present, or logs a skip.
-	 *
-	 * @param phone   phone number to send to (may be blank)
-	 * @param email   email to send to if phone is missing
-	 * @param message reminder text to send
-	 */
+	*
+	* @param phone   phone number to send to (may be blank)
+	* @param email   email to send to if phone is missing
+	* @param message reminder text to send
+	*/
 	public void sendNotification(String phone, String email, String message) {
 		NotificationService service = NotificationService.getInstance();
 		boolean sent = false;
@@ -363,5 +357,17 @@ public class Server extends AbstractServer {
 			log("Skipping notification: missing phone and email.");
 		}
 	}
-
+	
+	/**
+	 * Returns whether the given value contains non-blank text that is not "null".
+	 *
+	 * @param value candidate string to check
+	 * @return true when value is non-null, trimmed non-empty, and not "null"
+	 */
+	private static boolean hasText(String value) {
+		if (value == null)
+			return false;
+		String trimmed = value.trim();
+		return !trimmed.isEmpty() && !"null".equalsIgnoreCase(trimmed);
+	}
 }

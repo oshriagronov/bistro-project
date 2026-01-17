@@ -33,7 +33,7 @@ CREATE TABLE `reservations` (
   `start_time` time NOT NULL,
   `finish_time` time NOT NULL,
   `order_date` date NOT NULL,
-  `order_status` enum('PENDING', 'CONFIRMED','CANCELLED','COMPLETED', 'ACCEPTED','LATE_CANCEL') DEFAULT NULL,
+  `order_status` enum('PENDING', 'CONFIRMED', 'CANCELLED', 'COMPLETED', 'ACCEPTED', 'LATE_CANCEL') DEFAULT NULL,
   `reminded` boolean NOT NULL DEFAULT false,
   `num_diners` int NOT NULL,
   `date_of_placing_order` date NOT NULL,
@@ -314,16 +314,17 @@ CREATE TABLE `workers` (
 
 LOCK TABLES `workers` WRITE;
 /*!40000 ALTER TABLE `workers` DISABLE KEYS */;
-INSERT INTO `workers`
+
+INSERT INTO `workers` 
 (`worker_id`, `username`, `password_hash`, `worker_type`)
-VALUES
-(12345, 'test', '$2a$10$zGVDSeVGYOhcShbBB9ZwF.73fM6B3yIR6xkm3atXzy69X0RHYDWMy', 'employee'),
-(15357,'lior22','$2a$10$liorhash','employee'),
-(74839,'shira7','$2a$10$shirahash','employee'),
-(86096,'yael99','$2a$10$yaelhash','employee'),
-(90865,'omer_x','$2a$10$omerhash','employee'),
-(90866,'talmetz100','$2a$10$AkIaIxSA67DBz3KWKzFBWONifu9eYOXsXLpaeGSx7gUilCX3CE7jC','manager'),
-(54321,'worker','12345','employee');
+VALUES 
+(12345, 'test', '$2a$10$zGVDSeVGYOhcShbBB9ZwF.73fM6B3yIR6xkm3atXzy69X0RHYDWMy', 'manager'),
+ (15357,'lior22','$2a$10$liorhash','employee'),
+ (74839,'shira7','$2a$10$shirahash','employee'),
+ (86096,'yael99','$2a$10$yaelhash','employee'),
+ (90865,'omer_x','$2a$10$omerhash','employee'),
+ (90866, 'talmetz100', '$2a$10$AkIaIxSA67DBz3KWKzFBWONifu9eYOXsXLpaeGSx7gUilCX3CE7jC', 'employee'),
+ (54321, 'worker', '12345', 'employee');
 /*!40000 ALTER TABLE `workers` ENABLE KEYS */;
 UNLOCK TABLES;
 

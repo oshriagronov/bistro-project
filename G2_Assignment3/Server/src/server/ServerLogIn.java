@@ -7,7 +7,8 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
-import javafx.scene.control.TextField;
+import javafx.scene.control.PasswordField;
+
 
 public class ServerLogIn {
 
@@ -15,7 +16,7 @@ public class ServerLogIn {
 	private Button enterBTN;
 
 	@FXML
-	private TextField pwText;
+	private PasswordField pwText;
 
 	@FXML
 	void clickEnter(ActionEvent event) {

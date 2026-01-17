@@ -2,42 +2,30 @@
 
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
 <?import javafx.scene.layout.Pane?>
 <?import javafx.scene.layout.VBox?>
-<?import javafx.scene.text.Font?>
-<?import javafx.scene.text.Text?>
 
-<Pane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="employee.employeeMenu">
+<Pane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" styleClass="root" stylesheets="@../../../Css/style.css" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="employee.employeeMenu">
    <children>
-      <VBox layoutX="215.0" layoutY="77.0" prefHeight="281.0" prefWidth="200.0">
+      <Label layoutX="194.0" layoutY="25.0" styleClass="title" style="-fx-font-size: 28px;" text="Employee Menu" />
+
+      <VBox alignment="TOP_CENTER" layoutX="175.0" layoutY="85.0" prefWidth="250.0" spacing="15">
          <children>
-            <Button fx:id="CostumerBtn" mnemonicParsing="false" onAction="#goToCostumerManu" prefHeight="40.0" prefWidth="170.0" text="Customer actions">
-               <VBox.margin>
-                  <Insets bottom="10.0" />
-               </VBox.margin>
-            </Button>
-            <Button fx:id="managementBtn" mnemonicParsing="false" onAction="#manageRestaurant" prefHeight="40.0" prefWidth="170.0" text="Manage Restaurant">
-               <VBox.margin>
-                  <Insets bottom="10.0" />
-               </VBox.margin>
-            </Button>
-            <Button fx:id="infoBtn" mnemonicParsing="false" onAction="#watchInfo" prefHeight="40.0" prefWidth="170.0" text="Restaurant info">
-               <VBox.margin>
-                  <Insets bottom="10.0" />
-               </VBox.margin>
-            </Button>
-            <Button fx:id="reportsBTN" mnemonicParsing="false" onAction="#watchReports" prefHeight="40.0" prefWidth="170.0" text="Watch reports">
-               <VBox.margin>
-                  <Insets bottom="10.0" />
-               </VBox.margin>
-            </Button>
+            <VBox alignment="CENTER" spacing="10">
+               <children>
+                  <Button fx:id="CostumerBtn" mnemonicParsing="false" onAction="#goToCostumerManu" prefHeight="40.0" prefWidth="200.0" styleClass="primary" text="Customer actions" />
+                  
+                  <Button fx:id="managementBtn" mnemonicParsing="false" onAction="#manageRestaurant" prefHeight="40.0" prefWidth="200.0" styleClass="primary" text="Manage Restaurant" />
+                  
+                  <Button fx:id="infoBtn" mnemonicParsing="false" onAction="#watchInfo" prefHeight="40.0" prefWidth="200.0" styleClass="primary" text="Restaurant info" />
+                  
+                  <Button fx:id="reportsBTN" mnemonicParsing="false" onAction="#watchReports" prefHeight="40.0" prefWidth="200.0" styleClass="primary" text="Watch reports" />
+               </children>
+            </VBox>
          </children>
       </VBox>
-      <Text fill="#0838bc" layoutX="215.0" layoutY="44.0" strokeType="OUTSIDE" strokeWidth="0.0" text="Employee Menu">
-         <font>
-            <Font name="Calibri Bold" size="24.0" />
-         </font>
-      </Text>
-      <Button fx:id="backBtn" layoutX="487.0" layoutY="338.0" mnemonicParsing="false" onAction="#backToLoginMenu" prefHeight="40.0" prefWidth="90.0" text="Log out" />
+
+      <Button fx:id="backBtn" layoutX="430.0" layoutY="340.0" mnemonicParsing="false" onAction="#backToLoginMenu" prefHeight="40.0" prefWidth="150.0" styleClass="back" text="Log out" />
    </children>
 </Pane>

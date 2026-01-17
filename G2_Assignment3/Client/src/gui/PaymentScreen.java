@@ -1,10 +1,11 @@
 package gui;
 
 import java.util.ArrayList;
+
+import client.AlertUtil;
 import communication.BistroCommand;
-import communication.BistroRequest;
 import communication.BistroResponse;
-import communication.BistroResponseStatus;
+import communication.RequestFactory;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
@@ -17,7 +18,6 @@ import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import logic.LoggedUser;
 import logic.Reservation;
-import logic.Subscriber;
 import logic.UserType;
 import subscriber.SubscriberScreen;
 import employee.employeeMenu;
@@ -30,9 +30,6 @@ import employee.employeeMenu;
 public class PaymentScreen {
 	public static final int PAYMENT_PER_DINER=100;
     public static final String fxmlPath = "/gui/Payment.fxml";
-    /** Alert object used to display success or failure messages to the user. */
-    Alert alert = new Alert(Alert.AlertType.INFORMATION);
-
     @FXML
     private HBox codeHbox;
 
@@ -63,9 +60,6 @@ public class PaymentScreen {
     @FXML
     private Button backBtn;
 
-    private boolean isSubscriber = false;
-    private Subscriber sub;
-
     /**
      * Initializes the controller.
      * This method is automatically called after the FXML file has been loaded.
@@ -75,29 +69,46 @@ public class PaymentScreen {
     @FXML
     void initialize() {
         total.setVisible(false);
-        UserType type = LoggedUser.getType();
-        if (type == UserType.SUBSCRIBER) {
-            this.sub = ScreenSetup.setupSubscriber(detailsVbox, null, null);
-            setupSubscriberView();
-        } else if (type == UserType.EMPLOYEE || type == UserType.MANAGER) {
-            ScreenSetup.setupWorkerView(detailsVbox, null, null);
-            setupDefaultView();
-        } else {
-            ScreenSetup.setupGuestView(detailsVbox, null, null);
-            setupDefaultView();
+        boolean hasSubscriber = setupUserView();
+        bindManagedToVisible(detailsVbox);
+        bindManagedToVisible(subscriberConfirmationBox);
+        bindManagedToVisible(submitHbox);
+        bindManagedToVisible(total);
+        if (hasSubscriber) {
+            populateSubscriberConfirmationCodes();
         }
     }
 
     /**
-     * Displays an information alert to the user.
-     * @param title The title of the alert window.
-     * @param body The content text of the alert.
+     * Binds a node's managed property to its visible property.
+     * @param node node to bind
      */
-    public void showAlert(String title, String body) {
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.setContentText(body);
-        alert.showAndWait();
+    private void bindManagedToVisible(Node node) {
+        if (node != null) {
+            node.managedProperty().bind(node.visibleProperty());
+        }
+    }
+
+
+    /**
+     * Applies the view configuration for the current user type using ScreenSetup.
+     * @return true when the subscriber view is active and subscriber data is available
+     */
+    private boolean setupUserView() {
+        UserType type = LoggedUser.getType();
+        if (type == UserType.SUBSCRIBER) {
+            boolean hasSubscriber = ScreenSetup.setupSubscriber(detailsVbox, null, null) != null;
+            if (!hasSubscriber) {
+                ScreenSetup.setupGuestView(detailsVbox, null, subscriberConfirmationBox);
+            }
+            return hasSubscriber;
+        }
+        if (type == UserType.EMPLOYEE || type == UserType.MANAGER) {
+            ScreenSetup.setupWorkerView(detailsVbox, null, subscriberConfirmationBox);
+            return false;
+        }
+        ScreenSetup.setupGuestView(detailsVbox, null, subscriberConfirmationBox);
+        return false;
     }
 
     /**
@@ -110,30 +121,107 @@ public class PaymentScreen {
     @FXML
     void handleSubmit(ActionEvent event) {
         StringBuilder errors = new StringBuilder();
-        String code = isSubscriber ? resolveSubscriberCode(errors) : resolveGuestCode(errors);
-
+        String code = resolveConfirmationCode(errors);
         if (errors.length() > 0) {
-            showAlert("Input Error", errors.toString());
+            AlertUtil.showAlert(Alert.AlertType.INFORMATION, "Input Error", errors.toString());
             return;
         }
-        BistroResponse response = sendRequest(BistroCommand.GET_BILL, code);
-        if (response != null && response.getStatus() == BistroResponseStatus.SUCCESS) {
-            Object data = response.getData();
-            if (data != null && data instanceof Reservation) {
-            	Reservation res = (Reservation) data;
-            	int num_guests=res.getNumberOfGuests();
-            	int sub_id = res.getSubscriberId();
-            	double pay = PAYMENT_PER_DINER * num_guests;            	
-            	if(sub_id > 0)
-            		pay = pay * 0.9;
-                toggleNode(infoVbox, false);
-                total.setText("Total to pay: " + pay);
-                toggleNode(total, true);
+        Main.client.accept(RequestFactory.withPayload(BistroCommand.GET_BILL, code));
+        BistroResponse response = Main.client.getResponse();
+        if (response != null) {
+            switch (response.getStatus()) {
+                case SUCCESS:                    
+                    Object data = response.getData();
+                    if (data != null && data instanceof Reservation) {
+                        Reservation res = (Reservation) data;
+                        double pay = PAYMENT_PER_DINER * res.getNumberOfGuests();                        
+                        pay = res.getSubscriberId() > 0 ? pay * 0.9 : pay;
+                        detailsVbox.setVisible(false);
+                        subscriberConfirmationBox.setVisible(false);
+                        submitHbox.setVisible(false);
+                        total.setText("Total to pay: " + pay);
+                        total.setVisible(true);
+                    }
+                    break;
+                case NOT_FOUND:
+                    AlertUtil.showAlert(Alert.AlertType.INFORMATION, "Error", "Could not find bill for these details.");
+                    break;
+                default:
+                    AlertUtil.showAlert(Alert.AlertType.INFORMATION, "Error", "The server could not process your request.");
+                    break;
             }
-        } else {
-            showAlert("Error", "Could not find bill for these details.");
+        }
+        else{
+            AlertUtil.showAlert(Alert.AlertType.INFORMATION, "Error", "There was error sending the request to the server.");
         }
     }
+
+    /**
+     * Populates the subscriber confirmation code combo box from the server.
+     */
+    private void populateSubscriberConfirmationCodes() {
+        if (subscriberConfirmationCodes == null) {
+            AlertUtil.showAlert(Alert.AlertType.INFORMATION, "Error", "Could not load subscriber confirmation codes.");
+            return;
+        }
+        subscriberConfirmationCodes.getItems().clear();
+        Main.client.accept(RequestFactory.withPayload(BistroCommand.GET_SUBSCRIBER_CONFIRMATION_CODE_FOR_PAYMENT, LoggedUser.getId()));
+        BistroResponse response = Main.client.getResponse();
+        if (response != null) {
+            Object data = response.getData();
+            switch (response.getStatus()) {
+                case SUCCESS:
+                    if(data instanceof ArrayList<?>){
+                        
+                        ArrayList<String> codes = new ArrayList<>();
+                        for (Object obj : (ArrayList<?>) response.getData()) {
+                            if (obj instanceof String) {
+                                codes.add(String.valueOf(obj));
+                            }
+                        }
+                        subscriberConfirmationCodes.getItems().addAll(codes);
+                        if (!codes.isEmpty()) {
+                            subscriberConfirmationCodes.getSelectionModel().selectFirst();
+                        }
+                        else{
+                            AlertUtil.showAlert(Alert.AlertType.INFORMATION, "Message", "There is no reservations for this subscriber to pay.");
+                        }
+                    }
+                    else{
+                        System.out.println(response.getStatus());
+                        AlertUtil.showAlert(Alert.AlertType.INFORMATION, "Error", "Could not load subscriber confirmation codes.");
+                    }
+                    break;
+            
+                default:
+                    AlertUtil.showAlert(Alert.AlertType.INFORMATION, "Error", "The server could not process your request.");
+                    break;
+            }
+        }
+    }
+
+
+
+    /**
+     * Reads and validates the confirmation code based on which input is visible.
+     * @param errors collector for validation messages
+     * @return confirmation code, or null if missing/invalid
+     */
+    private String resolveConfirmationCode(StringBuilder errors) {
+        if (subscriberConfirmationBox != null && subscriberConfirmationBox.isVisible()) {
+            String code = subscriberConfirmationCodes != null ? subscriberConfirmationCodes.getValue() : null;
+            if (code == null || code.isBlank() || !code.matches("\\d+")) {
+                errors.append("Please select a valid confirmation code\n");
+            }
+            return code;
+        }
+        String code = confirmationCode != null ? confirmationCode.getText().trim() : null;
+        if (code == null || code.isBlank() || !code.matches("\\d+")) {
+            errors.append("Please enter a valid confirmation code\n");
+        }
+        return code;
+    }
+
 
     /**
      * Handles the back button action and routes to the appropriate previous screen.
@@ -162,109 +250,4 @@ public class PaymentScreen {
         return MainMenuScreen.fxmlPath;
     }
 
-    /**
-     * Configures the UI for non-subscriber flows.
-     */
-    private void setupDefaultView() {
-        isSubscriber = false;
-        applyUserView();
-    }
-
-    /**
-     * Configures the UI for subscriber flows and loads confirmation codes.
-     */
-    private void setupSubscriberView() {
-        isSubscriber = true;
-        applyUserView();
-        populateSubscriberConfirmationCodes();
-    }
-
-    /**
-     * Populates the subscriber confirmation code combo box from the server.
-     */
-    private void populateSubscriberConfirmationCodes() {
-        if (subscriberConfirmationCodes == null) {
-            showAlert("Error", "Could not load subscriber confirmation codes.");
-            setupDefaultView();
-            return;
-        }
-        subscriberConfirmationCodes.getItems().clear();
-        BistroResponse response = sendRequest(BistroCommand.GET_SUBSCRIBER_CONFIRMATION_CODE_FOR_PAYMENT, LoggedUser.getId());
-        if (response != null && response.getStatus() == BistroResponseStatus.SUCCESS
-                && response.getData() instanceof ArrayList<?>) {
-            ArrayList<String> codes = new ArrayList<>();
-            for (Object obj : (ArrayList<?>) response.getData()) {
-                if (obj instanceof String) {
-                    codes.add(String.valueOf(obj));
-                }
-            }
-            subscriberConfirmationCodes.getItems().addAll(codes);
-            if (!codes.isEmpty()) {
-                subscriberConfirmationCodes.getSelectionModel().selectFirst();
-            }
-        }
-    }
-
-    /**
-     * Applies the UI visibility rules based on the current user type.
-     */
-    private void applyUserView() {
-        if (isSubscriber) {
-            toggleNode(detailsVbox, false);
-            toggleNode(subscriberConfirmationBox, true);
-            return;
-        }
-        toggleNode(detailsVbox, true);
-        toggleNode(subscriberConfirmationBox, false);
-    }
-
-    /**
-     * Toggles visibility and layout management for a node.
-     * @param node node to show or hide
-     * @param show true to show, false to hide
-     */
-    private void toggleNode(Node node, boolean show) {
-        if (node != null) {
-            node.setVisible(show);
-            node.setManaged(show);
-        }
-    }
-
-    /**
-     * Sends a request to the server and returns the response.
-     * @param command server command to execute
-     * @param data request payload
-     * @return server response, or null if unavailable
-     */
-    private BistroResponse sendRequest(BistroCommand command, Object data) {
-        BistroRequest request = new BistroRequest(command, data);
-        Main.client.accept(request);
-        return Main.client.getResponse();
-    }
-
-    /**
-     * Reads the confirmation code selected by a subscriber and validates it.
-     * @param errors collector for validation messages
-     * @return confirmation code, or null if missing/invalid
-     */
-    private String resolveSubscriberCode(StringBuilder errors) {
-        String code = subscriberConfirmationCodes != null ? subscriberConfirmationCodes.getValue() : null;
-        if (code == null || code.isBlank() || !code.matches("\\d+")) {
-            errors.append("Please select a valid confirmation code\n");
-        }
-        return code;
-    }
-
-    /**
-     * Reads the confirmation code entered by a guest user and validates it.
-     * @param errors collector for validation messages
-     * @return confirmation code, or null if missing/invalid
-     */
-    private String resolveGuestCode(StringBuilder errors) {
-        String code = confirmationCode != null ? confirmationCode.getText().trim() : null;
-        if (code == null || code.isBlank() || !code.matches("\\d+")) {
-            errors.append("Please enter a valid confirmation code\n");
-        }
-        return code;
-    }
 }

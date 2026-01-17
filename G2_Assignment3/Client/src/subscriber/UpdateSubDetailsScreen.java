@@ -2,10 +2,9 @@ package subscriber;
 
 import java.net.URL;
 import java.util.ResourceBundle;
-import communication.BistroCommand;
-import communication.BistroRequest;
 import communication.BistroResponse;
 import communication.BistroResponseStatus;
+import communication.RequestFactory;
 import gui.Main;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -63,7 +62,7 @@ public class UpdateSubDetailsScreen {
      * Initializes the view with reservation history.
      */
     void initialize() {
-        Main.client.accept(new BistroRequest(BistroCommand.GET_SUBSCRIBER_BY_ID, LoggedUser.getId()));
+        Main.client.accept(RequestFactory.getSubscriberById(LoggedUser.getId()));
         BistroResponse response = Main.client.getResponse();
         if(response.getStatus() == BistroResponseStatus.SUCCESS && response.getData() instanceof Subscriber){
             Subscriber sub = (Subscriber)Main.client.getResponse().getData();
@@ -119,8 +118,7 @@ public class UpdateSubDetailsScreen {
             updatedSubscriber.setUsername(username);
         }
         if (!password.isBlank()) {
-            String hash = BCrypt.hashpw(password, BCrypt.gensalt());
-            updatedSubscriber.setPasswordHash(hash);
+            updatedSubscriber.setPasswordHash(BCrypt.hashpw(password, BCrypt.gensalt()));
         }
         if (!firstName.isBlank()) {
             updatedSubscriber.setFirstName(firstName);
@@ -128,13 +126,20 @@ public class UpdateSubDetailsScreen {
         if (!lastName.isBlank()) {
             updatedSubscriber.setLastName(lastName);
         }
-        Main.client.accept(new BistroRequest(BistroCommand.UPDATE_SUBSCRIBER_INFO, updatedSubscriber));
-        boolean isSuccess = Main.client.getResponse().getStatus() == BistroResponseStatus.SUCCESS;
-        String title = isSuccess ? "Success" : "Error";
-        String message = isSuccess
-                ? "Information updated successfully."
-                : "Something went wrong with sending the request to the server.";
-        showAlert(title, message);
+        Main.client.accept(RequestFactory.getUpdateSubscriberInfo(updatedSubscriber));
+        BistroResponse response = Main.client.getResponse();
+        BistroResponseStatus status = response.getStatus();
+        if (status == BistroResponseStatus.SUCCESS) {
+            showAlert("Success", "Information updated successfully.");
+        } else if (status == BistroResponseStatus.ALREADY_EXISTS) {
+            showAlert("Username Already Exists", "Please choose a different username.");
+        } else {
+            String message = "Something went wrong with sending the request to the server.";
+            if (response.getData() instanceof String) {
+                message = (String) response.getData();
+            }
+            showAlert("Error", message);
+        }
 
 
 

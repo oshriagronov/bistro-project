@@ -9,9 +9,8 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
-<?import javafx.scene.text.Font?>
 
-<BorderPane prefHeight="600" prefWidth="920" style="-fx-background-color: #F6F7FB;" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="employee.WaitingListScreen">
+<BorderPane styleClass="root" stylesheets="@../../../Css/style.css" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="employee.WaitingListScreen">
 
 	<padding>
 		<Insets bottom="16" left="16" right="16" top="16" />
@@ -19,21 +18,17 @@
 
 	<!-- Header card (no drop shadow) -->
 	<top>
-		<VBox spacing="8" style="-fx-background-color: white;                      -fx-background-radius: 14;                      -fx-padding: 16;                      -fx-border-color: #E5E7EB;                      -fx-border-radius: 14;">
+		<VBox spacing="8">
 
 			<HBox alignment="CENTER_LEFT">
-				<VBox spacing="4">
-					<Label text="Waiting List" textFill="#0c5be8">
-						<font>
-							<Font name="Calibri Bold" size="24.0" />
-						</font>
-					</Label>
+				<VBox prefHeight="74.0" prefWidth="770.0" spacing="4">
+					<Label alignment="CENTER" contentDisplay="TOP" nodeOrientation="LEFT_TO_RIGHT" prefHeight="52.0" prefWidth="777.0" styleClass="title" text="Waiting List" textAlignment="CENTER" />
 
-					<Label style="-fx-font-size: 12.5px; -fx-text-fill: #6B7280;" text="Customers currently waiting to be seated" />
+					<Label alignment="CENTER" contentDisplay="TOP" prefHeight="18.0" prefWidth="782.0" styleClass="subtitle" text="Customers currently waiting to be seated" textAlignment="CENTER" />
 				</VBox>
 
 				<Region HBox.hgrow="ALWAYS" />
-            <Button fx:id="BackBtn" mnemonicParsing="false" onAction="#BackToMenu" prefHeight="25.0" prefWidth="87.0" text="Back" />
+            <Button fx:id="BackBtn" mnemonicParsing="false" onAction="#BackToMenu" prefHeight="25.0" prefWidth="87.0" styleClass="back" text="Back" />
 			</HBox>
          <BorderPane.margin>
             <Insets bottom="10.0" />
@@ -43,12 +38,12 @@
 
 	<!-- Table card (no drop shadow) -->
 	<center>
-		<VBox prefHeight="392.0" prefWidth="888.0" spacing="10" style="-fx-background-color: white;                      -fx-background-radius: 14;                      -fx-padding: 16;                      -fx-border-color: #E5E7EB;                      -fx-border-radius: 14;">
+		<VBox prefHeight="392.0" prefWidth="888.0" spacing="10">
 
-			<TableView fx:id="waitlistTable" prefHeight="440.0" prefWidth="853.0" style="-fx-background-radius: 10;" VBox.vgrow="ALWAYS">
+			<TableView fx:id="waitlistTable" prefHeight="440.0" prefWidth="853.0" VBox.vgrow="ALWAYS">
 
 				<placeholder>
-					<Label style="-fx-text-fill: #6B7280; -fx-font-size: 13px;" text="No customers currently in the waiting list" />
+					<Label text="No customers currently in the waiting list" />
 				</placeholder>
 
 				<columns>

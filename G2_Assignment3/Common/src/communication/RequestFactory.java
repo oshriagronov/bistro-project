@@ -6,34 +6,25 @@ import java.time.LocalTime;
 import java.time.YearMonth;
 import java.util.ArrayList;
 
+import logic.Reservation;
 import logic.SpecialDay;
 import logic.Subscriber;
-import logic.WeekDay;
 import logic.WeeklySchedule;
 
 /**
  * Factory class for creating {@link BistroRequest} objects in a safe and
  * consistent manner.
- * <p>
- * This class centralizes the construction of client-to-server requests and
- * hides the details of {@link BistroCommand} values and payload structures from
- * the UI layer.
- * </p>
  *
- * <p>
- * Responsibilities:
- * <ul>
- * <li>Provide intention-revealing methods for each supported operation</li>
- * <li>Validate input parameters before request creation</li>
- * <li>Ensure payloads are constructed in the correct format</li>
- * <li>Reduce duplication and prevent command/payload mismatches</li>
- * </ul>
- * </p>
+ * Centralizes the construction of client-to-server requests and hides the
+ * details of {@link BistroCommand} values and payload structures from the UI
+ * layer.
  *
- * <p>
- * This class follows the <b>Factory Method</b> design pattern and is
- * implemented as a utility class (static methods only).
- * </p>
+ * Responsibilities include providing intention-revealing methods for each
+ * supported operation, validating input parameters, ensuring payloads use the
+ * correct format, and preventing command/payload mismatches.
+ *
+ * This class follows the Factory Method design pattern and is implemented as a
+ * utility class with only static methods.
  */
 public final class RequestFactory {
 
@@ -70,9 +61,8 @@ public final class RequestFactory {
 
 	/**
 	 * Creates a request to authenticate a worker by username and password.
-	 * <p>
+	 *
 	 * The payload is wrapped in {@link WorkerLoginRequest}.
-	 * </p>
 	 *
 	 * @param username worker username
 	 * @param password worker raw password
@@ -162,7 +152,7 @@ public final class RequestFactory {
 	// -------------------------------------------------------------------------
 	// Orders / reservations
 	// -------------------------------------------------------------------------
-
+	
 	/**
 	 * Creates a request to cancel an existing reservation.
 	 *
@@ -213,13 +203,39 @@ public final class RequestFactory {
 		}
 		return withPayload(BistroCommand.GET_ACTIVE_RESERVATIONS_BY_PHONE, phone);
 	}
-
+	/**
+	 * Creates a request to retrieve active reservations by code.
+	 *
+	 * @param search Reservation by code
+	 * @return a {@link BistroRequest} for
+	 *         {@link BistroCommand#GET_ACTIVE_RESERVATIONS_BY_CODE}
+	 * @throws IllegalArgumentException if {@code } is null or blank
+	 */
+	public static BistroRequest getActiveReservationsByCode(String code) {
+		if (code == null || code.isBlank()) {
+			throw new IllegalArgumentException("Code is required");
+		}
+		return withPayload(BistroCommand.GET_ACTIVE_RESERVATION_BY_CODE, code);
+	}
+	/**
+	 * Creates a request to retrieve active reservations by code.
+	 *
+	 * @param search Reservation by code
+	 * @return a {@link BistroRequest} for
+	 *         {@link BistroCommand#GET_ACTIVE_RESERVATIONS_BY_CODE}
+	 * @throws IllegalArgumentException if {@code } is null or blank
+	 */
+	public static BistroRequest cancelById(int id) {
+		if (id == 0 ) {
+			throw new IllegalArgumentException("Id is required");
+		}
+		return withPayload(BistroCommand.CANCEL_RESERVATION_BY_ID, id);
+	}
 	/**
 	 * Creates a request to retrieve reservations by email address.
-	 * <p>
-	 * The server is expected to return all reservations whose {@code email} matches
-	 * the provided value.
-	 * </p>
+	 *
+	 * The server is expected to return all reservations whose {@code email}
+	 * matches the provided value.
 	 *
 	 * @param email the email address to search by
 	 * @return a {@link BistroRequest} for
@@ -253,11 +269,18 @@ public final class RequestFactory {
 		return noPayload(BistroCommand.GET_TODAYS_ORDERS);
 	}
 
+	public static BistroRequest restoreConfirmationCode(String phone, String email) {
+		ArrayList<String> search = new ArrayList<>(2);
+		search.add(phone);
+		search.add(email);
+		return withPayload(BistroCommand.FORGOT_CONFIRMATION_CODE, search);
+	}
+
 	// -------------------------------------------------------------------------
 	// Subscribers
 	// -------------------------------------------------------------------------
 	public static BistroRequest getSubscriberById(int id) {
-		return withPayload(BistroCommand.GET_SUB, id);
+		return withPayload(BistroCommand.GET_SUBSCRIBER_BY_ID, id);
 	}
 	
 	public static BistroRequest addSubscriber(Subscriber sub, String password) {
@@ -271,14 +294,39 @@ public final class RequestFactory {
 	 * @return a {@link BistroRequest} for {@link BistroCommand#GET_SUBSCRIBER_ORDERS}
 	 * @throws IllegalArgumentException if {@code subscriberId <= 0}
 	 */
-	public static BistroRequest getSubscriberOrders(int subscriberId) {
+	public static BistroRequest getSubscriberReservationHistory(int subscriberId) {
 	    if (subscriberId <= 0) {
 	        throw new IllegalArgumentException("Subscriber id must be positive");
 	    }
-	    return withPayload(BistroCommand.GET_SUBSCRIBER_ORDERS, subscriberId);
+	    return withPayload(BistroCommand.GET_SUBSCRIBER_HISTORY, subscriberId);
 	}
 
+	public static BistroRequest subscriberLogin(String username, String password){
+		ArrayList<String> payload = new ArrayList<>(2);
+		payload.add(username);
+		payload.add(password);
+		return withPayload(BistroCommand.SUBSCRIBER_LOGIN, payload);
+	}
 
+	public static BistroRequest getUpdateSubscriberInfo(Subscriber subscriber){
+		return withPayload(BistroCommand.UPDATE_SUBSCRIBER_INFO, subscriber);
+	}
+
+	public static BistroRequest getSubscriberByPhone(String phone){
+		if (phone == null || phone.isBlank()) {
+			throw new IllegalArgumentException("Phone is required");
+		}
+		return withPayload(BistroCommand.SEARCH_SUB_BY_PHONE, phone);
+	}
+
+	public static BistroRequest getSubscriberByEmail(String email){
+		if (email == null || email.isBlank()) {
+			throw new IllegalArgumentException("Email is required");
+		}
+		return withPayload(BistroCommand.SEARCH_SUB_BY_EMAIL, email);
+	}
+
+	
 	// -------------------------------------------------------------------------
 	// Accept table
 	// -------------------------------------------------------------------------
@@ -395,6 +443,14 @@ public final class RequestFactory {
 
 	public static BistroRequest getOrderIn4HoursRange(LocalDate date, LocalTime time) {
 		return withPayload(BistroCommand.GET_ORDERS_IN_RANGE, new OrdersInRangeRequest(date, time));
+	}
+
+	public static BistroRequest getWorkerById(int id) {
+		return withPayload(BistroCommand.GET_WORKER, id);
+	}
+
+	public static BistroRequest addReservation(Reservation r) {
+	    return new BistroRequest(BistroCommand.ADD_RESERVATION, r);
 	}
 
 }

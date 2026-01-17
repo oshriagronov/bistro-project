@@ -1,7 +1,5 @@
 package subscriber;
-
-import communication.BistroCommand;
-import communication.BistroRequest;
+import communication.RequestFactory;
 import gui.AcceptTableScreen;
 import gui.CancelReservationScreen;
 import gui.Main;
@@ -145,7 +143,7 @@ public class SubscriberScreen {
 	 */
 	void goToReservationHistory(ActionEvent event) {
 		try {
-			Main.client.accept(new BistroRequest(BistroCommand.GET_SUBSCRIBER_HISTORY, LoggedUser.getId()));
+			Main.client.accept(RequestFactory.getSubscriberReservationHistory(LoggedUser.getId()));
 			Main.changeRoot(SubscriberHistoryScreen.fxmlPath);
 		} catch (Exception e) {
 			e.printStackTrace();

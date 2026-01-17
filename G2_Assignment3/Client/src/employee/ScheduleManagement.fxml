@@ -19,171 +19,120 @@
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
-<?import javafx.scene.text.Font?>
 
-<AnchorPane prefHeight="720.0" prefWidth="980.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="employee.ScheduleManagementScreen">
+<AnchorPane prefHeight="778.0" prefWidth="980.0" styleClass="root" stylesheets="@../../../Css/style.css" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="employee.ScheduleManagementScreen">
 
     <children>
         <BorderPane AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
 
-            <!-- Header -->
             <top>
-                <VBox prefHeight="1.0" prefWidth="980.0" spacing="6.0" style="-fx-background-color: white; -fx-border-color: #E6E6E6; -fx-border-width: 0 0 1 0;">
+                <VBox alignment="CENTER" spacing="8">
                     <padding>
                         <Insets bottom="14" left="22" right="22" top="18" />
                     </padding>
-
-                    <Label text="Schedule management" textFill="#2e04e9">
-                        <font>
-                            <Font name="Calibri Bold" size="24.0" />
-                        </font>
-                    </Label>
-
-                    <Label style="-fx-text-fill: #666;" text="Edit the the schedule for either regular or special days " />
+                    <Label styleClass="title" text="Schedule Management" />
+                    <Label styleClass="subtitle" text="Edit the schedule for either regular or special days" />
                 </VBox>
             </top>
 
-            <!-- Main content -->
             <center>
-                <ScrollPane fitToWidth="true" prefHeight="691.0" prefWidth="980.0" style="-fx-background-color: transparent;">
+                <ScrollPane fitToWidth="true">
                     <content>
-                        <VBox prefHeight="639.0" prefWidth="964.0" spacing="18.0" style="-fx-background-color: #F7F7F9;">
+                        <VBox prefHeight="715.0" prefWidth="965.0" spacing="20">
                             <padding>
                                 <Insets bottom="22" left="22" right="22" top="18" />
                             </padding>
-                     <HBox prefHeight="456.0" prefWidth="920.0">
-                        <children>
-      
-                                  <!-- Weekly hours card -->
-                                  <VBox prefHeight="398.0" prefWidth="669.0" spacing="12.0" style="-fx-background-color: white; -fx-background-radius: 12; -fx-border-radius: 12; -fx-border-color: #E6E6E6;">
-                                      <padding>
-                                          <Insets bottom="16" left="16" right="16" top="16" />
-                                      </padding>
-      
-                                      <HBox alignment="CENTER_LEFT" spacing="10.0">
-                                          <Region HBox.hgrow="ALWAYS" />
-                                      </HBox>
-                              <TabPane fx:id="tableTabs" prefHeight="367.0" prefWidth="581.0" tabClosingPolicy="UNAVAILABLE">
-                                <tabs>
-                                  <Tab fx:id="regualrTab" onSelectionChanged="#switchToRegular" text="Regular schedule">
-                                       <content>
-                  
-                                                  <TableView fx:id="weeklyHoursTable" editable="true" prefHeight="226.0" prefWidth="581.0">
-                                                      <columns>
-                                                          <TableColumn fx:id="dayCol" prefWidth="193.33332570393873" text="Day" />
-                                                          <TableColumn fx:id="openCol" prefWidth="196.66664123535156" text="Opening time" />
-                                                          <TableColumn fx:id="closeCol" prefWidth="170.0" text="Closing time" />
-                                                      </columns>
-                                                  </TableView>
-                                       </content>
-                                    </Tab>
-                                  <Tab fx:id="specialTab" onSelectionChanged="#switchToSpecial" text="Special dates">
-                                       <content>
-                                          <TableView fx:id="specialTable" prefHeight="200.0" prefWidth="200.0">
-                                            <columns>
-                                              <TableColumn fx:id="specialDateCol" prefWidth="190.66669972737623" text="Date" />
-                                              <TableColumn fx:id="SpecialOpeningCol" prefWidth="189.9999542236328" text="Opening time" />
-                                                <TableColumn fx:id="SpecialClosingCol" prefWidth="190.66677856445312" text="Closing time" />
-                                            </columns>
-                                          </TableView>
-                                       </content>
-                                    </Tab>
-                                </tabs>
-                              </TabPane>
-                                  </VBox>
-                           <VBox prefHeight="355.0" prefWidth="307.0" spacing="12.0" style="-fx-background-color: white; -fx-background-radius: 12; -fx-border-radius: 12; -fx-border-color: #E6E6E6;">
-                              <padding>
-                                 <Insets bottom="16" left="16" right="16" top="16" />
-                              </padding>
-                              <children>
-                                 <HBox alignment="CENTER_LEFT" spacing="10.0">
-                                    <children>
-                                       <Region HBox.hgrow="ALWAYS" />
-                                    </children>
-                                 </HBox>
-                                 <Label style="-fx-text-fill: #111;" text=" Edit usual schedule:">
-                                    <font>
-                                       <Font size="16" />
-                                    </font>
-                                 </Label>
-                                 <VBox prefHeight="169.0" prefWidth="219.0">
-                                    <children>
-                                       <Label text="Opening time:">
-                                          <padding>
-                                             <Insets right="20.0" />
-                                          </padding>
-                                       </Label>
-                                       <ComboBox fx:id="openCB" prefHeight="25.0" prefWidth="105.0">
-                                          <VBox.margin>
-                                             <Insets left="50.0" />
-                                          </VBox.margin>
-                                       </ComboBox>
-                                       <Label prefHeight="17.0" prefWidth="83.0" text="Closing time:" />
-                                       <ComboBox fx:id="closeCB" prefHeight="25.0" prefWidth="104.0">
-                                          <VBox.margin>
-                                             <Insets left="50.0" />
-                                          </VBox.margin>
-                                       </ComboBox>
-                                       <Button fx:id="saveBtn" mnemonicParsing="false" onAction="#save" text="Save">
-                                          <VBox.margin>
-                                             <Insets top="20.0" />
-                                          </VBox.margin>
-                                       </Button>
-                                    </children>
-                                 </VBox>
-                              </children>
-                              <HBox.margin>
-                                 <Insets bottom="50.0" left="50.0" top="50.0" />
-                              </HBox.margin>
-                           </VBox>
-                        </children>
-                     </HBox>
+                            
+                            <HBox spacing="20">
+                                <children>
+                                    <VBox spacing="12.0" styleClass="form-card" HBox.hgrow="ALWAYS">
+                                        <TabPane fx:id="tableTabs" tabClosingPolicy="UNAVAILABLE" VBox.vgrow="ALWAYS">
+                                            <tabs>
+                                                <Tab fx:id="regualrTab" onSelectionChanged="#switchToRegular" text="Regular Schedule">
+                                                    <content>
+                                                        <TableView fx:id="weeklyHoursTable" editable="true">
+                                                            <columns>
+                                                                <TableColumn fx:id="dayCol" text="Day" />
+                                                                <TableColumn fx:id="openCol" text="Opening Time" />
+                                                                <TableColumn fx:id="closeCol" text="Closing Time" />
+                                                            </columns>
+                                                            <columnResizePolicy>
+                                                                <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+                                                            </columnResizePolicy>
+                                                        </TableView>
+                                                    </content>
+                                                </Tab>
+                                                <Tab fx:id="specialTab" onSelectionChanged="#switchToSpecial" text="Special Dates">
+                                                    <content>
+                                                        <TableView fx:id="specialTable">
+                                                            <columns>
+                                                                <TableColumn fx:id="specialDateCol" text="Date" />
+                                                                <TableColumn fx:id="SpecialOpeningCol" text="Opening Time" />
+                                                                <TableColumn fx:id="SpecialClosingCol" text="Closing Time" />
+                                                            </columns>
+                                                            <columnResizePolicy>
+                                                                <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+                                                            </columnResizePolicy>
+                                                        </TableView>
+                                                    </content>
+                                                </Tab>
+                                            </tabs>
+                                        </TabPane>
+                                    </VBox>
 
-                            <!-- Exceptions card -->
-                            <VBox prefHeight="183.0" prefWidth="920.0" spacing="12.0" style="-fx-background-color: white; -fx-background-radius: 12; -fx-border-radius: 12; -fx-border-color: #E6E6E6;">
-                                <padding>
-                                    <Insets bottom="16" left="16" right="16" top="16" />
-                                </padding>
-                                 <Region />
+                                    <VBox prefWidth="300.0" spacing="15.0" styleClass="form-card">
+                                        <Label text="Edit Usual Schedule" />
+                                        
+                                        <VBox spacing="8">
+                                            <Label text="Opening Time:" />
+                                            <ComboBox fx:id="openCB" maxWidth="Infinity" />
+                                        </VBox>
+                                        
+                                        <VBox spacing="8">
+                                            <Label text="Closing Time:" />
+                                            <ComboBox fx:id="closeCB" maxWidth="Infinity" />
+                                        </VBox>
+                                        
+                                        <Region VBox.vgrow="ALWAYS" />
+                                        
+                                        <Button fx:id="saveBtn" maxWidth="Infinity" onAction="#save" styleClass="primary" text="Save Changes" />
+                                    </VBox>
+                                </children>
+                            </HBox>
 
-                                <HBox alignment="CENTER_LEFT" spacing="10.0">
-                                    <Label prefHeight="25.0" prefWidth="135.0" style="-fx-text-fill: #111;" text="Edit special dates:">
-                                        <font>
-                                            <Font size="16" />
-                                        </font>
-                                    </Label>
-                                </HBox>
+                            <VBox spacing="15.0" styleClass="form-card">
+                                <Label text="Add/Edit Special Date Exception" />
 
-                                <!-- Exception editor row -->
-                                <GridPane hgap="12.0" prefHeight="88.0" prefWidth="744.0" vgap="10.0">
+                                <GridPane hgap="15.0" vgap="10.0">
                                     <columnConstraints>
-                                        <ColumnConstraints minWidth="140.0" prefWidth="200.0" />
-                                        <ColumnConstraints minWidth="120.0" prefWidth="160.0" />
-                                        <ColumnConstraints minWidth="120.0" prefWidth="160.0" />
-                              <ColumnConstraints hgrow="ALWAYS" minWidth="10.0" prefWidth="100.0" />
+                                        <ColumnConstraints hgrow="SOMETIMES" minWidth="150.0" />
+                                        <ColumnConstraints hgrow="SOMETIMES" minWidth="150.0" />
+                                        <ColumnConstraints hgrow="SOMETIMES" minWidth="150.0" />
+                                        <ColumnConstraints hgrow="SOMETIMES" minWidth="100.0" />
                                         <ColumnConstraints hgrow="ALWAYS" />
                                     </columnConstraints>
                                     <rowConstraints>
-                                    <RowConstraints minHeight="36.0" />
-                                    <RowConstraints minHeight="36.0" />
+                                        <RowConstraints />
+                                        <RowConstraints />
                                     </rowConstraints>
-                                    <Label style="-fx-text-fill: #333;" text="Date:" GridPane.columnIndex="0" GridPane.rowIndex="0" />
-                                    <DatePicker fx:id="specialDate" GridPane.columnIndex="0" GridPane.rowIndex="1" />
+                                    
+                                    <Label text="Date:" GridPane.columnIndex="0" GridPane.rowIndex="0" />
+                                    <DatePicker fx:id="specialDate" maxWidth="Infinity" GridPane.columnIndex="0" GridPane.rowIndex="1" />
 
-                                    <Label style="-fx-text-fill: #333;" text="Opening time:" GridPane.columnIndex="1" GridPane.rowIndex="0" />
-                                    <ComboBox fx:id="specialOpenCB" prefHeight="25.0" prefWidth="124.0" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                                    <Label text="Opening Time:" GridPane.columnIndex="1" GridPane.rowIndex="0" />
+                                    <ComboBox fx:id="specialOpenCB" maxWidth="Infinity" GridPane.columnIndex="1" GridPane.rowIndex="1" />
 
-                                    <Label style="-fx-text-fill: #333;" text="Closing time:" GridPane.columnIndex="2" GridPane.rowIndex="0" />
-                                    <ComboBox fx:id="specialCloseCB" prefHeight="25.0" prefWidth="135.0" GridPane.columnIndex="2" GridPane.rowIndex="1" />
+                                    <Label text="Closing Time:" GridPane.columnIndex="2" GridPane.rowIndex="0" />
+                                    <ComboBox fx:id="specialCloseCB" maxWidth="Infinity" GridPane.columnIndex="2" GridPane.rowIndex="1" />
 
-                                    <HBox alignment="CENTER_RIGHT" prefHeight="36.0" prefWidth="305.0" spacing="10.0" GridPane.columnIndex="4" GridPane.rowIndex="1">
-                                        <Button fx:id="specialSaveBtn" defaultButton="true" mnemonicParsing="false" onAction="#specialSave" prefHeight="25.0" prefWidth="97.0" text="Save" />
-                              <Button fx:id="MenuBtn" mnemonicParsing="false" onAction="#menu" text="back to menu" />
-                                    </HBox>
-                           <CheckBox fx:id="closedChceckBox" mnemonicParsing="false" text="Closed" GridPane.columnIndex="3" GridPane.rowIndex="1" />
+                                    <CheckBox fx:id="closedChceckBox" styleClass="check-box" text="Closed" GridPane.columnIndex="3" GridPane.rowIndex="1" />
+
+                                    <Button fx:id="specialSaveBtn" onAction="#specialSave" prefHeight="39.0" prefWidth="142.0" styleClass="primary" text="Save Special" GridPane.columnIndex="4" GridPane.rowIndex="1" />
                                 </GridPane>
                             </VBox>
-
+                         <HBox alignment="CENTER_RIGHT" prefHeight="65.0" prefWidth="957.0" style="-fx-padding: 10 22 20 22;" VBox.vgrow="ALWAYS">
+                             <Button fx:id="MenuBtn" onAction="#menu" prefHeight="44.0" prefWidth="76.0" styleClass="back" text="Back" HBox.hgrow="ALWAYS" />
+                         </HBox>
                         </VBox>
                     </content>
                 </ScrollPane>

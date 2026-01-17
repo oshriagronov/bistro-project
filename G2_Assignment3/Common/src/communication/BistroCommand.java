@@ -1,5 +1,6 @@
 package communication;
 
+/** Enumerates the commands the client can send to the Bistro server. */
 public enum BistroCommand {
     SUBSCRIBER_LOGIN,
     EMPLOYEE_LOGIN,
@@ -39,7 +40,6 @@ public enum BistroCommand {
     LOAD_WEEKLY_SCHEDULE,
     UPDATE_REGULAR_SCHEDULE,
     UPDATE_SPECIAL_DAY,
-    GET_SUB,
     LOAD_SPECIAL_DATES, 
     SEARCH_SUB_BY_PHONE,
     SEARCH_SUB_BY_EMAIL, 
@@ -52,5 +52,7 @@ public enum BistroCommand {
     GET_SUBSCRIBER_ORDERS,
     RESET_WAITING_LIST,
     SEND_CODE_TO_WAITING_LIST,
-    GET_TODAYS_ORDERS 
+    GET_TODAYS_ORDERS,  
+    GET_ACTIVE_RESERVATION_BY_CODE, 
+    CANCEL_RESERVATION_BY_ID 
 }

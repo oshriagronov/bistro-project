@@ -32,7 +32,7 @@ public class Main extends Application {
 	 * * @param primaryStage The primary stage for this application, onto which 
 	 * the application scene can be set.
 	 */
-	public void start(@SuppressWarnings("exports") Stage primaryStage) {
+	public void start(Stage primaryStage) {
 	    List<String> args = getParameters().getRaw(); // get the arguments in form of list.
 	    String host;
 	    // if there no arguments provided to us for the ip of the server, then we use localhost.
@@ -55,8 +55,9 @@ public class Main extends Application {
 		// Initialize the client connection with host name and default port.
 		client = ClientController.getInstance(host, ClientController.DEFAULT_PORT);
 		// Set up the scene and display the stage
-		Scene s = new Scene(root);
+		Scene s = new Scene(root, 600, 500);
 		primaryStage.setScene(s);
+
 		primaryStage.setOnCloseRequest(event ->{
 			client.quit();
 			System.exit(0);
@@ -84,6 +85,7 @@ public class Main extends Application {
 	    Parent newRoot = FXMLLoader.load(Main.class.getResource(fxmlName));
 	    primaryStage.getScene().setRoot(newRoot);
 	}
+
 	public static void changeRoot(String fxmlName, int width, int height) throws IOException {
         Parent newRoot = FXMLLoader.load(Main.class.getResource(fxmlName));
         primaryStage.getScene().setRoot(newRoot);

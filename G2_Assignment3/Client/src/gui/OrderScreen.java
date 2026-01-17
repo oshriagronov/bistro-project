@@ -8,7 +8,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import communication.BistroCommand;
 import communication.BistroRequest;
 import communication.BistroResponse;
@@ -19,6 +18,7 @@ import communication.EventType;
 import communication.RequestFactory;
 import javafx.application.Platform;
 import javafx.concurrent.Task;
+import employee.employeeMenu;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
@@ -28,14 +28,13 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.DateCell;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.TextField;
-import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import logic.LoggedUser;
 import logic.Reservation;
 import logic.Status;
 import logic.Subscriber;
 import logic.UserType;
-import logic.Worker;
+import subscriber.SubscriberScreen;
 
 /**
  * Controller for the {@code Order.fxml} view.
@@ -405,7 +404,7 @@ public class OrderScreen {
 	 */
 	@FXML
 	public void clickOrder(ActionEvent event) {
-		// TODO need??
+		
 		LocalDateTime now = LocalDateTime.now();
 		LocalDateTime oneHourFromNow = LocalDateTime.now().plusHours(1);
 
@@ -480,15 +479,15 @@ public class OrderScreen {
 			phone += (String) phoneNumber.getText();
 			email = orderEmail.getText();
 			Subscriber foundSub = null;
-
-			if (phone.length() == 10) {
-				Main.client.accept(new BistroRequest(BistroCommand.SEARCH_SUB_BY_PHONE, phone));
+			
+			if (phone.length() ==  10) {
+				Main.client.accept(RequestFactory.getSubscriberByPhone(phone));
 				BistroResponse response = Main.client.getResponse();
 				if (response.getStatus() == BistroResponseStatus.SUCCESS) {
 					foundSub = (Subscriber) response.getData();
 				}
 			} else if (email != null && !email.isEmpty()) {
-				Main.client.accept(new BistroRequest(BistroCommand.SEARCH_SUB_BY_EMAIL, email));
+				Main.client.accept(RequestFactory.getSubscriberByEmail(email));
 				BistroResponse response = Main.client.getResponse();
 				if (response.getStatus() == BistroResponseStatus.SUCCESS) {
 					foundSub = (Subscriber) response.getData();
@@ -531,10 +530,11 @@ public class OrderScreen {
 				}
 				phone = fullPhone;
 			} else {
-				phone = ""; // או null אם ה-Reservation מאפשר
+				phone = ""; 
 			}
 
 		}
+
 
 		if (!valid) {
 			showAlert("Form error", errors.toString());
@@ -543,8 +543,7 @@ public class OrderScreen {
 
 		Reservation r = new Reservation(date, amount, subId, today, selected, phone, Status.CONFIRMED, email);
 
-		BistroRequest req = new BistroRequest(BistroCommand.ADD_RESERVATION, r);
-		Main.client.accept(req);
+		Main.client.accept(RequestFactory.addReservation(r));
 
 		BistroResponse response = Main.client.getResponse();
 		if (response != null && response.getStatus() == BistroResponseStatus.SUCCESS) {
@@ -713,27 +712,35 @@ public class OrderScreen {
 	    }
 	}
 
-	/**
-	 * Handles the "Back" button click event.
-	 * <p>
-	 * Navigates back to the main menu screen.
-	 * </p>
-	 *
-	 * @param event the action event triggered by clicking the back button
-	 */
+    /**
+     * Handles the action when the "Back to MainMenu" button is clicked.
+     * Navigates the application back to the main menu screen.
+     * @param event The ActionEvent triggered by the Back button.
+     */
 	@FXML
 	void back(ActionEvent event) {
 		try {
-			Main.changeRoot(MainMenuScreen.fxmlPath);
+			// Use the static method in Main to switch the scene root
+			Main.changeRoot(getBackFxmlPath());
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
+
+    private String getBackFxmlPath() {
+        UserType type = LoggedUser.getType();
+        if (type == UserType.SUBSCRIBER) {
+            return SubscriberScreen.fxmlPath;
+        }
+        else if (type == UserType.EMPLOYEE || type == UserType.MANAGER) {
+            return employeeMenu.fxmlPath;
+        }
+        return MainMenuScreen.fxmlPath;
+    }
 
 	public void onClose() {
 		EventBus.getInstance().unsubscribe(EventType.TABLE_CHANGED, tableListener);
 		EventBus.getInstance().unsubscribe(EventType.SCHEDULE_CHANGED, scheduleListener);
 
 	}
-
 }

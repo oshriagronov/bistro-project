@@ -2,9 +2,9 @@ package gui;
 
 import java.util.ArrayList;
 import communication.BistroCommand;
-import communication.BistroRequest;
 import communication.BistroResponse;
 import communication.BistroResponseStatus;
+import communication.RequestFactory;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
@@ -161,21 +161,6 @@ public class AcceptTableScreen {
         toggleNode(submitBTN, !forgotSelected);
         toggleNode(getConfirmationBtn, forgotSelected);
     }
-
-    /**
-     * Sends a request to the server and returns the response.
-     *
-     * @param command server command to execute
-     * @param data request payload
-     * @return response received from the server
-     */
-    private BistroResponse sendRequest(BistroCommand command, Object data) {
-        BistroRequest request = new BistroRequest(command, data);
-        Main.client.accept(request);
-        return Main.client.getResponse();
-    }
-
-
     /**
      * Handles toggling of the forgot confirmation checkbox.
      */
@@ -201,10 +186,8 @@ public class AcceptTableScreen {
             phone = phonePrefix + rest.trim();
         }
         confirmationCode.clear();
-        ArrayList<String> contactDetails = new ArrayList<>(2);
-        contactDetails.add(phone);
-        contactDetails.add(email);
-        BistroResponse response = sendRequest(BistroCommand.FORGOT_CONFIRMATION_CODE, contactDetails);
+        Main.client.accept(RequestFactory.restoreConfirmationCode(phone, email));
+        BistroResponse response = Main.client.getResponse();
         StringBuilder message = new StringBuilder();
         if (response != null && response.getStatus() == BistroResponseStatus.SUCCESS) {
             message.append("Sent the confirmation code to your email and phone.");
@@ -270,7 +253,8 @@ public class AcceptTableScreen {
             return;
         }
         subscriberConfirmationCodes.getItems().clear();
-        BistroResponse response = sendRequest(BistroCommand.GET_SUBSCRIBER_CONFIRMATION_CODES, LoggedUser.getId());
+        Main.client.accept(RequestFactory.withPayload(BistroCommand.GET_SUBSCRIBER_CONFIRMATION_CODES, LoggedUser.getId()));
+        BistroResponse response = Main.client.getResponse();
         if (response != null && response.getStatus() == BistroResponseStatus.SUCCESS && response.getData() instanceof ArrayList<?>) {
             ArrayList<String> codes = new ArrayList<>();
             for (Object obj : (ArrayList<?>) response.getData()) {
@@ -292,7 +276,8 @@ public class AcceptTableScreen {
      * @param code confirmation code to resolve into a table assignment
      */
     private void handleTableLookup(String code) {
-        BistroResponse response = sendRequest(BistroCommand.GET_TABLE_BY_CONFIRMATION_CODE, code);
+        Main.client.accept(RequestFactory.withPayload(BistroCommand.GET_TABLE_BY_CONFIRMATION_CODE, code));
+        BistroResponse response = Main.client.getResponse();
         if (response != null && response.getStatus() == BistroResponseStatus.SUCCESS) {
             Object data = response.getData();
             if (data != null) {
@@ -302,7 +287,7 @@ public class AcceptTableScreen {
                 return;
             }
         }
-        if (response != null && response.getStatus() == BistroResponseStatus.NO_AVAILABLE_TABLE) {
+        else if (response != null && response.getStatus() == BistroResponseStatus.NO_AVAILABLE_TABLE) {
             showAlert("Message", "There is no available table.");
         } else if (response != null && response.getStatus() == BistroResponseStatus.NOT_FOUND) {
             showAlert("Message", "Could not find a matching order.");
@@ -379,5 +364,4 @@ public class AcceptTableScreen {
         }
         return MainMenuScreen.fxmlPath;
     }
-
 }

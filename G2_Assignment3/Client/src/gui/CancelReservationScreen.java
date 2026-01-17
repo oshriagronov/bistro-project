@@ -3,9 +3,9 @@ package gui;
 import java.util.ResourceBundle;
 
 import communication.BistroCommand;
-import communication.BistroRequest;
 import communication.BistroResponse;
 import communication.BistroResponseStatus;
+import communication.RequestFactory;
 import communication.StatusUpdate;
 import employee.employeeMenu;
 import javafx.event.ActionEvent;
@@ -40,18 +40,8 @@ public class CancelReservationScreen {
     @FXML
     private Label messageLabel;
 
-    @FXML
-    private TextField phoneField;
-
-    @FXML
-    private TextField emailField;
-
-
-    @FXML
-    public void initialize(){
-        prePhone.getItems().clear();
-		prePhone.getItems().addAll("050", "052", "053", "054", "055", "058");
-    }
+ 
+  
 
     /**
      * Handles the Cancel Reservation button click.
@@ -60,14 +50,6 @@ public class CancelReservationScreen {
     @FXML
     private void cancelReservation(ActionEvent event) {
         String confirmationCode = ConfirmationCodeField.getText().trim();
-        String phone = (prePhone.getValue() + phoneField.getText()).trim();
-        String email = emailField.getText().trim();
-        
-        if (phone.isEmpty() && email.isEmpty()) {
-            messageLabel.setText("Please fill in phone or email and Confirmation code.");
-            messageLabel.setStyle("-fx-text-fill: red;");
-            return;
-        }
 
         if (confirmationCode.isEmpty()) {
             messageLabel.setText("Please enter Confirmation code.");
@@ -75,45 +57,53 @@ public class CancelReservationScreen {
             return;
         }
 
-        int orderNumber;
+        Object data = null;
         try {
-            orderNumber = Integer.parseInt(confirmationCode);
-        } catch (NumberFormatException e) {
-            messageLabel.setText("Confirmation code must be numeric.");
+            Main.client.accept(RequestFactory.getActiveReservationsByCode(confirmationCode));
+            BistroResponse response = Main.client.getResponse();
+            data = response.getData();
+            
+        } catch (Exception e) {
+            messageLabel.setText("Error retrieving order number.");
             messageLabel.setStyle("-fx-text-fill: red;");
             return;
         }
-        StatusUpdate update = buildCancelUpdate(orderNumber, phone, email);
-        Main.client.accept(new BistroRequest(BistroCommand.CANCEL_RESERVATION, update));
-        BistroResponse response = Main.client.getResponse();
-        handleCancelResponse(response);
-    }
 
-    private StatusUpdate buildCancelUpdate(int orderNumber, String phone, String email) {
-        if (!email.isEmpty()) {
-            return new StatusUpdate(orderNumber, email, Status.CANCELLED);
+        int orderNumber = -1;
+
+        // Safe conversion
+        if (data instanceof Integer) {
+            orderNumber = (Integer) data;
+        } else if (data instanceof String) {
+            try {
+                orderNumber = Integer.parseInt((String) data);
+            } catch (NumberFormatException e) {
+                messageLabel.setText("Invalid order number format.");
+                messageLabel.setStyle("-fx-text-fill: red;");
+                return;
+            }
+        } else {
+            messageLabel.setText("Unknown data type received from server.");
+            messageLabel.setStyle("-fx-text-fill: red;");
+            return;
         }
-        return new StatusUpdate(phone, orderNumber, Status.CANCELLED);
+
+        Main.client.accept(RequestFactory.cancelById(orderNumber));
+        handleCancelResponse(orderNumber); 
+        
     }
 
     /**
      * Handles the server response for the cancellation request.
      */
-    public void handleCancelResponse(BistroResponse response) {
+    public void handleCancelResponse(int orderNumber) {
         Alert alert = new Alert(AlertType.INFORMATION);
         alert.setTitle("Reservation Canceled");
-
-        if (response.getStatus() == BistroResponseStatus.SUCCESS) {
-            alert.setHeaderText("Cancellation Successful");
-            alert.setContentText("The reservation has been successfully canceled.");
-        } else {
-            int orderNumber = (int) response.getData();
-            alert.setHeaderText("Cancellation Successful");
-            alert.setContentText("Reservation #" + orderNumber + " has been canceled successfully.");
-        }
-
+        alert.setHeaderText("Cancellation Successful");
+        alert.setContentText("Reservation #" + orderNumber + " has been canceled successfully.");
         alert.showAndWait();
     }
+
         /**
      * Navigates the application back to the main menu screen.
      */

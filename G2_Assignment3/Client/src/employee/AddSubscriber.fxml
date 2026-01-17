@@ -14,61 +14,54 @@
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
 
-<BorderPane prefHeight="450.0" prefWidth="700.0" style="-fx-background-color: #f6f7fb;" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="employee.AddSubscriberScreen">
+<BorderPane prefHeight="450.0" prefWidth="700.0" stylesheets="@../../../Css/style.css" styleClass="root" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="employee.AddSubscriberScreen">
 
-    <!-- TOP: Header card -->
     <top>
         <VBox style="-fx-padding: 18;">
-            <VBox spacing="6" style="-fx-background-color: white;                          -fx-padding: 14;                          -fx-background-radius: 12;                          -fx-border-radius: 12;                          -fx-border-color: #e6e8f0;">
-                <Label style="-fx-font-size: 22px; -fx-font-weight: 800;" text="Add Subscriber" textFill="#3c07fd" />
-                <Label style="-fx-text-fill: #6a7286;" text="Fill in the details and click Create." />
+            <VBox spacing="6" styleClass="form-card">
+                <Label styleClass="title" text="Add Subscriber" />
+                <Label styleClass="subtitle" text="Fill in the details and click Create." />
             </VBox>
         </VBox>
     </top>
 
-    <!-- CENTER: Form card -->
     <center>
         <VBox spacing="12" style="-fx-padding: 0 18 18 18;">
 
-            <VBox spacing="12" style="-fx-background-color: white;                          -fx-padding: 16;                          -fx-background-radius: 12;                          -fx-border-radius: 12;                          -fx-border-color: #e6e8f0;">
+            <VBox spacing="12" styleClass="form-card">
 
-                <Label style="-fx-font-size: 14px;                               -fx-font-weight: 800;                               -fx-text-fill: #1f2a44;" text="Subscriber Details" />
+                <Label style="-fx-font-weight: bold;" text="Subscriber Details" />
 
                 <GridPane hgap="12" vgap="12">
                     <columnConstraints>
                         <ColumnConstraints minWidth="120.0" />
-                        <!-- SHORT FIELDS: no grow + fixed-ish width -->
                         <ColumnConstraints hgrow="NEVER" prefWidth="220.0" />
                     </columnConstraints>
 
-                    <!-- Names -->
-                    <Label style="-fx-text-fill: #5a6275;" text="First name:" GridPane.columnIndex="0" GridPane.rowIndex="0" />
-                    <TextField fx:id="firstNameTxt" prefHeight="32" prefWidth="200" GridPane.columnIndex="1" GridPane.rowIndex="0" />
+                    <Label text="First name:" GridPane.columnIndex="0" GridPane.rowIndex="0" />
+                    <TextField fx:id="firstNameTxt" GridPane.columnIndex="1" GridPane.rowIndex="0" />
 
-                    <Label style="-fx-text-fill: #5a6275;" text="Last name:" GridPane.columnIndex="0" GridPane.rowIndex="1" />
-                    <TextField fx:id="lastNameTxt" prefHeight="32" prefWidth="200" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                    <Label text="Last name:" GridPane.columnIndex="0" GridPane.rowIndex="1" />
+                    <TextField fx:id="lastNameTxt" GridPane.columnIndex="1" GridPane.rowIndex="1" />
 
                     <Separator GridPane.columnIndex="0" GridPane.columnSpan="2" GridPane.rowIndex="2" />
 
-                    <!-- Credentials -->
-                    <Label style="-fx-text-fill: #5a6275;" text="Username:" GridPane.columnIndex="0" GridPane.rowIndex="3" />
-                    <TextField fx:id="usernameTxt" prefHeight="32" prefWidth="200" GridPane.columnIndex="1" GridPane.rowIndex="3" />
+                    <Label text="Username:" GridPane.columnIndex="0" GridPane.rowIndex="3" />
+                    <TextField fx:id="usernameTxt" GridPane.columnIndex="1" GridPane.rowIndex="3" />
 
-                    <Label style="-fx-text-fill: #5a6275;" text="Password:" GridPane.columnIndex="0" GridPane.rowIndex="4" />
-                    <PasswordField fx:id="passwordTxt" prefHeight="32" prefWidth="200" GridPane.columnIndex="1" GridPane.rowIndex="4" />
+                    <Label text="Password:" GridPane.columnIndex="0" GridPane.rowIndex="4" />
+                    <PasswordField fx:id="passwordTxt" GridPane.columnIndex="1" GridPane.rowIndex="4" />
 
                     <Separator GridPane.columnIndex="0" GridPane.columnSpan="2" GridPane.rowIndex="5" />
 
-                    <!-- Phone -->
-                    <Label style="-fx-text-fill: #5a6275;" text="Phone:" GridPane.columnIndex="0" GridPane.rowIndex="6" />
+                    <Label text="Phone:" GridPane.columnIndex="0" GridPane.rowIndex="6" />
                     <HBox spacing="10" GridPane.columnIndex="1" GridPane.rowIndex="6">
-                        <ComboBox fx:id="PhoneStartCombo" prefHeight="32" prefWidth="70" />
-                        <TextField fx:id="phoneTxt" prefHeight="32" prefWidth="120" />
+                        <ComboBox fx:id="PhoneStartCombo" />
+                        <TextField fx:id="phoneTxt" />
                     </HBox>
 
-                    <!-- Email -->
-                    <Label style="-fx-text-fill: #5a6275;" text="Email:" GridPane.columnIndex="0" GridPane.rowIndex="7" />
-                    <TextField fx:id="emailTxt" prefHeight="32" prefWidth="200" promptText="name@example.com" GridPane.columnIndex="1" GridPane.rowIndex="7" />
+                    <Label text="Email:" GridPane.columnIndex="0" GridPane.rowIndex="7" />
+                    <TextField fx:id="emailTxt" promptText="name@example.com" GridPane.columnIndex="1" GridPane.rowIndex="7" />
 
                     <rowConstraints>
                         <RowConstraints />
@@ -83,15 +76,14 @@
                 </GridPane>
             </VBox>
 
-            <!-- Buttons row -->
             <HBox spacing="10" style="-fx-padding: 4 2 0 2;">
-                <Button fx:id="createBtn" defaultButton="true" onAction="#create" prefHeight="34" style="-fx-background-color: #2f5bea;                                -fx-text-fill: white;                                -fx-font-weight: 700;                                -fx-background-radius: 8;                                -fx-padding: 6 14;" text="Create Subscriber" />
+                <Button fx:id="createBtn" defaultButton="true" onAction="#create" styleClass="primary" text="Create Subscriber" />
 
-                <Button fx:id="clearBtn" onAction="#clear" prefHeight="34" style="-fx-background-color: #eef1f7;                                -fx-text-fill: #1f2a44;                                -fx-font-weight: 700;                                -fx-background-radius: 8;                                -fx-padding: 6 14;" text="Clear" />
+                <Button fx:id="clearBtn" onAction="#clear" styleClass="primary" text="Clear" />
 
                 <Region HBox.hgrow="ALWAYS" />
 
-                <Button fx:id="MenuBtn" onAction="#backToMenu" prefHeight="34" style="-fx-background-color: #eef1f7;                                -fx-text-fill: #1f2a44;                                -fx-font-weight: 700;                                -fx-background-radius: 8;                                -fx-padding: 6 14;" text="Back to menu" />
+                <Button fx:id="MenuBtn" onAction="#backToMenu" styleClass="back" text="Back to menu" />
             </HBox>
 
         </VBox>

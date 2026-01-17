@@ -2,12 +2,17 @@ package communication;
 
 import java.io.Serializable;
 
+/** Simple event envelope sent from the server to notify clients. */
 public class ServerEvent implements Serializable {
+
+	/** Serialization version identifier. */
+
 	private static final long serialVersionUID = 1L;
 
 	private final EventType type;
 	private final Object data; // payload (למשל LocalDate)
 
+	/** @param type event type being broadcast */
 	public ServerEvent(EventType type) {
 		this(type, null);
 	}
@@ -17,6 +22,7 @@ public class ServerEvent implements Serializable {
 		this.data = data;
 	}
 
+	/** @return the event type */
 	public EventType getType() {
 		return type;
 	}
@@ -24,4 +30,5 @@ public class ServerEvent implements Serializable {
 	public Object getData() {
 		return data;
 	}
+
 }
