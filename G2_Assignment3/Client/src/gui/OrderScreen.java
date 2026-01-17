@@ -11,6 +11,7 @@ import communication.BistroCommand;
 import communication.BistroRequest;
 import communication.BistroResponse;
 import communication.BistroResponseStatus;
+import communication.RequestFactory;
 import employee.employeeMenu;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -404,13 +405,13 @@ public class OrderScreen {
 			Subscriber foundSub = null;
 			
 			if (phone.length() ==  10) {
-				Main.client.accept(new BistroRequest(BistroCommand.SEARCH_SUB_BY_PHONE, phone));
+				Main.client.accept(RequestFactory.getSubscriberByPhone(phone));
 				BistroResponse response = Main.client.getResponse();
 				if (response.getStatus() == BistroResponseStatus.SUCCESS) {
 					foundSub = (Subscriber) response.getData();
 				}
 			} else if (email != null && !email.isEmpty()) {
-				Main.client.accept(new BistroRequest(BistroCommand.SEARCH_SUB_BY_EMAIL, email));
+				Main.client.accept(RequestFactory.getSubscriberByEmail(email));
 				BistroResponse response = Main.client.getResponse();
 				if (response.getStatus() == BistroResponseStatus.SUCCESS) {
 					foundSub = (Subscriber) response.getData();
@@ -454,11 +455,9 @@ public class OrderScreen {
 
 		}
 		
-		Reservation r = new Reservation(date, amount,subId , today, selected, phone, Status.CONFIRMED,
-				email);
+		Reservation r = new Reservation(date, amount,subId , today, selected, phone, Status.CONFIRMED, email);
 
-		BistroRequest req = new BistroRequest(BistroCommand.ADD_RESERVATION, r);
-		Main.client.accept(req);
+		Main.client.accept(RequestFactory.addReservation(r));
 
 		BistroResponse response = Main.client.getResponse();
 		if (response != null && response.getStatus() == BistroResponseStatus.SUCCESS) {

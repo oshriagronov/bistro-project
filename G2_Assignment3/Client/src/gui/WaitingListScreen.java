@@ -137,7 +137,7 @@ public class WaitingListScreen {
 			phoneNumber = sub.getPhone();
 			
 			Reservation r = new Reservation(today, num_of_diners, sub.getSubscriberId(), today, now, sub.getPhone(), Status.PENDING, sub.getEmail()) ;
-			Main.client.accept( RequestFactory.addReservation(r));//add
+			Main.client.accept(RequestFactory.addReservation(r));//add
 			response = Main.client.getResponse();
 		}
 		

@@ -302,6 +302,22 @@ public final class RequestFactory {
 	public static BistroRequest getUpdateSubscriberInfo(Subscriber subscriber){
 		return withPayload(BistroCommand.UPDATE_SUBSCRIBER_INFO, subscriber);
 	}
+
+	public static BistroRequest getSubscriberByPhone(String phone){
+		if (phone == null || phone.isBlank()) {
+			throw new IllegalArgumentException("Phone is required");
+		}
+		return withPayload(BistroCommand.SEARCH_SUB_BY_PHONE, phone);
+	}
+
+	public static BistroRequest getSubscriberByEmail(String email){
+		if (email == null || email.isBlank()) {
+			throw new IllegalArgumentException("Email is required");
+		}
+		return withPayload(BistroCommand.SEARCH_SUB_BY_EMAIL, email);
+	}
+
+	
 	// -------------------------------------------------------------------------
 	// Accept table
 	// -------------------------------------------------------------------------
