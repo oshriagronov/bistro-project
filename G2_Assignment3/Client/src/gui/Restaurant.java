@@ -14,17 +14,15 @@ import logic.Table;
 /**
  * Utility class that provides restaurant-related data and calculations used by
  * the GUI.
- * <p>
- * Responsibilities:
- * <ul>
- * <li>Fetch opening/closing hours for a given date</li>
- * <li>Fetch existing reservations in a 4-hour range for each timeslot</li>
- * <li>Load and cache table sizes from the server</li>
- * <li>Build a mapping from timeslots to the sorted list of diner group
- * sizes</li>
- * </ul>
  *
- * <p>
+ * Responsibilities:
+ * Fetch opening/closing hours for a given date
+ * Fetch existing reservations in a 4-hour range for each timeslot
+ * Load and cache table sizes from the server
+ * Build a mapping from timeslots to the sorted list of diner group
+ * sizes
+ *
+ *
  * Note: This class performs synchronous server calls through
  * {@code Main.client}.
  */
@@ -40,13 +38,13 @@ public class Restaurant {
 
 	/**
 	 * Builds a time-to-diners mapping for the given date.
-	 * <p>
+	 *
 	 * For each valid start time (in 30-minute increments) between opening time and
 	 * the last possible start time (closing minus 2 hours), the method queries the
 	 * server for existing reservations in the next 4-hour range and stores the
 	 * resulting diner group sizes sorted in ascending order.
 	 *
-	 * <p>
+	 *
 	 * The returned map is a {@link TreeMap} to keep timeslots ordered
 	 * chronologically.
 	 *
@@ -93,17 +91,18 @@ public class Restaurant {
 	/**
 	 * Determines whether the restaurant can accommodate the given diner groups in a
 	 * single time slot using the currently loaded {@link #tablesSizes}.
-	 * <p>
+	 * single time slot using the provided table sizes.
+	 *
 	 * The algorithm assumes:
-	 * </p>
-	 * <ul>
-	 * <li>{@link #tablesSizes} is sorted in ascending order.</li>
-	 * <li>Each diner group requires one table with capacity
-	 * {@code >= group size}.</li>
-	 * <li>Tables are used at most once per time slot.</li>
-	 * </ul>
+	 *
+	 * {@link #tablesSizes} is sorted in ascending order.
+	 * {@code tablesSizes} is sorted in ascending order.
+	 * Each diner group requires one table with capacity
+	 * {@code >= group size}.
+	 * Tables are used at most once per time slot.
 	 *
 	 * @param diners a sorted list of diner group sizes occupying that time slot
+	 * @param tablesSizes a sorted list of available table capacities
 	 * @return {@code true} if all groups can be seated; otherwise {@code false}
 	 */
 	public static boolean isAvailable(List<Integer> diners, List<Integer> tablesSizes) {
@@ -136,7 +135,7 @@ public class Restaurant {
 	/**
 	 * Loads the restaurant tables from the server and refreshes the cached list of
 	 * table sizes.
-	 * <p>
+	 *
 	 * The resulting sizes list is sorted in ascending order.
 	 */
 	private static void loadTables() {
@@ -162,7 +161,7 @@ public class Restaurant {
 
 	/**
 	 * Returns a copy of the cached table sizes list.
-	 * <p>
+	 *
 	 * If the cache is empty, it is loaded from the server first.
 	 *
 	 * @return a new list containing all cached table sizes in ascending order

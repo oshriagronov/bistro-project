@@ -9,7 +9,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import communication.BistroCommand;
-import communication.BistroRequest;
 import communication.BistroResponse;
 import communication.BistroResponseStatus;
 import communication.EventBus;
@@ -38,35 +37,26 @@ import subscriber.SubscriberScreen;
 
 /**
  * Controller for the {@code Order.fxml} view.
- * <p>
+ *
  * This screen allows placing a new reservation by selecting a date, a time
  * slot, and the number of diners. It supports different flows depending on the
  * logged-in user type:
- * </p>
- * <ul>
- * <li><b>Guest</b>: must enter email and phone number.</li>
- * <li><b>Subscriber</b>: details are fetched from the server and the contact
- * fields are auto-filled.</li>
- * <li><b>Employee/Manager</b>: can place reservations with worker controls
- * enabled (while guest fields may remain visible per UI design).</li>
- * </ul>
+ * - Guest: must enter email and phone number.
+ * - Subscriber: details are fetched from the server and the contact fields are
+ *   auto-filled.
+ * - Employee/Manager: can place reservations with worker controls enabled
+ *   (while guest fields may remain visible per UI design).
  *
- * <p>
  * Availability is calculated per 30-minute time slot by:
- * </p>
- * <ol>
- * <li>Fetching opening/closing hours for the chosen date.</li>
- * <li>Fetching existing reservations per slot (through
- * {@link Restaurant#buildDinersByTime(LocalDate)}).</li>
- * <li>Checking if the current tables configuration can accommodate the chosen
- * group size.</li>
- * </ol>
+ * 1) Fetching opening/closing hours for the chosen date.
+ * 2) Fetching existing reservations per slot (through
+ *    {@link Restaurant#buildDinersByTime(LocalDate)}).
+ * 3) Checking if the current tables configuration can accommodate the chosen
+ *    group size.
  *
- * <p>
  * The DatePicker disables dates that are out of range (today..today+1 month)
  * and dates where the restaurant is closed. Closed-day checks are cached for
  * performance.
- * </p>
  */
 public class OrderScreen {
 
@@ -141,23 +131,17 @@ public class OrderScreen {
 
 	/**
 	 * Initializes the Order screen.
-	 * <p>
+	 *
 	 * Called automatically after the FXML is loaded. This method:
-	 * </p>
-	 * <ul>
-	 * <li>Configures the view according to the logged-in user type.</li>
-	 * <li>Sets a DatePicker cell factory that disables:
-	 * <ul>
-	 * <li>Past dates</li>
-	 * <li>Dates more than one month ahead</li>
-	 * <li>Dates where the restaurant is closed</li>
-	 * </ul>
-	 * </li>
-	 * <li>Initializes ComboBoxes (diners amount, phone prefix) and default
-	 * selections.</li>
-	 * <li>Updates available time slots whenever the date changes.</li>
-	 * <li>Selects the first open day and first available time slot by default.</li>
-	 * </ul>
+	 * - Configures the view according to the logged-in user type.
+	 * - Sets a DatePicker cell factory that disables:
+	 *   - Past dates.
+	 *   - Dates more than one month ahead.
+	 *   - Dates where the restaurant is closed.
+	 * - Initializes ComboBoxes (diners amount, phone prefix) and default
+	 *   selections.
+	 * - Updates available time slots whenever the date changes.
+	 * - Selects the first open day and first available time slot by default.
 	 */
 	@FXML
 	public void initialize() {
@@ -277,9 +261,11 @@ public class OrderScreen {
 		dinersAmmount.getSelectionModel().selectFirst();
 		loadInitialDataInBackground();
 	}
-	
-	
 
+	/**
+	 * Loads the first available date and its reservations in the background to
+	 * keep the UI responsive.
+	 */
 	private void loadInitialDataInBackground() {
 		Task<Void> task = new Task<>() {
 			@Override
@@ -350,9 +336,8 @@ public class OrderScreen {
 
 	/**
 	 * Handles the subscriber CheckBox click event.
-	 * <p>
+	 *
 	 * If selected, shows the subscriber-id input field; otherwise hides it.
-	 * </p>
 	 *
 	 * @param e the action event triggered by clicking the checkbox
 	 */
@@ -376,29 +361,21 @@ public class OrderScreen {
 
 	/**
 	 * Handles the "Order" button click event.
-	 * <p>
-	 * Validates inputs:
-	 * </p>
-	 * <ul>
-	 * <li>Date is selected</li>
-	 * <li>Diners amount is selected</li>
-	 * <li>Subscriber ID is numeric (if checkbox is selected)</li>
-	 * <li>Email is valid (for non-subscribers)</li>
-	 * <li>Phone is a valid 10-digit number (for non-subscribers)</li>
-	 * <li>Time slot is selected</li>
-	 * <li>Selected time slot has enough availability based on current table
-	 * sizes</li>
-	 * </ul>
 	 *
-	 * <p>
+	 * Validates inputs:
+	 * - Date is selected.
+	 * - Diners amount is selected.
+	 * - Subscriber ID is numeric (if checkbox is selected).
+	 * - Email is valid (for non-subscribers).
+	 * - Phone is a valid 10-digit number (for non-subscribers).
+	 * - Time slot is selected.
+	 * - Selected time slot has enough availability based on current table sizes.
+	 *
 	 * If the selected slot is not available, the method attempts to suggest the
 	 * nearest adjacent slots (+30/-30 minutes) when they are valid candidates.
-	 * </p>
 	 *
-	 * <p>
 	 * On success, creates a {@link Reservation} and sends it to the server using
 	 * {@link BistroCommand#ADD_RESERVATION}.
-	 * </p>
 	 *
 	 * @param event the action event triggered by clicking the order button
 	 */
@@ -557,6 +534,11 @@ public class OrderScreen {
 		}
 	}
 
+	/**
+	 * Populates available time slots for the selected date and diner count.
+	 *
+	 * @param date the date currently selected in the UI
+	 */
 	private void populateAvailableTimesForCurrentAmount(LocalDate date) {
 		orderHours.getItems().clear();
 		if (dinersByTime == null || tablesSizes == null)
@@ -583,6 +565,11 @@ public class OrderScreen {
 		}
 	}
 
+	/**
+	 * Updates the UI state when no time slots are available for a given date.
+	 *
+	 * @param date the date currently selected in the UI
+	 */
 	private void handleNoTimesUI(LocalDate date) {
 	    boolean hasTimes = orderHours != null && !orderHours.getItems().isEmpty();
 
@@ -604,19 +591,14 @@ public class OrderScreen {
 
 	/**
 	 * Checks whether the restaurant is closed on the given date.
-	 * <p>
-	 * Results are cached in {@link #closedCache} because DatePicker cell rendering
-	 * may call this method many times for the same month.
-	 * </p>
 	 *
-	 * <p>
+	 * Results are cached in {@link #closedCache} because DatePicker cell
+	 * rendering may call this method many times for the same month.
+	 *
 	 * A day is considered closed when:
-	 * </p>
-	 * <ul>
-	 * <li>Opening hours could not be fetched (null or invalid response), or</li>
-	 * <li>Either opening or closing time is {@code null}, or</li>
-	 * <li>Opening time equals closing time (meaning "no working hours").</li>
-	 * </ul>
+	 * - Opening hours could not be fetched (null or invalid response), or
+	 * - Either opening or closing time is {@code null}, or
+	 * - Opening time equals closing time (meaning "no working hours").
 	 *
 	 * @param date the date to check
 	 * @return {@code true} if the restaurant is closed; otherwise {@code false}
@@ -640,6 +622,11 @@ public class OrderScreen {
 		return closed;
 	}
 
+	/**
+	 * Refreshes availability when the schedule or tables configuration changes.
+	 *
+	 * @param payload event payload from the {@link EventBus}
+	 */
 	private void updateAvailableTime(Object payload) {
 		LocalDate selected = orderDate.getValue();
 		if (selected == null)
@@ -685,10 +672,23 @@ public class OrderScreen {
 		});
 	}
 
+	/**
+	 * Converts a {@link LocalTime} to minutes since midnight.
+	 *
+	 * @param t time to convert
+	 * @return minutes since midnight
+	 */
 	private static int toMinutes(LocalTime t) {
 	    return t.getHour() * 60 + t.getMinute();
 	}
 
+	/**
+	 * Applies a successful reservation locally to keep the availability map
+	 * consistent until a full refresh is fetched.
+	 *
+	 * @param selected the selected reservation start time
+	 * @param amount   number of diners in the reservation
+	 */
 	private void applyLocalReservationToMap(LocalTime selected, int amount) {
 	    if (dinersByTime == null) return;
 
@@ -714,8 +714,10 @@ public class OrderScreen {
 
     /**
      * Handles the action when the "Back to MainMenu" button is clicked.
+     *
      * Navigates the application back to the main menu screen.
-     * @param event The ActionEvent triggered by the Back button.
+     *
+     * @param event the action event triggered by the Back button
      */
 	@FXML
 	void back(ActionEvent event) {
@@ -727,6 +729,11 @@ public class OrderScreen {
 		}
 	}
 
+    /**
+     * Determines the correct destination screen based on the current user type.
+     *
+     * @return FXML path to navigate back to
+     */
     private String getBackFxmlPath() {
         UserType type = LoggedUser.getType();
         if (type == UserType.SUBSCRIBER) {
@@ -738,6 +745,9 @@ public class OrderScreen {
         return MainMenuScreen.fxmlPath;
     }
 
+	/**
+	 * Unsubscribes from event listeners when the screen is closed.
+	 */
 	public void onClose() {
 		EventBus.getInstance().unsubscribe(EventType.TABLE_CHANGED, tableListener);
 		EventBus.getInstance().unsubscribe(EventType.SCHEDULE_CHANGED, scheduleListener);

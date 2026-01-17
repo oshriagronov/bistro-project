@@ -10,8 +10,19 @@ import com.google.zxing.qrcode.QRCodeWriter;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.image.Image;
 
+/**
+ * Utility class for generating QR codes using the ZXing library.
+ */
 public class BarcodeUtil {
 
+    /**
+     * Generates a QR code image from the specified text.
+     *
+     * @param text the content to encode in the QR code
+     * @param size the width and height of the generated image in pixels
+     * @return a JavaFX {@link Image} containing the QR code
+     * @throws RuntimeException if the QR code generation fails
+     */
     public static Image createQr(String text, int size) {
         try {
             QRCodeWriter writer = new QRCodeWriter();
