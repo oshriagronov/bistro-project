@@ -21,7 +21,7 @@
          </padding>
          <children>
             
-            <HBox fx:id="subscriberConfirmationBox" alignment="CENTER_LEFT" managed="false" prefHeight="28.0" spacing="10.0" visible="false">
+            <HBox fx:id="subscriberConfirmationBox" alignment="CENTER_LEFT" prefHeight="28.0" spacing="10.0">
                <children>
                   <Text strokeType="OUTSIDE" strokeWidth="0.0" text="Confirmation code:" wrappingWidth="130.0" />
                   <ComboBox fx:id="subscriberConfirmationCodes" maxWidth="Infinity" HBox.hgrow="ALWAYS" />

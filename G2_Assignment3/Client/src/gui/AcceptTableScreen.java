@@ -302,7 +302,7 @@ public class AcceptTableScreen {
                 return;
             }
         }
-        if (response != null && response.getStatus() == BistroResponseStatus.NO_AVAILABLE_TABLE) {
+        else if (response != null && response.getStatus() == BistroResponseStatus.NO_AVAILABLE_TABLE) {
             showAlert("Message", "There is no available table.");
         } else if (response != null && response.getStatus() == BistroResponseStatus.NOT_FOUND) {
             showAlert("Message", "Could not find a matching order.");
@@ -379,5 +379,4 @@ public class AcceptTableScreen {
         }
         return MainMenuScreen.fxmlPath;
     }
-
 }

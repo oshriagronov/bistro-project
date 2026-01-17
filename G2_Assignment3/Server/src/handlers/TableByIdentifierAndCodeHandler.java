@@ -1,7 +1,6 @@
 package handlers;
 
 import java.util.ArrayList;
-
 import communication.BistroRequest;
 import communication.BistroResponse;
 import communication.BistroResponseStatus;
@@ -59,10 +58,8 @@ public class TableByIdentifierAndCodeHandler implements RequestHandler {
 		if (tableNum <= 0) {
 			return new BistroResponse(BistroResponseStatus.NO_AVAILABLE_TABLE, null);
 		}
-
 		db.updateTableResId(tableNum, res.getOrderNumber());
 		db.updateReservationTimesAfterAcceptation(res.getOrderNumber());
-
 		return new BistroResponse(BistroResponseStatus.SUCCESS, tableNum);
 	}
 }

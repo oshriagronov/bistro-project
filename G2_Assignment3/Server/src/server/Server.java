@@ -34,6 +34,7 @@ import handlers.GetSubscriberHistoryHandler;
 import handlers.GetSubscriberOrdersHandler;
 import handlers.GetSubscribersConfirmationCodesHandler;
 import handlers.GetSubscribersOrdersCountsHandler;
+import handlers.GetTableByConfirmationCodeHnadler;
 import handlers.GetTablesHandler;
 import handlers.GetTimingsHandler;
 import handlers.GetWaitingListHandler;
@@ -110,6 +111,7 @@ public class Server extends AbstractServer {
 		handlers.put(BistroCommand.DELETE_TABLE, new DeleteTableHandler());
 		handlers.put(BistroCommand.CHANGE_TABLE_SIZE, new ChangeTableSizeHandler());
 		handlers.put(BistroCommand.LOAD_DINERS, new LoadDinersHandler());
+		handlers.put(BistroCommand.GET_TABLE_BY_CONFIRMATION_CODE, new GetTableByConfirmationCodeHnadler());
 
 		// Schedule
 		handlers.put(BistroCommand.LOAD_WEEKLY_SCHEDULE, new LoadWeeklyScheduleHandler());
@@ -279,13 +281,13 @@ public class Server extends AbstractServer {
 				sb.append("Reservation Id: " + reservation.get(0) + "\nwith confirmation code: " + reservation.get(4)
 				+ "\nat " + reservation.get(3));
 				db.setRemindedFieldToTrue(Integer.valueOf(reservation.get(0)));
-				sendReminder(phone, email, sb.toString());
+				sendNotification(phone, email, sb.toString());
 			}
 			if(reservationsToSendPaymentReminder.size() == db.setReservationsAsReminded(reservationsToSendPaymentReminder)){
-				log("[SYSTEM] All reservation that got reminders marked as REMINDED.");
+				log("[All reservation that got reminders marked as REMINDED.");
 			}
 			else{
-				log("[SYSTEM] There was some problem with mark reservations as reminded.");
+				log("There was some problem with mark reservations as reminded.");
 			}
 		}
 		// ** send the bill to the customer of the reservation that past the endtime and clear the tables
@@ -296,16 +298,16 @@ public class Server extends AbstractServer {
 				String email = reservation.get(2);
 				sb.append("Sent receipt for your reservation.\n");
 				sb.append("Reservation Id: " + reservation.get(0));
-				sendReminder(phone, email, sb.toString());
+				sendNotification(phone, email, sb.toString());
 			}
 			if(reservationsToSendPaymentReminder.size() == db.setReservationAfterEndTimeAsCompleted(reservationsToSendPaymentReminder)){
-				log("[SYSTEM] All reservation that exceed the finish time are got the bill and cleared the tables.");
+				log("All reservation that exceed the finish time are got the bill and cleared the tables.");
 			}
 			else{
-				log("[SYSTEM] There was some problem with clearing the tables or set reservations as completed.");
+				log("There was some problem with clearing the tables or set reservations as completed.");
 			}
 		}
-
+		// ** send the a message telling the customer that the reservation is canceled because it is past 15min late.
 		if (reservationsToCancel != null) {
 			for (List<String> reservation : reservationsToCancel){
 				StringBuilder sb = new StringBuilder();
@@ -313,39 +315,27 @@ public class Server extends AbstractServer {
 				String email = reservation.get(2);
 				sb.append("Customer is 15 minutes late, reservation is canceled.\n");
 				sb.append("Reservation Id: " + reservation.get(0));
-				sendReminder(phone, email, sb.toString());
+				sendNotification(phone, email, sb.toString());
 			}
 			if(reservationsToCancel.size() == db.setReservationToCancelIfCustomerLate(reservationsToCancel)){
-				log("[SYSTEM] All the reservations that customer is late are canceled.");
+				log("All the reservations that customer is late are canceled.");
 			}
 			else{
-				log("[SYSTEM] There was some problem with clearing the tables or set reservations as cancel.");
+				log("There was some problem with clearing the tables or set reservations as cancel.");
 			}
 		}
 	}
 
-	/**
-	 * Returns whether the given value contains non-blank text that is not "null".
-	 *
-	 * @param value candidate string to check
-	 * @return true when value is non-null, trimmed non-empty, and not "null"
-	 */
-	private static boolean hasText(String value) {
-		if (value == null)
-			return false;
-		String trimmed = value.trim();
-		return !trimmed.isEmpty() && !"null".equalsIgnoreCase(trimmed);
-	}
-
+	
 	/**
 	 * Sends the reminder message via SMS when a phone number is available;
 	 * otherwise falls back to email if present, or logs a skip.
-	 *
-	 * @param phone   phone number to send to (may be blank)
-	 * @param email   email to send to if phone is missing
-	 * @param message reminder text to send
-	 */
-	private void sendReminder(String phone, String email, String message) {
+	*
+	* @param phone   phone number to send to (may be blank)
+	* @param email   email to send to if phone is missing
+	* @param message reminder text to send
+	*/
+	public void sendNotification(String phone, String email, String message) {
 		NotificationService service = NotificationService.getInstance();
 		boolean sent = false;
 		if (hasText(phone)) {
@@ -360,5 +350,17 @@ public class Server extends AbstractServer {
 			log("Skipping notification: missing phone and email.");
 		}
 	}
-
+	
+	/**
+	 * Returns whether the given value contains non-blank text that is not "null".
+	 *
+	 * @param value candidate string to check
+	 * @return true when value is non-null, trimmed non-empty, and not "null"
+	 */
+	private static boolean hasText(String value) {
+		if (value == null)
+			return false;
+		String trimmed = value.trim();
+		return !trimmed.isEmpty() && !"null".equalsIgnoreCase(trimmed);
+	}
 }

@@ -33,7 +33,7 @@ CREATE TABLE `reservations` (
   `start_time` time NOT NULL,
   `finish_time` time NOT NULL,
   `order_date` date NOT NULL,
-  `order_status` enum('PENDING', 'CONFIRMED','CANCELLED','COMPLETED', 'ACCEPTED') DEFAULT NULL,
+  `order_status` enum('PENDING', 'CONFIRMED','CANCELLED','COMPLETED', 'ACCEPTED', 'LATE_CANCEL') DEFAULT NULL,
   `reminded` boolean NOT NULL DEFAULT false,
   `num_diners` int NOT NULL,
   `date_of_placing_order` date NOT NULL,

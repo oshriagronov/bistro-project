@@ -8,7 +8,6 @@ import communication.BistroResponseStatus;
 import db.ConnectionToDB;
 import ocsf.server.ConnectionToClient;
 import server.Server;
-import service.NotificationService;
 
 public class SendCodeToWaitingListCustomerHandler implements RequestHandler {
 
@@ -43,17 +42,9 @@ public class SendCodeToWaitingListCustomerHandler implements RequestHandler {
                 confirmation_code = ((String) params.get(2)).trim();
             }
 		}
-
 		if (hasText(phone) || hasText(email)) {
-			
 		    String message = "Your confirmation code is: " + confirmation_code;
-			NotificationService service = NotificationService.getInstance();
-			if (hasText(phone)) {
-				service.sendSmsMessage(phone, message);
-			}
-			if (hasText(email)) {
-				service.sendEmailMessage(email, message);
-			}
+			server.sendNotification(phone, email, message);
 			response = new BistroResponse(BistroResponseStatus.SUCCESS, null);
 		} else {
 			response = new BistroResponse(BistroResponseStatus.FAILURE, null);

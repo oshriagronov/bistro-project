@@ -5,21 +5,19 @@ import java.io.Serializable;
 /**
  * Represents a single row of current diner information displayed in the
  * employee dining/occupancy screen.
- * <p>
+ *
  * Each instance corresponds to one table and may include identifying
  * information about the diners currently seated at that table.
  * Some fields are nullable to allow representing partial or anonymous
  * dining data (e.g., walk-in customers without a subscription).
- * </p>
  *
- * <ul>
- *   <li>{@code tableNumber} – table identifier (always present)</li>
- *   <li>{@code phone} – contact phone number of the diner</li>
- *   <li>{@code email} – contact email of the diner</li>
- *   <li>{@code subscriberId} – subscriber ID if the diner is a registered subscriber, {@code null} otherwise</li>
- *   <li>{@code diners} – number of diners seated at the table, {@code null} if unknown</li>
- *   <li>{@code orderNumber} – active order number associated with the table, {@code null} if no order exists</li>
- * </ul>
+ * Fields:
+ * tableNumber – table identifier (always present)
+ * phone – contact phone number of the diner
+ * email – contact email of the diner
+ * subscriberId – subscriber ID if the diner is a registered subscriber, {@code null} otherwise
+ * diners – number of diners seated at the table, {@code null} if unknown
+ * orderNumber – active order number associated with the table, {@code null} if no order exists
  *
  * This class is {@link Serializable} to allow transferring instances
  * between client and server layers in the Bistro system.

@@ -8,32 +8,22 @@ import java.util.ArrayList;
 
 import logic.SpecialDay;
 import logic.Subscriber;
-import logic.WeekDay;
 import logic.WeeklySchedule;
 
 /**
  * Factory class for creating {@link BistroRequest} objects in a safe and
  * consistent manner.
- * <p>
- * This class centralizes the construction of client-to-server requests and
- * hides the details of {@link BistroCommand} values and payload structures from
- * the UI layer.
- * </p>
  *
- * <p>
- * Responsibilities:
- * <ul>
- * <li>Provide intention-revealing methods for each supported operation</li>
- * <li>Validate input parameters before request creation</li>
- * <li>Ensure payloads are constructed in the correct format</li>
- * <li>Reduce duplication and prevent command/payload mismatches</li>
- * </ul>
- * </p>
+ * Centralizes the construction of client-to-server requests and hides the
+ * details of {@link BistroCommand} values and payload structures from the UI
+ * layer.
  *
- * <p>
- * This class follows the <b>Factory Method</b> design pattern and is
- * implemented as a utility class (static methods only).
- * </p>
+ * Responsibilities include providing intention-revealing methods for each
+ * supported operation, validating input parameters, ensuring payloads use the
+ * correct format, and preventing command/payload mismatches.
+ *
+ * This class follows the Factory Method design pattern and is implemented as a
+ * utility class with only static methods.
  */
 public final class RequestFactory {
 
@@ -70,9 +60,8 @@ public final class RequestFactory {
 
 	/**
 	 * Creates a request to authenticate a worker by username and password.
-	 * <p>
+	 *
 	 * The payload is wrapped in {@link WorkerLoginRequest}.
-	 * </p>
 	 *
 	 * @param username worker username
 	 * @param password worker raw password
@@ -212,10 +201,9 @@ public final class RequestFactory {
 
 	/**
 	 * Creates a request to retrieve reservations by email address.
-	 * <p>
-	 * The server is expected to return all reservations whose {@code email} matches
-	 * the provided value.
-	 * </p>
+	 *
+	 * The server is expected to return all reservations whose {@code email}
+	 * matches the provided value.
 	 *
 	 * @param email the email address to search by
 	 * @return a {@link BistroRequest} for

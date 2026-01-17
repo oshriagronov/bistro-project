@@ -22,6 +22,15 @@ public class SubscriberOrderRow implements Serializable {
 	private int diners;
 	private Status status;
 
+	/**
+	 * @param orderId order identifier
+	 * @param confirmationCode confirmation code assigned to the order
+	 * @param date reservation date
+	 * @param startTime reservation start time
+	 * @param finishTime reservation finish time
+	 * @param diners number of diners
+	 * @param status reservation status
+	 */
 	public SubscriberOrderRow(int orderId, String confirmationCode, LocalDate date, LocalTime startTime,
 			LocalTime finishTime, int diners, Status status) {
 		this.orderId = orderId;
@@ -33,30 +42,37 @@ public class SubscriberOrderRow implements Serializable {
 		this.status = status;
 	}
 
+	/** @return the order identifier */
 	public int getOrderId() {
 		return orderId;
 	}
 
+	/** @return the confirmation code */
 	public String getConfirmationCode() {
 		return confirmationCode;
 	}
 
+	/** @return the reservation date */
 	public LocalDate getDate() {
 		return date;
 	}
 
+	/** @return the reservation start time */
 	public LocalTime getStartTime() {
 		return startTime;
 	}
 
+	/** @return the reservation finish time */
 	public LocalTime getFinishTime() {
 		return finishTime;
 	}
 
+	/** @return the number of diners */
 	public int getDiners() {
 		return diners;
 	}
 
+	/** @return the reservation status */
 	public Status getStatus() {
 		return status;
 	}

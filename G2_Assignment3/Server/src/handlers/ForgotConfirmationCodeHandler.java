@@ -8,7 +8,6 @@ import communication.BistroResponseStatus;
 import db.ConnectionToDB;
 import ocsf.server.ConnectionToClient;
 import server.Server;
-import service.NotificationService;
 
 /**
  * Handles {@code FORGOT_CONFIRMATION_CODE} requests.
@@ -64,16 +63,7 @@ public class ForgotConfirmationCodeHandler implements RequestHandler {
 			ArrayList<String> result = db.getForgotConfirmationCode(identifier);
 			if (result != null) {
 				String message = "Your confirmation code is: " + result.get(0) + "\nStart time is: " + result.get(1);
-
-				NotificationService service = NotificationService.getInstance();
-
-				if (hasText(phone)) {
-					service.sendSmsMessage(phone, message);
-				}
-				if (hasText(email)) {
-					service.sendEmailMessage(email, message);
-				}
-
+				server.sendNotification(phone, email, message);
 				response = new BistroResponse(BistroResponseStatus.SUCCESS, null);
 			} else {
 				response = new BistroResponse(BistroResponseStatus.FAILURE, null);
