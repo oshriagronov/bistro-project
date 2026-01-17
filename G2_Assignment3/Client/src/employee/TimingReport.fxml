@@ -14,66 +14,58 @@
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox prefHeight="667.0" prefWidth="666.0" spacing="14" styleClass="root" stylesheets="@../../../Css/style.css" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="employee.StatusReportController">
+<VBox prefHeight="700.0" prefWidth="900.0" spacing="14" styleClass="root" stylesheets="@../../../Css/style.css" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="employee.StatusReportController">
 
-	<padding>
-		<Insets bottom="18" left="18" right="18" top="18" />
-	</padding>
+    <padding>
+        <Insets bottom="18" left="18" right="18" top="18" />
+    </padding>
 
-	<!-- Header "card" -->
-	<VBox spacing="6">
-    <Label fx:id="reportTitle" styleClass="title" text="Timing Report" />
+    <VBox spacing="10" styleClass="form-card">
+        <Label fx:id="reportTitle" styleClass="title" text="Timing Report" />
+        <Label styleClass="subtitle" text="Monthly overview of reservation timing patterns." />
+        <Separator opacity="0.35" />
 
-    <Label styleClass="subtitle" text="Monthly overview of reservation timing patterns." />
+        <HBox alignment="CENTER_LEFT" spacing="15.0">
+            <Label text="Year:" />
+            <ComboBox fx:id="yearComboBox" minWidth="120.0" prefHeight="38.0" />
 
-    <Separator opacity="0.35" />
+            <Label text="Month:" />
+            <ComboBox fx:id="monthComboBox" minWidth="120.0" prefHeight="38.0" />
 
-    <HBox alignment="CENTER_LEFT" spacing="10.0" VBox.vgrow="ALWAYS">
-        <Label  text="Year:" />
+            <Label text="Report:" />
+            <ComboBox fx:id="reportTypeComboBox" minWidth="180.0" prefHeight="38.0" HBox.hgrow="ALWAYS" />
+        </HBox>
+    </VBox>
 
-        <ComboBox fx:id="yearComboBox" maxWidth="100.0" prefWidth="130.0" HBox.hgrow="ALWAYS" />
+    <VBox spacing="10" styleClass="form-card" VBox.vgrow="ALWAYS">
+        <HBox alignment="CENTER_LEFT">
+            <Label style="-fx-font-weight: bold; -fx-font-size: 16px;" text="Status Visualization" />
+        </HBox>
 
-        <Label text="Month:" />
-        <ComboBox fx:id="monthComboBox" maxWidth="100.0" prefWidth="131" HBox.hgrow="ALWAYS" />
+        <StackPane prefHeight="460" VBox.vgrow="ALWAYS">
+            <BarChart fx:id="statusBarChart" animated="false" legendVisible="true">
+                <xAxis>
+                    <CategoryAxis label="Month" />
+                </xAxis>
+                <yAxis>
+                    <NumberAxis fx:id="yAxis" forceZeroInRange="true" label="Reservations" minorTickVisible="false" tickUnit="1" />
+                </yAxis>
+            </BarChart>
 
-        <Label text="Report:" />
-        <ComboBox fx:id="reportTypeComboBox" maxWidth="100.0" prefWidth="102.0" HBox.hgrow="ALWAYS" />
-        <Button fx:id="menuBtn" onAction="#backToMenu" prefHeight="34.0" prefWidth="110.0" styleClass="back" text="Back" />
-    </HBox>
-</VBox>
+            <LineChart fx:id="departureLineChart" animated="false" legendVisible="true" managed="false" visible="false">
+                <xAxis>
+                    <CategoryAxis label="Month" />
+                </xAxis>
+                <yAxis>
+                    <NumberAxis fx:id="departureYAxis" forceZeroInRange="true" label="Minutes" minorTickVisible="false" />
+                </yAxis>
+            </LineChart>
+        </StackPane>
 
-
-	<!-- Chart "card" -->
-	<VBox spacing="10">
-		<HBox alignment="CENTER_LEFT">
-			<Label text="Status over time" />
-			<Region HBox.hgrow="ALWAYS" />
-		</HBox>
-
-		<!-- Chart switch area (keeps layout stable) -->
-		<StackPane prefHeight="460" VBox.vgrow="ALWAYS">
-
-			<!-- Existing chart (arrival / current) -->
-			<BarChart fx:id="statusBarChart" animated="false" legendVisible="true" prefHeight="460">
-				<xAxis>
-					<CategoryAxis label="Month" />
-				</xAxis>
-				<yAxis>
-					<NumberAxis fx:id="yAxis" forceZeroInRange="true" label="Reservations" minorTickVisible="false" tickUnit="1" />
-				</yAxis>
-			</BarChart>
-
-			<LineChart fx:id="departureLineChart" animated="false" legendVisible="true" managed="false" prefHeight="460" visible="false">
-				<xAxis>
-					<CategoryAxis label="Month" />
-				</xAxis>
-				<yAxis>
-					<NumberAxis fx:id="departureYAxis" forceZeroInRange="true" label="Minutes" minorTickVisible="false" />
-				</yAxis>
-			</LineChart>
-			
-
-		</StackPane>
-	</VBox>
-
+       
+    </VBox>
+	 <HBox alignment="CENTER_RIGHT">
+            <Region HBox.hgrow="ALWAYS" />
+            <Button fx:id="menuBtn" onAction="#backToMenu" prefHeight="38.0" prefWidth="120.0" styleClass="back" text="Back" />
+        </HBox>
 </VBox>

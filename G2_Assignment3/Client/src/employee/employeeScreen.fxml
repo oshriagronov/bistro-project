@@ -10,7 +10,7 @@
    <children>
       <Label layoutX="194.0" layoutY="25.0" styleClass="title" style="-fx-font-size: 28px;" text="Employee Menu" />
 
-      <VBox alignment="TOP_CENTER" layoutX="175.0" layoutY="85.0" prefWidth="250.0" spacing="15" styleClass="form-card">
+      <VBox alignment="TOP_CENTER" layoutX="175.0" layoutY="85.0" prefWidth="250.0" spacing="15">
          <children>
             <VBox alignment="CENTER" spacing="10">
                <children>

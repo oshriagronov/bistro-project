@@ -7,6 +7,7 @@ import javafx.scene.text.Text;
 import java.io.IOException;
 import java.sql.Date;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -38,6 +39,7 @@ public class WaitingListScreen {
     Alert alert = new Alert(Alert.AlertType.INFORMATION);
     private volatile boolean isActive = true;
 	private int numofhourstowait = 2;
+
 
     @FXML
     private Button backBtn;
@@ -81,6 +83,18 @@ public class WaitingListScreen {
 
     @FXML
     void initialize() {
+		LocalTime[] hours = Restaurant.getOpeningTime(LocalDate.now());
+		LocalTime now = LocalTime.now();
+		// Calculate the cutoff time for joining the waiting list, which is 2 hours before closing.
+		// A special case handles midnight closing to prevent LocalTime wrap-around issues.
+		LocalTime cutoff = (hours != null && hours[1] != null) ? (hours[1].equals(LocalTime.MIDNIGHT) ? LocalTime.of(22, 0) : hours[1].minusHours(2)) : LocalTime.MAX;
+		if (hours == null || hours[0] == null || hours[1] == null || hours[0].equals(hours[1]) || now.isBefore(hours[0]) || now.isAfter(cutoff)) {
+			infoVbox.setManaged(false);
+			infoVbox.setVisible(false);
+			tableResultText.setText("Restaurant is closed or closing soon\n see you next time!");
+			tableResultText.setVisible(true);
+			return;
+		}
 		if (LoggedUser.getType()==UserType.SUBSCRIBER) {
         	this.sub = ScreenSetup.setupSubscriber(nonSubVbox, workerVbox, null);
         }
@@ -110,14 +124,20 @@ public class WaitingListScreen {
 		LocalDate today = LocalDate.now();
 		LocalTime now = LocalTime.now();
 		BistroResponse response = null;
+		Integer orderNumber = null;
+		String phoneNumber = null;
+
 		if (diners.getValue() == null) {
 			showAlert("Error", "Please choose the diners amount");
+			return;
 		}
 		int num_of_diners = Integer.parseInt(diners.getValue());
+
 		if (sub != null){
+			phoneNumber = sub.getPhone();
 			Reservation r = new Reservation(today, num_of_diners, sub.getSubscriberId(), today, now, sub.getPhone(), Status.PENDING, sub.getEmail()) ;
 			Main.client.accept(new BistroRequest(BistroCommand.ADD_RESERVATION, r));
-			showAlert("Reservation Success", "Reservation successfully created.");
+			response = Main.client.getResponse();
 		}
 		
 		else if (worker != null && subCheckBox.isSelected()){
@@ -130,26 +150,29 @@ public class WaitingListScreen {
 			
 			if (phone.length() ==  10) {
 				Main.client.accept(new BistroRequest(BistroCommand.SEARCH_SUB_BY_PHONE, phone));
-				response = Main.client.getResponse();
-				if (response.getStatus() == BistroResponseStatus.SUCCESS) {
-					foundSub = (Subscriber) response.getData();
+				BistroResponse subResp = Main.client.getResponse();
+				if (subResp.getStatus() == BistroResponseStatus.SUCCESS) {
+					foundSub = (Subscriber) subResp.getData();
 				}
 			} else if (email != null && !email.isEmpty()) {
 				Main.client.accept(new BistroRequest(BistroCommand.SEARCH_SUB_BY_EMAIL, email));
-				response = Main.client.getResponse();
-				if (response.getStatus() == BistroResponseStatus.SUCCESS) {
-					foundSub = (Subscriber) response.getData();
+				BistroResponse subResp = Main.client.getResponse();
+				if (subResp.getStatus() == BistroResponseStatus.SUCCESS) {
+					foundSub = (Subscriber) subResp.getData();
 				}
 			} else {
 				showAlert("Error", "Please enter phone or email to place the order.");
+				return;
 			}
 			
 			if (foundSub != null) {
+				phoneNumber = foundSub.getPhone();
 				Reservation r = new Reservation(today, num_of_diners, foundSub.getSubscriberId(), today, now, foundSub.getPhone(), Status.PENDING, foundSub.getEmail());
 				Main.client.accept(new BistroRequest(BistroCommand.ADD_RESERVATION, r));
-				showAlert("Reservation Success", "Reservation successfully created for " + foundSub.getFirstName());
+				response = Main.client.getResponse();
 			} else {
 				showAlert("Error", "Subscriber not found. Please check details.");
+				return;
 			}
 		}
 		else{
@@ -161,26 +184,50 @@ public class WaitingListScreen {
 
 			if (phone_number.length() != 10) {
 				showAlert("Input Error", "Please enter a valid 10-digit phone number.");
+				return;
 			} else if (phone_number.isEmpty() && (email == null || email.trim().isEmpty())) {
 				showAlert("Input Error", "Please enter identifying information (Phone or Email).");
+				return;
 			} else {
+				phoneNumber = phone_number;
 				Reservation r = new Reservation(today, num_of_diners, nonSub, today, now, phone_number, Status.PENDING, email);
 				Main.client.accept(new BistroRequest(BistroCommand.ADD_RESERVATION, r));
 				response = Main.client.getResponse();
-				if (response != null && response.getStatus() == BistroResponseStatus.SUCCESS) {
-					showAlert("Reservation Success", "Reservation successfully created.");
-				} else {
-					showAlert("Error", "Failed to create reservation.");
-				}
 			}
 		}
-		Boolean table = searchTable(num_of_diners, today, now);
-		try{
-			if (table == true){
-				isActive = false;
+
+		if (response != null && response.getStatus() == BistroResponseStatus.SUCCESS) {
+			Object data = response.getData();
+			if (data instanceof Integer) {
+				orderNumber = (Integer) data;
+			} else if (data != null) {
+				try {
+					orderNumber = Integer.parseInt(data.toString());
+				} catch (NumberFormatException e) {
+					e.printStackTrace();
+				}
 			}
-		} catch (Exception e) {
-		e.printStackTrace();
+			if (orderNumber != null && searchTable(num_of_diners, today, now)) {
+				Main.client.accept(RequestFactory.changeStatus(phoneNumber, orderNumber, Status.CONFIRMED));
+				BistroResponse resResp = sendRequest(BistroCommand.GET_RESERVATION_BY_ORDER_NUMBER, orderNumber);
+				String confirmationCode = null;
+				if (resResp != null && resResp.getStatus() == BistroResponseStatus.SUCCESS && resResp.getData() instanceof Reservation) {
+					confirmationCode = ((Reservation) resResp.getData()).getConfirmationCode();
+
+				}
+				BistroResponse tableResp = sendRequest(BistroCommand.GET_TABLE_BY_CONFIRMATION_CODE, confirmationCode);
+				if (tableResp != null && tableResp.getStatus() == BistroResponseStatus.SUCCESS && tableResp.getData() != null) {
+					System.out.println("hi2"); //TODO delete
+					infoVbox.setVisible(false);
+					tableResultText.setText("Your table is: " + tableResp.getData().toString());
+					tableResultText.setVisible(true);
+					isActive = false;
+					return;
+				}
+			}
+			showAlert("Reservation Success", "Reservation successfully created.");
+		} else if (response != null) {
+			showAlert("Error", "Failed to create reservation.");
 		}
     }
 	/**
@@ -195,13 +242,15 @@ public class WaitingListScreen {
 	public Boolean searchTable(int num_of_diners, LocalDate today, LocalTime now) {
 		Main.client.accept(RequestFactory.getOrderIn4HoursRange(today, now));
 		BistroResponse response = Main.client.getResponse();
-		if (response != null && response.getStatus() == BistroResponseStatus.SUCCESS) {
+		if (response == null || response.getStatus() != BistroResponseStatus.SUCCESS) {
 			return false;
 		}
 		List <Integer> occupiedTables = (List<Integer>) response.getData();
+		List<Integer> groups = new ArrayList<>(occupiedTables);
+		groups.add(num_of_diners);
+		groups.sort(Integer::compareTo);
 		List<Integer> tableSizes = Restaurant.getTableSizes();
-		tableSizes.add(num_of_diners);
-		if(Restaurant.isAvailable(occupiedTables, tableSizes)){
+		if(Restaurant.isAvailable(groups, tableSizes)){
 			return true;
 		}
 		return false;

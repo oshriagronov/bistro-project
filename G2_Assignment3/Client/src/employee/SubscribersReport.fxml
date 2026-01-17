@@ -32,13 +32,13 @@
         <HBox alignment="CENTER_LEFT" spacing="10" VBox.vgrow="ALWAYS">
 
             <Label styleClass="filter-label" text="Year:" />
-            <ComboBox fx:id="yearCB" maxWidth="100.0" prefWidth="140" styleClass="combo-box" HBox.hgrow="ALWAYS" />
+            <ComboBox fx:id="yearCB" prefWidth="180.0" maxWidth="200.0" styleClass="combo-box" HBox.hgrow="ALWAYS" />
 
             <Label styleClass="filter-label" text="Month:" />
-            <ComboBox fx:id="monthCB" maxWidth="100.0" prefWidth="140" styleClass="combo-box" HBox.hgrow="ALWAYS" />
+            <ComboBox fx:id="monthCB" prefWidth="180.0" maxWidth="200.0" styleClass="combo-box" HBox.hgrow="ALWAYS" />
 
             <Label styleClass="filter-label" text="Report:" />
-            <ComboBox fx:id="reportsCB" maxWidth="100.0" prefWidth="92.0" styleClass="combo-box" HBox.hgrow="ALWAYS" />
+            <ComboBox fx:id="reportsCB" prefWidth="180.0" maxWidth="200.0" styleClass="combo-box" HBox.hgrow="ALWAYS" />
         </HBox>
     </VBox>
 

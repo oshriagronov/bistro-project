@@ -248,7 +248,7 @@ public final class RequestFactory {
 	// Subscribers
 	// -------------------------------------------------------------------------
 	public static BistroRequest getSubscriberById(int id) {
-		return withPayload(BistroCommand.GET_SUB, id);
+		return withPayload(BistroCommand.GET_SUBSCRIBER_BY_ID, id);
 	}
 	
 	public static BistroRequest addSubscriber(Subscriber sub, String password) {

@@ -102,7 +102,6 @@ public class Server extends AbstractServer {
 		handlers.put(BistroCommand.GET_SUBSCRIBER_CONFIRMATION_CODES, new GetSubscribersConfirmationCodesHandler());
 		handlers.put(BistroCommand.GET_SUBSCRIBER_ORDER_COUNTS, new GetSubscribersOrdersCountsHandler());
 		handlers.put(BistroCommand.UPDATE_SUBSCRIBER_INFO, new UpdateSubscriberInfoHandler());
-		handlers.put(BistroCommand.GET_SUB, new GetSubscriberByIdHandler());
 		handlers.put(BistroCommand.GET_SUBSCRIBER_ORDERS, new GetSubscriberOrdersHandler());
 
 		// Tables

@@ -9,7 +9,7 @@
    <children>
       <Label layoutX="175.0" layoutY="30.0" styleClass="title" style="-fx-font-size: 36px;" text="Reports Menu" />
 
-      <VBox alignment="TOP_CENTER" layoutX="175.0" layoutY="100.0" prefWidth="250.0" spacing="20.0" styleClass="form-card">
+      <VBox alignment="TOP_CENTER" layoutX="175.0" layoutY="100.0" prefWidth="250.0" spacing="20.0">
          <children>
             <VBox alignment="CENTER" spacing="15.0">
                <children>
@@ -21,6 +21,6 @@
          </children>
       </VBox>
 
-      <Button fx:id="menuBtn" layoutX="430.0" layoutY="340.0" mnemonicParsing="false" onAction="#Back" prefHeight="40.0" prefWidth="150.0" styleClass="back" text="Main menu" />
+      <Button fx:id="menuBtn" layoutX="430.0" layoutY="340.0" mnemonicParsing="false" onAction="#Back" prefHeight="40.0" prefWidth="150.0" styleClass="back" text="Back" />
    </children>
 </Pane>

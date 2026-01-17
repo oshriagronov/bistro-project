@@ -30,31 +30,12 @@
             </HBox>
 
             <!-- BUTTONS -->
-            <HBox alignment="CENTER">
-               <children>
-                  <Button id="WaitingListBtn"
-                          text="Waiting List"
-                          onAction="#openWaitingList"
-                          prefWidth="190"
-                          styleClass="primary"/>
-               </children>
-            </HBox>
 
             <HBox alignment="CENTER">
                <children>
                   <Button id="NewReservationBtn"
                           text="New Reservation"
                           onAction="#openNewReservation"
-                          prefWidth="190"
-                          styleClass="primary"/>
-               </children>
-            </HBox>
-
-            <HBox alignment="CENTER">
-               <children>
-                  <Button id="AcceptTable"
-                          text="Accept Table"
-                          onAction="#AcceptTable"
                           prefWidth="190"
                           styleClass="primary"/>
                </children>
@@ -69,6 +50,30 @@
                           styleClass="primary"/>
                </children>
             </HBox>
+
+            <HBox alignment="CENTER">
+               <children>
+                  <Button id="WaitingListBtn"
+                          text="Waiting List"
+                          onAction="#openWaitingList"
+                          prefWidth="190"
+                          styleClass="primary"/>
+               </children>
+            </HBox>
+
+            
+
+            <HBox alignment="CENTER">
+               <children>
+                  <Button id="AcceptTable"
+                          text="Accept Table"
+                          onAction="#AcceptTable"
+                          prefWidth="190"
+                          styleClass="primary"/>
+               </children>
+            </HBox>
+
+           
 
             <HBox alignment="CENTER">
                <children>

@@ -9,7 +9,7 @@
    <children>
       <Label alignment="CENTER" layoutX="100.0" layoutY="35.0" prefWidth="400.0" styleClass="title" style="-fx-font-size: 24px;" text="Restaurant Management" />
 
-      <VBox alignment="TOP_CENTER" layoutX="125.0" layoutY="90.0" prefWidth="350.0" spacing="12.0" styleClass="form-card">
+      <VBox alignment="TOP_CENTER" layoutX="125.0" layoutY="90.0" prefWidth="350.0" spacing="12.0">
          <children>
             <VBox alignment="CENTER" spacing="10.0">
                <children>
