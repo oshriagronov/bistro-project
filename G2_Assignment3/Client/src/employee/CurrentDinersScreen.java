@@ -7,6 +7,7 @@ import communication.BistroRequest;
 import communication.EventBus;
 import communication.EventListener;
 import communication.EventType;
+import communication.RequestFactory;
 import gui.Main;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -79,7 +80,8 @@ public class CurrentDinersScreen {
 	 * </p>
 	 */
 	private void loadTables() {
-		Main.client.accept(new BistroRequest(BistroCommand.LOAD_DINERS, null));
+		Main.client.accept(RequestFactory.getCurrentDiners());
+		
 		Object data = Main.client.getResponse().getData();
 
 		ArrayList<CurrentDinerRow> tables = (ArrayList<CurrentDinerRow>) data;
