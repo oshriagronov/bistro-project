@@ -10,7 +10,7 @@ public class ServerEvent implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	private final EventType type;
-	private final Object data; // payload (למשל LocalDate)
+	private final Object data; // payload
 
 	/** @param type event type being broadcast */
 	public ServerEvent(EventType type) {

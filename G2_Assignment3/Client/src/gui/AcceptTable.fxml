@@ -36,12 +36,16 @@
 
                 <!-- SUBSCRIBER CONFIRMATION -->
                 <HBox fx:id="subscriberConfirmationBox"
-                      spacing="10"
-                      managed="false"
-                      visible="false">
+                spacing="10"
+                managed="false"
+                visible="false">
                     <children>
                         <Text text="confirmation code"/>
-                        <ComboBox fx:id="subscriberConfirmationCodes"/>
+                            <ComboBox fx:id="subscriberConfirmationCodes" 
+                            prefWidth="200.0"
+                            minWidth="200.0" 
+                            prefHeight="40.0"
+                            HBox.hgrow="ALWAYS" />
                     </children>
                 </HBox>
 

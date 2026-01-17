@@ -1,6 +1,8 @@
 package subscriber;
 
 import java.util.ArrayList;
+
+import communication.BistroCommand;
 import communication.BistroResponse;
 import communication.BistroResponseStatus;
 import communication.RequestFactory;
@@ -16,6 +18,7 @@ import javafx.scene.control.ToggleButton;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import logic.LoggedUser;
+import logic.Subscriber;
 
 /**
  * Controller for the subscriber login view.
@@ -112,8 +115,8 @@ public class SubscriberLoginScreen {
             if (subID.length() != 5){
                 errors.append("Please scan your card again\n");
             }
-            else{
-                Main.client.accept(RequestFactory.getSubscriberById(Integer.parseInt(subID)));
+            else{;
+                Main.client.accept(RequestFactory.withPayload(BistroCommand.GET_SUBSCRIBER_BY_ID, Integer.parseInt(subID)));
                 response = Main.client.getResponse();
             }
         }
@@ -135,10 +138,16 @@ public class SubscriberLoginScreen {
         }
         if (ok && response.getStatus() == BistroResponseStatus.SUCCESS) {
             try {
-                Object subscriberCode = response.getData();
-                if(subscriberCode instanceof Integer){
+                Object subscriberData = response.getData();
+                Integer subscriberId = null;
+                if (subscriberData instanceof Integer) {
+                    subscriberId = (Integer) subscriberData;
+                } else if (subscriberData instanceof Subscriber) {
+                    subscriberId = ((Subscriber) subscriberData).getSubscriberId();
+                }
+                if(subscriberId != null){
                     // Save subscriber globally
-                    LoggedUser.setSubscriber((Integer)subscriberCode);
+                    LoggedUser.setSubscriber(subscriberId);
                     // Switch screen
                     Main.changeRoot(SubscriberScreen.fxmlPath);
                 }
