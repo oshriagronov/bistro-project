@@ -174,12 +174,12 @@ CREATE TABLE `workers` (
 LOCK TABLES `workers` WRITE;
 /*!40000 ALTER TABLE `workers` DISABLE KEYS */;
 INSERT INTO `workers` VALUES 
-('12345', 'test', '$2a$10$zGVDSeVGYOhcShbBB9ZwF.73fM6B3yIR6xkm3atXzy69X0RHYDWMy', 'employee'),
- (15357,'lior22','$2a$10$liorhash','manager'),
+('12345', 'test', '$2a$10$zGVDSeVGYOhcShbBB9ZwF.73fM6B3yIR6xkm3atXzy69X0RHYDWMy', 'manager'),
+ (15357,'lior22','$2a$10$liorhash','employee'),
  (74839,'shira7','$2a$10$shirahash','employee'),
  (86096,'yael99','$2a$10$yaelhash','employee'),
  (90865,'omer_x','$2a$10$omerhash','employee'),
- (90866, 'talmetz100', '$2a$10$AkIaIxSA67DBz3KWKzFBWONifu9eYOXsXLpaeGSx7gUilCX3CE7jC', 'manager'),
+ (90866, 'talmetz100', '$2a$10$AkIaIxSA67DBz3KWKzFBWONifu9eYOXsXLpaeGSx7gUilCX3CE7jC', 'employee'),
  (54321, 'worker', '12345', 'employee');
 /*!40000 ALTER TABLE `workers` ENABLE KEYS */;
 UNLOCK TABLES;

@@ -32,7 +32,9 @@
             <Text text="Database password:"/>
             <PasswordField fx:id="pwText"
                            prefHeight="32.0"
-                           prefWidth="300.0"
+                           prefWidth="250.0"
+                           maxWidth="250.0" 
+                           HBox.hgrow="ALWAYS"
                            styleClass="text-field"/>
          </children>
       </HBox>
@@ -42,7 +44,8 @@
               defaultButton="true"
               prefHeight="32.0"
               prefWidth="110.0"
-              styleClass="primary"/>
+              styleClass="primary"
+              onAction="#clickEnter"/>
 
    </children>
 </VBox>

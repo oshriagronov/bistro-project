@@ -10,6 +10,5 @@
 	<classpathentry kind="lib" path="libs/mysql-connector-j-9.5.0.jar"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/OCSF"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/Common"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/Css"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
