@@ -18,6 +18,7 @@ import db.ConnectionToDB;
 import handlers.AddReservationHandler;
 import handlers.AddSubscriberHandler;
 import handlers.AddTableHandler;
+import handlers.CancelReservationByIdHandler;
 import handlers.CancelReservationHandler;
 import handlers.ChangeStatusHandler;
 import handlers.ChangeTableSizeHandler;
@@ -43,6 +44,7 @@ import handlers.LoadDinersHandler;
 import handlers.LoadSpecialDatesHandler;
 import handlers.LoadWeeklyScheduleHandler;
 import handlers.RequestHandler;
+import handlers.ReservationByCodeHandler;
 import handlers.ReservationByOrderNumberHandler;
 import handlers.ReservationsByEmailHandler;
 import handlers.ReservationsByPhoneHandler;
@@ -83,11 +85,14 @@ public class Server extends AbstractServer {
 		handlers.put(BistroCommand.CANCEL_RESERVATION, new CancelReservationHandler());
 		handlers.put(BistroCommand.CHANGE_STATUS, new ChangeStatusHandler());
 		handlers.put(BistroCommand.GET_BILL, new GetBillHandler());
-
+		
+		handlers.put(BistroCommand.GET_ACTIVE_RESERVATION_BY_CODE, new ReservationByCodeHandler());
 		handlers.put(BistroCommand.GET_RESERVATION_BY_ORDER_NUMBER, new ReservationByOrderNumberHandler());
 		handlers.put(BistroCommand.GET_RESERVATIONS_BY_EMAIL, new ReservationsByEmailHandler());
 		handlers.put(BistroCommand.GET_ACTIVE_RESERVATIONS_BY_PHONE, new ReservationsByPhoneHandler());
+		handlers.put(BistroCommand.CANCEL_RESERVATION_BY_ID, new CancelReservationByIdHandler());
 
+		
 		handlers.put(BistroCommand.GET_TABLE_BY_IDENTIFIER_AND_CODE, new TableByIdentifierAndCodeHandler());
 		handlers.put(BistroCommand.FORGOT_CONFIRMATION_CODE, new ForgotConfirmationCodeHandler());
 		handlers.put(BistroCommand.SEND_CODE_TO_WAITING_LIST, new SendCodeToWaitingListCustomerHandler());

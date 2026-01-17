@@ -4,6 +4,7 @@ package gui;
 import communication.BistroCommand;
 import communication.BistroRequest;
 import communication.BistroResponse;
+import communication.RequestFactory;
 import javafx.scene.Node;
 import logic.LoggedUser;
 import logic.Subscriber;
@@ -21,7 +22,7 @@ public class ScreenSetup {
 	public static Subscriber setupSubscriber(Node nonSubContainer, Node workerContainer, Node subContainer) {
 		int id = LoggedUser.getId();
 
-		BistroRequest request = new BistroRequest(BistroCommand.GET_SUBSCRIBER_BY_ID, id);
+		BistroRequest request = RequestFactory.getSubscriberById(id);
 		Main.client.accept(request);
 
 		BistroResponse response = Main.client.getResponse();
@@ -56,7 +57,7 @@ public class ScreenSetup {
 	 */
 	public static void setupWorkerView(Node nonSubContainer, Node workerContainer, Node subContainer) {
 		int id = LoggedUser.getId();
-		BistroRequest request = new BistroRequest(BistroCommand.GET_WORKER, id);
+		BistroRequest request = RequestFactory.getWorkerById(id);
 		Main.client.accept(request);
 
 		BistroResponse response = Main.client.getResponse();

@@ -288,6 +288,22 @@ public class ConnectionToDB {
 			return executeWriteQuery(sql.toString(), confirmationCode, email);
 		}
 	}
+	
+	/**
+	 * Cancels a reservation by setting its order_status to 'CANCELLED'
+	 * using only the confirmation code.
+	 *
+	 * @param confirmationCode the confirmation code of the reservation
+	 * @return number of affected rows (1 if success, 0 if not found)
+	 */
+	public int CancelReservationByID(int resId) {
+	    String sql = "UPDATE reservations " +
+	                 "SET order_status = 'CANCELLED' " +
+	                 "WHERE res_id = ?";
+
+	    return executeWriteQuery(sql, resId);
+	}
+
 
 	/**
 	 * Inserts a new reservation into the 'reservations' table. Uses a prepared SQL
@@ -558,6 +574,40 @@ public class ConnectionToDB {
 		List<List<Object>> rows = executeReadQuery(sql, confirmationCode, status);
 		return rows.isEmpty() ? null : buildReservationFromRow(rows.get(0));
 	}
+	
+	
+	/**
+	 * Fetches the reservation ID (res_id) from the database using a confirmation code.
+	 * 
+	 * @param code the confirmation code to search for
+	 * @return the reservation ID if found; -1 if no matching reservation exists or on error
+	 */
+	public int getOrderByConfirmationCode(String code) {
+	    String sql = "SELECT res_id FROM reservations WHERE confirmation_code = ? AND (order_status='CONFIRMED' OR order_status='PENDING')";
+	    
+
+	    List<List<Object>> rows = executeReadQuery(sql, code);
+	    
+	    // Check if any rows were returned
+	    if (!rows.isEmpty() && rows.get(0).size() > 0) {
+	        Object val = rows.get(0).get(0); 
+	        
+	        // If the value is an Integer, return it directly
+	        if (val instanceof Integer) {
+	            return (Integer) val;
+	        } 
+	        // If the value is not an Integer but not null (e.g., String), try parsing
+	        else if (val != null) {
+	            try {
+	                return Integer.parseInt(val.toString());
+	            } catch (NumberFormatException e) {
+	                e.printStackTrace();
+	            }
+	        }
+	    }
+	    
+	    return -1;
+	}
 
 	/**
 	 * Retrieves the active order number (reservation ID) associated with a given
@@ -613,6 +663,9 @@ public class ConnectionToDB {
 	 */
 	public int changeOrderStatus(String phone, int order_number, Status status) {
 		String sql = "UPDATE `reservations` SET order_status = ? WHERE phone = ? AND res_id = ?";
+		if(status==status.CONFIRMED) {
+			sql = "UPDATE `reservations` SET order_status = ? , start_time= CURRENT_TIME() WHERE phone = ? AND res_id = ?";
+		}
 		return executeWriteQuery(sql, status.name(), phone, order_number);
 	}
 
@@ -744,8 +797,8 @@ public class ConnectionToDB {
 	 */
 	public int searchAvailableTableBySize(int number_of_guests) {
 		String sql = "SELECT table_number FROM tablestable "
-				+ "WHERE (res_id IS NULL OR res_id = 0) AND CAST(CAST(size AS CHAR) AS UNSIGNED) >= ? "
-				+ "ORDER BY CAST(CAST(size AS CHAR) AS UNSIGNED) ASC, table_number ASC LIMIT 1";
+                + "WHERE (res_id IS NULL OR res_id = 0) AND CAST(CAST(size AS CHAR) AS UNSIGNED) >= ? "
+                + "ORDER BY CAST(CAST(size AS CHAR) AS UNSIGNED) ASC, table_number ASC LIMIT 1";
 		List<List<Object>> rows = executeReadQuery(sql, number_of_guests);
 		if (rows.isEmpty() || rows.get(0).isEmpty()) {
 			return 0;

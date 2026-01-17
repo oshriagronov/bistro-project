@@ -6,6 +6,7 @@ import java.time.LocalTime;
 import java.time.YearMonth;
 import java.util.ArrayList;
 
+import logic.Reservation;
 import logic.SpecialDay;
 import logic.Subscriber;
 import logic.WeeklySchedule;
@@ -147,7 +148,7 @@ public final class RequestFactory {
 	// -------------------------------------------------------------------------
 	// Orders / reservations
 	// -------------------------------------------------------------------------
-
+	
 	/**
 	 * Creates a request to cancel an existing reservation.
 	 *
@@ -198,7 +199,34 @@ public final class RequestFactory {
 		}
 		return withPayload(BistroCommand.GET_ACTIVE_RESERVATIONS_BY_PHONE, phone);
 	}
-
+	/**
+	 * Creates a request to retrieve active reservations by code.
+	 *
+	 * @param search Reservation by code
+	 * @return a {@link BistroRequest} for
+	 *         {@link BistroCommand#GET_ACTIVE_RESERVATIONS_BY_CODE}
+	 * @throws IllegalArgumentException if {@code } is null or blank
+	 */
+	public static BistroRequest getActiveReservationsByCode(String code) {
+		if (code == null || code.isBlank()) {
+			throw new IllegalArgumentException("Code is required");
+		}
+		return withPayload(BistroCommand.GET_ACTIVE_RESERVATION_BY_CODE, code);
+	}
+	/**
+	 * Creates a request to retrieve active reservations by code.
+	 *
+	 * @param search Reservation by code
+	 * @return a {@link BistroRequest} for
+	 *         {@link BistroCommand#GET_ACTIVE_RESERVATIONS_BY_CODE}
+	 * @throws IllegalArgumentException if {@code } is null or blank
+	 */
+	public static BistroRequest cancelById(int id) {
+		if (id == 0 ) {
+			throw new IllegalArgumentException("Id is required");
+		}
+		return withPayload(BistroCommand.CANCEL_RESERVATION_BY_ID, id);
+	}
 	/**
 	 * Creates a request to retrieve reservations by email address.
 	 *
@@ -390,6 +418,14 @@ public final class RequestFactory {
 
 	public static BistroRequest getOrderIn4HoursRange(LocalDate date, LocalTime time) {
 		return withPayload(BistroCommand.GET_ORDERS_IN_RANGE, new OrdersInRangeRequest(date, time));
+	}
+
+	public static BistroRequest getWorkerById(int id) {
+		return withPayload(BistroCommand.GET_WORKER, id);
+	}
+
+	public static BistroRequest addReservation(Reservation r) {
+	    return new BistroRequest(BistroCommand.ADD_RESERVATION, r);
 	}
 
 }

@@ -132,10 +132,12 @@ public class WaitingListScreen {
 		}
 		int num_of_diners = Integer.parseInt(diners.getValue());
 
+		
 		if (sub != null){
 			phoneNumber = sub.getPhone();
+			
 			Reservation r = new Reservation(today, num_of_diners, sub.getSubscriberId(), today, now, sub.getPhone(), Status.PENDING, sub.getEmail()) ;
-			Main.client.accept(new BistroRequest(BistroCommand.ADD_RESERVATION, r));
+			Main.client.accept( RequestFactory.addReservation(r));//add
 			response = Main.client.getResponse();
 		}
 		
@@ -213,6 +215,7 @@ public class WaitingListScreen {
 				if (resResp != null && resResp.getStatus() == BistroResponseStatus.SUCCESS && resResp.getData() instanceof Reservation) {
 					confirmationCode = ((Reservation) resResp.getData()).getConfirmationCode();
 				}
+
 				BistroResponse tableResp = sendRequest(BistroCommand.GET_TABLE_BY_CONFIRMATION_CODE, confirmationCode);
 				if (tableResp != null && tableResp.getStatus() == BistroResponseStatus.SUCCESS && tableResp.getData() != null) {
 					infoVbox.setVisible(false);
@@ -284,41 +287,7 @@ public class WaitingListScreen {
 	    return null;
 	}
 
-	/**
-	 * Starts a background thread to monitor opening and closing times.
-	 * Resets the waiting list when the restaurant closes.
-	 
-	public static void checkOpeningAndClosingTime() {
-		LocalDate today = LocalDate.now();
-		new Thread(() -> {
-			while (true) {
-				LocalTime now = LocalTime.now();
-				LocalTime[] openingTimes = Restaurant.getOpeningTime(today);
-				if (now.isAfter(openingTimes[1])) {
-					Main.client.accept(RequestFactory.resetWaitingList());
-				}
-				try {
-					Thread.sleep(1800000); // Check every 30 minutes
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				}
-			}
-		}).start();
 
-		Main.client.accept(RequestFactory.getAllPendingReservations());
-		BistroResponse res = Main.client.getResponse();
-		if (res.getStatus() == BistroResponseStatus.SUCCESS) {
-			List<Reservation> pending = (List<Reservation>) res.getData();
-			LocalDate today = LocalDate.now();
-			LocalTime now = LocalTime.now();
-			for (Reservation r : pending) {
-				if (r.getOrderDate().equals(today) && r.getStart_time().plusHours(1).isBefore(now)) {
-					Main.client.accept(RequestFactory.changeStatus(r.getPhone_number(), r.getOrderNumber(), Status.CANCELLED));
-				}
-			}
-		}
-	}
-	*/
 	/**
 	 * Checks with thread the waiting list for pending reservations that already past 1 hour
 	 * If a reservation already past 1 hour, change its status to CANCELLED 
