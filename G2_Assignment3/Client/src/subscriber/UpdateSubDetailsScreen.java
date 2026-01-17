@@ -119,8 +119,7 @@ public class UpdateSubDetailsScreen {
             updatedSubscriber.setUsername(username);
         }
         if (!password.isBlank()) {
-            String hash = BCrypt.hashpw(password, BCrypt.gensalt());
-            updatedSubscriber.setPasswordHash(hash);
+            updatedSubscriber.setPasswordHash(BCrypt.hashpw(password, BCrypt.gensalt()));
         }
         if (!firstName.isBlank()) {
             updatedSubscriber.setFirstName(firstName);
@@ -129,12 +128,19 @@ public class UpdateSubDetailsScreen {
             updatedSubscriber.setLastName(lastName);
         }
         Main.client.accept(new BistroRequest(BistroCommand.UPDATE_SUBSCRIBER_INFO, updatedSubscriber));
-        boolean isSuccess = Main.client.getResponse().getStatus() == BistroResponseStatus.SUCCESS;
-        String title = isSuccess ? "Success" : "Error";
-        String message = isSuccess
-                ? "Information updated successfully."
-                : "Something went wrong with sending the request to the server.";
-        showAlert(title, message);
+        BistroResponse response = Main.client.getResponse();
+        BistroResponseStatus status = response.getStatus();
+        if (status == BistroResponseStatus.SUCCESS) {
+            showAlert("Success", "Information updated successfully.");
+        } else if (status == BistroResponseStatus.ALREADY_EXISTS) {
+            showAlert("Username Already Exists", "Please choose a different username.");
+        } else {
+            String message = "Something went wrong with sending the request to the server.";
+            if (response.getData() instanceof String) {
+                message = (String) response.getData();
+            }
+            showAlert("Error", message);
+        }
 
 
 

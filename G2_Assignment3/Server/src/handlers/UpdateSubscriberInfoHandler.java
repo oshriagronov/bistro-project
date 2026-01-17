@@ -40,8 +40,15 @@ public class UpdateSubscriberInfoHandler implements RequestHandler {
 			return new BistroResponse(BistroResponseStatus.FAILURE, "Missing subscriber id.");
 		}
 
+		String username = subscriber.getUsername();
+		if (username != null && !username.trim().isEmpty()
+				&& db.isSubscriberUsernameTaken(username, subscriber.getSubscriberId())) {
+			return new BistroResponse(BistroResponseStatus.ALREADY_EXISTS, "Username already exists.");
+		}
+
 		int updatedRows = db.updateSubscriberInfo(subscriber);
 
-		return new BistroResponse(updatedRows >= 1 ? BistroResponseStatus.SUCCESS : BistroResponseStatus.FAILURE, null);
+		return new BistroResponse(updatedRows >= 1 ? BistroResponseStatus.SUCCESS : BistroResponseStatus.FAILURE,
+				updatedRows >= 1 ? null : "Failed to update subscriber info.");
 	}
 }
