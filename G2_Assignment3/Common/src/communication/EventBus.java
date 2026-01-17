@@ -6,26 +6,18 @@ import javafx.application.Platform;
 
 /**
  * A simple client-side Event Bus implementation.
- * <p>
  * The EventBus allows different parts of the application (e.g. JavaFX screens)
  * to communicate using events without being directly coupled to each other.
- * <p>
  * Screens can subscribe to specific {@link EventType}s and will be notified
  * whenever such an event is published.
- * <p>
  * All event listeners are executed on the JavaFX Application Thread using
  * {@link Platform#runLater(Runnable)}, making it safe to update UI components.
  *
- * <h2>Typical usage:</h2>
- * 
- * <pre>
- * EventBus.getInstance().subscribe(EventType.ORDER_CHANGED, listener);
- * EventBus.getInstance().publish(EventType.ORDER_CHANGED);
- * </pre>
+ * Typical usage: {@code EventBus.getInstance().subscribe(EventType.ORDER_CHANGED, listener);}
+ * {@code EventBus.getInstance().publish(EventType.ORDER_CHANGED);}
  *
- * <p>
- * This class is implemented as a Singleton, since the application requires a
- * single shared event dispatcher on the client side.
+ * This class is implemented as a Singleton so the application shares a single
+ * event dispatcher on the client side.
  */
 public class EventBus {
 
@@ -36,9 +28,7 @@ public class EventBus {
 
 	/**
 	 * Maps each {@link EventType} to the list of listeners interested in that
-	 * event.
-	 * <p>
-	 * A {@link ConcurrentHashMap} is used to allow safe access from multiple
+	 * event. A {@link ConcurrentHashMap} is used to allow safe access from multiple
 	 * threads (e.g. JavaFX thread and network thread).
 	 */
 	private final Map<EventType, List<EventListener>> listeners = new ConcurrentHashMap<>();
@@ -59,9 +49,8 @@ public class EventBus {
 	}
 
 	/**
-	 * Subscribes a listener to a specific event type.
-	 * <p>
-	 * The listener will be notified every time the given event type is published.
+	 * Subscribes a listener to a specific event type. The listener will be notified
+	 * every time the given event type is published.
 	 *
 	 * @param type     the event type to listen for
 	 * @param listener the listener to register
@@ -71,10 +60,9 @@ public class EventBus {
 	}
 
 	/**
-	 * Unsubscribes a listener from a specific event type.
-	 * <p>
-	 * This should be called when a screen is closed or no longer needs to receive
-	 * events, in order to avoid memory leaks.
+	 * Unsubscribes a listener from a specific event type. This should be called
+	 * when a screen is closed or no longer needs to receive events to avoid
+	 * memory leaks.
 	 *
 	 * @param type     the event type
 	 * @param listener the listener to remove
@@ -87,11 +75,9 @@ public class EventBus {
 	}
 
 	/**
-	 * Publishes an event of the given type.
-	 * <p>
-	 * All registered listeners for this event type will be notified. The
-	 * notification is executed on the JavaFX Application Thread, making it safe to
-	 * update UI components inside the listener.
+	 * Publishes an event of the given type. All registered listeners for this event
+	 * type will be notified. The notification is executed on the JavaFX Application
+	 * Thread, making it safe to update UI components inside the listener.
 	 *
 	 * @param type the event type to publish
 	 */
@@ -106,10 +92,8 @@ public class EventBus {
 	}
 
 	/**
-	 * Removes all registered listeners.
-	 * <p>
-	 * This method can be useful when logging out or resetting the application
-	 * state.
+	 * Removes all registered listeners. This method can be useful when logging out
+	 * or resetting the application state.
 	 */
 	public void clear() {
 		listeners.clear();

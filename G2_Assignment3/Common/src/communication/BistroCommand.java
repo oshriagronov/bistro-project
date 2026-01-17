@@ -1,5 +1,6 @@
 package communication;
 
+/** Enumerates the commands the client can send to the Bistro server. */
 public enum BistroCommand {
     SUBSCRIBER_LOGIN,
     EMPLOYEE_LOGIN,
