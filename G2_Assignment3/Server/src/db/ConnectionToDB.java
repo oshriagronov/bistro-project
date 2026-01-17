@@ -1495,7 +1495,7 @@ public class ConnectionToDB {
 				String stringReservationId = reservation.get(0);
 				if (stringReservationId == null || stringReservationId.trim().isEmpty())
 					continue;
-				result += this.changeOrderStatus(reservation.get(1), Integer.valueOf(reservation.get(0)), Status.CANCELLED);
+				result += this.changeOrderStatus(reservation.get(1), Integer.valueOf(reservation.get(0)), Status.LATE_CANCEL);
 				this.clearTableByResId(toInteger(stringReservationId));
 			}	
 		}
