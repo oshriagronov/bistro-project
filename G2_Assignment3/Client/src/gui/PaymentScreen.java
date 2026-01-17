@@ -18,7 +18,6 @@ import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import logic.LoggedUser;
 import logic.Reservation;
-import logic.Subscriber;
 import logic.UserType;
 import subscriber.SubscriberScreen;
 import employee.employeeMenu;
@@ -70,11 +69,12 @@ public class PaymentScreen {
     @FXML
     void initialize() {
         total.setVisible(false);
+        boolean hasSubscriber = setupUserView();
         bindManagedToVisible(detailsVbox);
         bindManagedToVisible(subscriberConfirmationBox);
         bindManagedToVisible(submitHbox);
         bindManagedToVisible(total);
-        if (setupUserView()) {
+        if (hasSubscriber) {
             populateSubscriberConfirmationCodes();
         }
     }
