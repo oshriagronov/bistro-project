@@ -121,7 +121,7 @@ public class ConnectionToDB {
 	 * @return populated Reservation, or null if required fields are missing
 	 */
 	private static Reservation buildReservationFromRow(List<Object> row) {
-		if (row == null || row.size() < 11)
+		if (row == null || row.size() < 13)
 			return null;
 
 		Integer resId = toInteger(row.get(0));
@@ -484,9 +484,7 @@ public class ConnectionToDB {
 	 *         not found
 	 */
 	public Reservation searchOrderByOrderNumber(int order_number) {
-		String sql = "SELECT res_id, confirmation_code, phone, email, sub_id, start_time, finish_time, "
-				+ "       order_date, order_status, num_diners, date_of_placing_order "
-				+ "FROM reservations WHERE res_id = ?";
+		String sql = "SELECT * FROM reservations WHERE res_id = ?";
 		return readSingleReservation(sql, order_number);
 	}
 

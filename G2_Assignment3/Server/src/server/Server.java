@@ -261,7 +261,7 @@ public class Server extends AbstractServer {
 	private void startCheckReservationsTimer() {
 		checkReservationsService = Executors.newSingleThreadScheduledExecutor();
 		checkReservationsService.scheduleAtFixedRate(this::checkReservations, CHECK_INTERVAL, CHECK_INTERVAL,
-				TimeUnit.SECONDS);
+				TimeUnit.MINUTES);
 	}
 
 	/**

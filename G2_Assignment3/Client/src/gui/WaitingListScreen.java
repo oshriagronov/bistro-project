@@ -212,11 +212,9 @@ public class WaitingListScreen {
 				String confirmationCode = null;
 				if (resResp != null && resResp.getStatus() == BistroResponseStatus.SUCCESS && resResp.getData() instanceof Reservation) {
 					confirmationCode = ((Reservation) resResp.getData()).getConfirmationCode();
-
 				}
 				BistroResponse tableResp = sendRequest(BistroCommand.GET_TABLE_BY_CONFIRMATION_CODE, confirmationCode);
 				if (tableResp != null && tableResp.getStatus() == BistroResponseStatus.SUCCESS && tableResp.getData() != null) {
-					System.out.println("hi2"); //TODO delete
 					infoVbox.setVisible(false);
 					tableResultText.setText("Your table is: " + tableResp.getData().toString());
 					tableResultText.setVisible(true);
