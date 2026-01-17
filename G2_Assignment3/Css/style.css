@@ -188,3 +188,41 @@
 .primary.toggle-button:armed {
     -fx-background-color: #1B4F72;
 }
+
+/* ComboBox selected value */
+.combo-box .list-cell {
+    -fx-text-fill: #3a3a3a;
+    -fx-font-size: 14px;
+    -fx-font-family: "Segoe UI", Calibri, sans-serif;
+}
+
+/* ComboBox dropdown items */
+.combo-box-popup .list-cell {
+    -fx-text-fill: #3a3a3a;
+    -fx-font-size: 14px;
+}
+
+/* Hover on dropdown item */
+.combo-box-popup .list-cell:hover {
+    -fx-background-color: #e8f4fd;
+}
+
+/* Selected item in dropdown */
+.combo-box-popup .list-cell:selected {
+    -fx-background-color: #d1e9f9;
+}
+
+.table-view .label {
+    -fx-text-fill: #3a3a3a;
+    -fx-font-family: "Segoe UI", Calibri, sans-serif;
+}
+.table-view .placeholder .label {
+    -fx-text-fill: #6b6b6b;
+    -fx-font-style: italic;
+    -fx-font-size: 16px;
+}
+
+.table-view .cell {
+    -fx-text-fill: #3a3a3a;
+    -fx-alignment: CENTER_LEFT;
+}

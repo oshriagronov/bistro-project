@@ -29,7 +29,7 @@
     <Separator opacity="0.35" />
 
     <HBox alignment="CENTER_LEFT" spacing="10.0" VBox.vgrow="ALWAYS">
-        <Label style="-fx-font-size: 13px; -fx-text-fill: #374151;" text="Year:" />
+        <Label  text="Year:" />
 
         <ComboBox fx:id="yearComboBox" maxWidth="100.0" prefWidth="130.0" HBox.hgrow="ALWAYS" />
 
