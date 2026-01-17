@@ -10,75 +10,105 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
-<BorderPane style="-fx-background-color: #f6f7fb;" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="employee.TablesManagementScreen">
+<BorderPane styleClass="root" stylesheets="@../../../Css/style.css" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="employee.TablesManagementScreen">
 
-    <!-- TOP: Header card -->
-    <top>
-        <VBox style="-fx-padding: 18;">
-            <VBox spacing="8" style="-fx-background-color: white;                          -fx-padding: 14;                          -fx-background-radius: 12;                          -fx-border-radius: 12;                          -fx-border-color: #e6e8f0;">
-                <Label style="-fx-font-size: 22px; -fx-font-weight: 800;" text="Table Management" textFill="#000cf8" />
+    <!-- ===== TOP ===== -->
+   <top>
+    <VBox spacing="8" alignment="CENTER">
+        <Label text="Table Management"
+               styleClass="title"/>
 
-                <Label style="-fx-text-fill: #6a7286;" text="View all tables, edit a selected table, add new tables, or delete existing ones." />
-            </VBox>
-        </VBox>
-    </top>
+        <Label text="View all tables, edit a selected table, add new tables, or delete existing ones."
+               styleClass="subtitle"/>
+    </VBox>
+</top>
 
-    <!-- CENTER: Two cards (table + actions) -->
+
+    <!-- ===== CENTER ===== -->
     <center>
-        <HBox spacing="14" style="-fx-padding: 0 18 18 18;">
+    <HBox spacing="14" style="-fx-padding: 18;">
 
-            <!-- LEFT Card: Tables list -->
-            <VBox spacing="10" style="-fx-background-color: white;                          -fx-padding: 14;                          -fx-background-radius: 12;                          -fx-border-radius: 12;                          -fx-border-color: #e6e8f0;" HBox.hgrow="ALWAYS">
-                <Label style="-fx-font-size: 14px;                               -fx-font-weight: 800;                               -fx-text-fill: #1f2a44;" text="Tables" />
+        <!-- LEFT: Tables list -->
+        <VBox spacing="10"
+              styleClass="form-card"
+              HBox.hgrow="ALWAYS">
 
-                <TableView fx:id="tablesTable" prefHeight="470" style="-fx-background-radius: 10; -fx-border-radius: 10;" VBox.vgrow="ALWAYS">
-                    <columns>
-                        <TableColumn fx:id="tableNumberCol" prefWidth="160.0" text="Table Number" />
-                        <TableColumn fx:id="tableSizeCol" prefWidth="140.0" text="Table Size" />
-                        <TableColumn fx:id="reservationCol" prefWidth="220.0" text="Current reservation" />
-                    </columns>
-                </TableView>
-            </VBox>
+            <Label text="Tables"/>
 
-            <!-- RIGHT Card: Actions -->
-            <VBox prefWidth="260" spacing="12" style="-fx-background-color: white;                          -fx-padding: 14;                          -fx-background-radius: 12;                          -fx-border-radius: 12;                          -fx-border-color: #e6e8f0;">
+            <TableView fx:id="tablesTable"
+                       VBox.vgrow="ALWAYS">
 
-                <Label style="-fx-font-size: 14px;                               -fx-font-weight: 800;                               -fx-text-fill: #1f2a44;" text="Actions" />
+                <columns>
+                    <TableColumn fx:id="tableNumberCol" text="Table Number" prefWidth="160"/>
+                    <TableColumn fx:id="tableSizeCol" text="Table Size" prefWidth="140"/>
+                    <TableColumn fx:id="reservationCol" text="Current reservation" prefWidth="220"/>
+                </columns>
 
-                <!-- Edit size -->
-                <Label style="-fx-text-fill: #5a6275; -fx-font-weight: 700;" text="Edit selected table" />
+            </TableView>
+        </VBox>
 
-                <HBox alignment="CENTER_LEFT" spacing="10">
-                    <Label prefWidth="70" style="-fx-text-fill: #5a6275;" text="New size:" />
-                    <ComboBox fx:id="sizeCombo" prefHeight="32.0" prefWidth="160.0" />
-                </HBox>
+        <!-- RIGHT: Actions -->
+        <VBox prefWidth="260"
+              spacing="12"
+              styleClass="form-card">
 
-                <Button fx:id="applySizeBtn" maxWidth="Infinity" onAction="#clickEditSize" prefHeight="34" style="-fx-background-color: #2f5bea;                                -fx-text-fill: white;                                -fx-font-weight: 700;                                -fx-background-radius: 8;" text="Apply Size" />
+            <Label text="Actions"/>
 
-                <Separator />
+            <!-- Edit -->
+            <Label text="Edit selected table"/>
 
-                <!-- Add new table -->
-                <Label style="-fx-text-fill: #5a6275; -fx-font-weight: 700;" text="Add a new table" />
+            <HBox spacing="10">
+                <Label prefWidth="80" text="New size:"/>
+                <ComboBox fx:id="sizeCombo"
+                          maxWidth="Infinity"
+                          HBox.hgrow="ALWAYS"/>
+            </HBox>
 
-                <HBox alignment="CENTER_LEFT" spacing="10">
-                    <Label prefWidth="70" style="-fx-text-fill: #5a6275;" text="Table size:" />
-                    <ComboBox fx:id="newTableSize" prefHeight="32.0" prefWidth="160.0" />
-                </HBox>
+            <Button fx:id="applySizeBtn"
+                    text="Apply Size"
+                    onAction="#clickEditSize"
+                    maxWidth="Infinity"
+                    styleClass="primary"/>
 
-                <Button fx:id="addBtn" maxWidth="Infinity" onAction="#addNewTable" prefHeight="34" style="-fx-background-color: #eef1f7;                                -fx-text-fill: #1f2a44;                                -fx-font-weight: 700;                                -fx-background-radius: 8;" text="Add" />
+            <Separator/>
 
-                <Separator />
+            <!-- Add -->
+            <Label text="Add a new table"/>
 
-                <!-- Delete -->
-                <Button fx:id="deleteBtn" maxWidth="Infinity" onAction="#deleteTable" prefHeight="34" style="-fx-background-color: #ffe7e7;                                -fx-text-fill: #b42318;                                -fx-font-weight: 700;                                -fx-background-radius: 8;" text="Delete selected" />
+            <HBox spacing="10">
+                <Label prefWidth="80" text="Table size:"/>
+                <ComboBox fx:id="newTableSize"
+                          maxWidth="Infinity"
+                          HBox.hgrow="ALWAYS"/>
+            </HBox>
 
-                <!-- Push Back button to bottom -->
-                <VBox VBox.vgrow="ALWAYS" />
+            <Button fx:id="addBtn"
+                    text="Add"
+                    onAction="#addNewTable"
+                    maxWidth="Infinity"
+                    styleClass="primary"/>
 
-                <Button fx:id="menuBtn" maxWidth="Infinity" onAction="#clickMenu" prefHeight="36" style="-fx-background-color: #eef1f7;                                -fx-text-fill: #1f2a44;                                -fx-font-weight: 700;                                -fx-background-radius: 8;" text="Back to menu" />
-            </VBox>
+            <Separator/>
 
-        </HBox>
-    </center>
+            <!-- Delete -->
+            <Button fx:id="deleteBtn"
+                    text="Delete selected"
+                    onAction="#deleteTable"
+                    maxWidth="Infinity"
+                    styleClass="primary"/>
+
+            <!-- Spacer -->
+            <VBox VBox.vgrow="ALWAYS"/>
+
+            <!-- Back -->
+            <Button fx:id="menuBtn"
+                    text="Back to menu"
+                    onAction="#clickMenu"
+                    maxWidth="Infinity"
+                    styleClass="back"/>
+        </VBox>
+
+    </HBox>
+</center>
 
 </BorderPane>

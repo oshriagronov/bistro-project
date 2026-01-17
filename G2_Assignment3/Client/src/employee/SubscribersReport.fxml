@@ -12,99 +12,70 @@
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
-<?import javafx.scene.text.Font?>
 
-<VBox prefHeight="650" prefWidth="980" spacing="14"
-	style="-fx-background-color: #F6F7FB;"
-	xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
-	fx:controller="employee.SubscribersReportController">
+<VBox prefHeight="560.0" prefWidth="781.0" spacing="14" styleClass="root" stylesheets="@../../../Css/style.css" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="employee.SubscribersReportController">
 
-	<padding>
-		<Insets bottom="18" left="18" right="18" top="18" />
-	</padding>
+    <padding>
+        <Insets bottom="18" left="18" right="18" top="18" />
+    </padding>
 
-	<!-- Header card -->
-	<VBox spacing="6"
-		style="-fx-background-color: white; -fx-background-radius: 14; -fx-padding: 16;
-                 -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 18, 0.2, 0, 6);">
+    <!-- ===== HEADER ===== -->
+    <VBox spacing="8" styleClass="form-card" VBox.vgrow="ALWAYS">
 
-		<Label fx:id="reportTitleLabel"
-			style="-fx-font-size: 20px; -fx-font-weight: 700;"
-			text="Subscribers Report" textFill="#023fed">
-			<font>
-				<Font name="Calibri" size="12.0" />
-			</font>
-		</Label>
+        <Label fx:id="reportTitleLabel" styleClass="title" text="Subscribers Report" />
 
-		<Label fx:id="reportSubtitleLabel"
-			style="-fx-font-size: 12.5px; -fx-text-fill: #6B7280;"
-			text="Monthly overview: subscriber orders vs non-subscriber orders." />
+        <Label fx:id="reportSubtitleLabel" styleClass="subtitle" text="Monthly overview: subscriber orders vs non-subscriber orders." />
 
-		<Separator opacity="0.35" />
+        <Separator />
 
-		<!-- Filters row -->
-		<HBox alignment="CENTER_LEFT" spacing="10">
-			<Label style="-fx-font-size: 13px; -fx-text-fill: #374151;"
-				text="Year:" />
-			<ComboBox fx:id="yearCB" prefWidth="140"
-				style="-fx-background-radius: 10; -fx-font-size: 13px;" />
+        <!-- Filters -->
+        <HBox alignment="CENTER_LEFT" spacing="10" VBox.vgrow="ALWAYS">
 
-			<Label style="-fx-font-size: 13px; -fx-text-fill: #374151;"
-				text="Month:" />
-			<ComboBox fx:id="monthCB" prefWidth="140"
-				style="-fx-background-radius: 10; -fx-font-size: 13px;" />
+            <Label styleClass="filter-label" text="Year:" />
+            <ComboBox fx:id="yearCB" maxWidth="100.0" prefWidth="140" styleClass="combo-box" HBox.hgrow="ALWAYS" />
 
-			<Label style="-fx-font-size: 13px; -fx-text-fill: #374151;"
-				text="Report:" />
-			<ComboBox fx:id="reportsCB" prefWidth="200"
-				style="-fx-background-radius: 10; -fx-font-size: 13px;" />
+            <Label styleClass="filter-label" text="Month:" />
+            <ComboBox fx:id="monthCB" maxWidth="100.0" prefWidth="140" styleClass="combo-box" HBox.hgrow="ALWAYS" />
 
-			<Region HBox.hgrow="ALWAYS" />
+            <Label styleClass="filter-label" text="Report:" />
+            <ComboBox fx:id="reportsCB" maxWidth="100.0" prefWidth="92.0" styleClass="combo-box" HBox.hgrow="ALWAYS" />
+        </HBox>
+    </VBox>
 
-			<Button fx:id="backBtn" onAction="#backToMenu"
-				style="-fx-background-color: #111827; -fx-text-fill: white; -fx-background-radius: 10;
-                           -fx-padding: 8 14; -fx-font-weight: 600;"
-				text="Back" />
-		</HBox>
-	</VBox>
+    <!-- ===== CHART CARD ===== -->
+    <VBox prefHeight="312.0" prefWidth="745.0" spacing="10" styleClass="form-card">
 
-	<!-- Chart card -->
-	<VBox spacing="10"
-		style="-fx-background-color: white; -fx-background-radius: 14; -fx-padding: 16;
-                 -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 18, 0.2, 0, 6);">
+        <HBox alignment="CENTER_LEFT">
+            <Label fx:id="chartTitleLabel" styleClass="section-title" text="Orders split" />
+            <Region HBox.hgrow="ALWAYS" />
+        </HBox>
 
-		<HBox alignment="CENTER_LEFT">
-			<Label fx:id="chartTitleLabel"
-				style="-fx-font-size: 14px; -fx-font-weight: 700; -fx-text-fill: #111827;"
-				text="Orders split" />
-			<Region HBox.hgrow="ALWAYS" />
-		</HBox>
+        <StackPane prefHeight="460">
 
-		<!-- Holds both charts; controller toggles visible/managed -->
-		<StackPane prefHeight="460">
+            <PieChart fx:id="ordersSplitPieChart" animated="false" legendVisible="true" managed="true" visible="true" />
 
-			<!-- Pie chart (existing report) -->
-			<PieChart fx:id="ordersSplitPieChart" animated="false"
-				legendVisible="true" prefHeight="460" visible="true" managed="true" />
+            <LineChart fx:id="avgWaitLineChart" animated="false" legendVisible="false" managed="false" visible="false">
 
-			<!-- Line chart (new report: avg wait time per day) -->
-			<LineChart fx:id="avgWaitLineChart" animated="false"
-				legendVisible="false" prefHeight="460" visible="false"
-				managed="false">
+                <xAxis>
+                    <NumberAxis fx:id="avgWaitDayAxis" label="Day" minorTickVisible="false" tickUnit="1" />
+                </xAxis>
 
-				<xAxis>
-					<NumberAxis fx:id="avgWaitDayAxis" label="Day"
-						tickUnit="1" minorTickVisible="false" />
-				</xAxis>
+                <yAxis>
+                    <NumberAxis fx:id="avgWaitMinutesAxis" label="Average wait (minutes)" minorTickVisible="true" />
+                </yAxis>
 
-				<yAxis>
-					<NumberAxis fx:id="avgWaitMinutesAxis"
-						label="Average wait (minutes)" minorTickVisible="true" />
-				</yAxis>
+            </LineChart>
+        </StackPane>
+    </VBox>
 
-			</LineChart>
+      <!-- ===== BACK BUTTON (bottom right) ===== -->
+<HBox alignment="BOTTOM_RIGHT"
+      VBox.vgrow="ALWAYS">
 
-		</StackPane>
-	</VBox>
+    <Button fx:id="backBtn"
+            onAction="#backToMenu"
+            styleClass="back"
+            text="Back"/>
+</HBox>
 
 </VBox>
