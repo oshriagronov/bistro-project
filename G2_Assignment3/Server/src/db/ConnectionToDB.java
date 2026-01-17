@@ -1416,7 +1416,6 @@ public class ConnectionToDB {
 				    SELECT res_id, phone, email, confirmation_code
 				    FROM reservations
 				    WHERE order_status = 'CONFIRMED'
-					AND waitlist_enter_time IS NULL
 					AND TIMESTAMP(order_date, finish_time) < NOW()
 				""";
 		List<List<Object>> rows = executeReadQuery(sql);
