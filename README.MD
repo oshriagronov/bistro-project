@@ -1,7 +1,7 @@
 <br />
 <div align="center">
   <a href="https://github.com/oshriagronov/bistro-project">
-    <img src="/logo.png" alt="Logo" width="200" height="200">
+    <img src="/logo.png" alt="Logo" width="200" height="200" style="border-radius: 16px;">
   </a>
 
 <h3 align="center">Bistro Project</h3>
@@ -16,7 +16,7 @@ This repository includes the documentation and design assets created for the pro
 
 ## 📂 Included in This Repository
 - **Use Case Diagram** – defines system interactions and user actions
-- **Activity**
+- **Activity**: summarizes project activities, milestones, and progress throughout development
 - **Work Breakdown Structure (WBS)** – outlines project deliverables  
 - **Gantt Chart** – schedules and time planning  
 - **Functional & Non-Functional Requirements** – defines system expectations  
@@ -24,5 +24,4 @@ This repository includes the documentation and design assets created for the pro
 
 ---
 
-Developed as part of the courses Software Engineering Methods, Introduction to Software Testing, and Human–Computer Interaction 
-Software Engineering Students – Braude College
+The Project developed as part of the courses Software Engineering Methods, Introduction to Software Testing, and Human–Computer Interaction at Braude College.
