@@ -1,7 +1,7 @@
 <br />
 <div align="center">
   <a href="https://github.com/oshriagronov/bistro-project">
-    <img src="/logo.png" alt="Logo" width="200" height="200" style="border-radius: 16px;">
+    <img src="/logo.png" alt="Logo" width="200" height="200" style="border-radius: 30px;">
   </a>
 
 <h3 align="center">Bistro Project</h3>
