@@ -1,28 +1,19 @@
 # Bistro Project
 
-## Purpose
+**Bistro** — a restaurant ordering and serving queue management system.
+This repository includes the documentation and design assets created for the project, focusing on how the system manages digital ordering, serving, and queue flow in restaurants.
 
-Group project for Braude College.
+---
 
-Client/Server Java project with a GUI client and a server that connects to a database.
+## 📂 Included in This Repository
+- **Use Case Diagram** – defines system interactions and user actions
+- **Activity**
+- **Work Breakdown Structure (WBS)** – outlines project deliverables  
+- **Gantt Chart** – schedules and time planning  
+- **Functional & Non-Functional Requirements** – defines system expectations  
+- **Acceptance Test Specifications** – confirms system validity
 
-## Structure
+---
 
-- `Client/` – GUI client (see `Client/src/gui/Main.java`)
-- `Server/` – server + DB connection (see `Server/src/server/Main.java`)
-
-## Prerequisites
-
-- Java (JDK 8+)
-- A reachable database configured in `Server/src/server/ConnectionToDB.java`
-
-## Database setup
-
-- Use the provided `.sql` script in the repository to create/build the database schema and initial data (run it on your DB server before starting the app).
-
-## Run
-
-1. Start the server:
-   - Run `Server/src/server/Main.java`
-2. Start the client:
-   - Run `Client/src/gui/Main.java`
+Developed as part of the courses Software Engineering Methods, Introduction to Software Testing, and Human–Computer Interaction 
+Software Engineering Students – Braude College
